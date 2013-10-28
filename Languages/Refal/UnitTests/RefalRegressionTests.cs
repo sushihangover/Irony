@@ -85,12 +85,6 @@ namespace Refal.UnitTests
 		}
 
 		[TestMethod]
-		public void RefalTest_PrettyPrintExpressions()
-		{
-			RunSampleAndCompareResults("pretty.ref", "pretty.txt");
-		}
-
-		[TestMethod]
 		public void RefalTest_QuinePlain()
 		{
 			RunSampleAndCompareResults("quine-plain.ref");
