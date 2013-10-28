@@ -210,7 +210,7 @@ namespace Irony.GrammarExplorer {
       txtSource.SelectionStart = position;
       txtSource.SelectionLength = length;
       //txtSource.Select(location.Position, length);
-      txtSource.ScrollToCaret();
+      txtSource.DoCaretVisible();
       if (tabGrammar.SelectedTab != pageTest)
         tabGrammar.SelectedTab = pageTest;
       txtSource.Focus();
@@ -405,9 +405,11 @@ namespace Irony.GrammarExplorer {
       try {
         reader = new StreamReader(path);
         txtSource.Text = null;  //to clear any old formatting
+        txtSource.ClearUndo();
+        txtSource.ClearStylesBuffer();
         txtSource.Text = reader.ReadToEnd();
-        txtSource.Select(0, 0);
-
+        txtSource.SetVisibleState(0, FastColoredTextBoxNS.VisibleState.Visible);
+        txtSource.Selection = txtSource.GetRange(0, 0);
       } catch (Exception e) {
         MessageBox.Show(e.Message);
       } finally {
@@ -417,13 +419,13 @@ namespace Irony.GrammarExplorer {
     }
 
     //Source highlighting
-    RichTextBoxHighlighter _highlighter;
+    FastColoredTextBoxHighlighter _highlighter;
     private void StartHighlighter() {
       if (_highlighter != null)
         StopHighlighter();
       if (chkDisableHili.Checked) return;
       if (!_parser.Language.CanParse()) return;
-      _highlighter = new RichTextBoxHighlighter(txtSource, _language);
+      _highlighter = new FastColoredTextBoxHighlighter(txtSource, _language);
       _highlighter.Adapter.Activate();
     }
     private void StopHighlighter() {
@@ -433,9 +435,16 @@ namespace Irony.GrammarExplorer {
       ClearHighlighting();
     }
     private void ClearHighlighting() {
+      var selectedRange = txtSource.Selection;
+      var visibleRange = txtSource.VisibleRange;
+      var firstVisibleLine = Math.Min(visibleRange.Start.iLine, visibleRange.End.iLine);
+
       var txt = txtSource.Text;
       txtSource.Clear();
       txtSource.Text = txt; //remove all old highlighting
+
+      txtSource.SetVisibleState(firstVisibleLine, FastColoredTextBoxNS.VisibleState.Visible);
+      txtSource.Selection = selectedRange;
     }
     private void EnableHighlighter(bool enable) {
       if (_highlighter != null)
@@ -484,8 +493,8 @@ namespace Irony.GrammarExplorer {
           return txtNonTerms;
         case 2:
           return txtParserStates;
-        case 4:
-          return txtSource;
+        //case 4:
+        //  return txtSource;
         default:
           return null;
       }//switch
@@ -566,7 +575,7 @@ namespace Irony.GrammarExplorer {
       LoadSourceFile(dlgOpenFile.FileName);
     }
 
-    private void txtSource_TextChanged(object sender, EventArgs e) {
+    private void txtSource_TextChanged(object sender, FastColoredTextBoxNS.TextChangedEventArgs e) {
       _parseTree = null; //force it to recompile on run
     }
 
