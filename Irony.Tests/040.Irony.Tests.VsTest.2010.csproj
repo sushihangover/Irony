@@ -73,6 +73,7 @@
     <Compile Include="CommentTerminalTests.cs" />
     <Compile Include="ConflictResolutionTests.cs" />
     <Compile Include="DataLiteralsTests.cs" />
+    <Compile Include="EvaluatorTests.cs" />
     <Compile Include="Grammars\ConflictResolutionTestGrammar1.cs" />
     <Compile Include="Grammars\ConflictResolutionTestGrammar2.cs" />
     <Compile Include="Grammars\ConflictResolutionTestGrammar3.cs" />
@@ -80,7 +81,7 @@
     <Compile Include="Grammars\TestGrammar.cs" />
     <None Include="HeredocTerminalTests.cs" />
     <Compile Include="LineContinuationTests.cs" />
-    <Compile Include="RegExLiteralTests.cs" />
+    <Compile Include="RegexLiteralTests.cs" />
     <Compile Include="FreeTextLiteralTests.cs" />
     <Compile Include="IdentifierTerminalTests.cs" />
     <Compile Include="IntegrationTests.cs" />
