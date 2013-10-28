@@ -2,7 +2,6 @@
 // Written by Alexey Yakovlev <yallie@yandex.ru>
 // http://refal.codeplex.com
 
-using Irony.Ast; 
 using Irony.Interpreter;
 using Irony.Parsing;
 
@@ -19,7 +18,7 @@ namespace Refal
 			Span = sourceSpan;
 		}
 
-    public override void Init(AstContext context, ParseTreeNode treeNode)
+		public override void Init(ParsingContext context, ParseTreeNode treeNode)
 		{
 			base.Init(context, treeNode);
 			AsString = "extern " + Name;

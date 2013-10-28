@@ -15,9 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions; 
 using System.Text;
-using System.Reflection;
-
-using Irony.Ast;
+using Irony.Interpreter;
 using Irony.Parsing;
 
 namespace Irony.Interpreter.Ast {
@@ -27,19 +25,17 @@ namespace Irony.Interpreter.Ast {
     public ExpressionType Op;
     private OperatorImplementation _lastUsed;
     private object _constValue;
-    private int _failureCount;
+    private int _failureCount; 
 
     public BinaryOperationNode() { }
 
-    public override void Init(AstContext context, ParseTreeNode treeNode) {
+    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
-      var nodes = treeNode.GetMappedChildNodes();
-      Left = AddChild("Arg", nodes[0]);
-      Right = AddChild("Arg", nodes[2]);
-      var opToken = nodes[1].FindToken();
+      Left = AddChild("Arg", treeNode.MappedChildNodes[0]);
+      Right = AddChild("Arg", treeNode.MappedChildNodes[2]);
+      var opToken = treeNode.MappedChildNodes[1].FindToken();
       OpSymbol = opToken.Text;
-      var ictxt = context as InterpreterAstContext;
-      Op = ictxt.OperatorHandler.GetOperatorExpressionType(OpSymbol);
+      Op = context.GetOperatorExpressionType(OpSymbol);
       // Set error anchor to operator, so on error (Division by zero) the explorer will point to 
       // operator node as location, not to the very beginning of the first operand.
       ErrorAnchor = opToken.Location;
@@ -55,7 +51,7 @@ namespace Irony.Interpreter.Ast {
           break; 
         case ExpressionType.OrElse:
           this.Evaluate = EvaluateOrElse;
-          break;
+          break; 
         default:
           this.Evaluate = DefaultEvaluateImplementation;
           break; 

@@ -45,9 +45,8 @@ namespace Irony.Parsing {
     public static XmlElement ToXmlElement(this ParseTreeNode node, XmlDocument ownerDocument) {
       var xElem = ownerDocument.CreateElement("Node");
       xElem.SetAttribute("Term", node.Term.Name);
-      var term = node.Term; 
-      if (term.HasAstConfig() && term.AstConfig.NodeType != null) 
-        xElem.SetAttribute("AstNodeType", term.AstConfig.NodeType.Name);
+      if (node.Term.AstNodeType != null) 
+        xElem.SetAttribute("AstNodeType", node.Term.AstNodeType.Name);
       if (node.Token != null) {
         xElem.SetAttribute("Terminal", node.Term.GetType().Name);
         //xElem.SetAttribute("Text", node.Token.Text);

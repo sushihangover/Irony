@@ -12,7 +12,7 @@ namespace Irony.Parsing {
       StartSymbols = new StringList(symbols);
       if (StartSymbols.Count == 0)
         StartSymbols.AddRange(_defaultStartSymbols);
-      Priority = TerminalPriority.High;
+      Priority = Terminal.HighestPriority;
     }
 
     public StringList StartSymbols;
@@ -50,14 +50,14 @@ namespace Irony.Parsing {
         return result;
 
       // Report an error
-      return context.CreateErrorToken(Resources.ErrNewLineExpected);
+      return source.CreateErrorToken(Resources.ErrNewLineExpected);
     }
 
     private bool BeginMatch(ISourceStream source, int startFrom, char lookAhead) {
       foreach (var startSymbol in StartSymbols.Skip(startFrom)) {
         if (startSymbol[0] != lookAhead)
           continue;
-        if (source.MatchSymbol(startSymbol)) {
+        if (source.MatchSymbol(startSymbol, !Grammar.CaseSensitive)) {
           source.PreviewPosition += startSymbol.Length;
           return true;
         }
@@ -82,7 +82,7 @@ namespace Irony.Parsing {
         }
 
         // Eat up whitespace
-        if (this.Grammar.IsWhitespaceOrDelimiter(lookAhead))
+        if (GrammarData.Grammar.WhitespaceChars.IndexOf(lookAhead) >= 0)
         {
           source.PreviewPosition++;
           continue;

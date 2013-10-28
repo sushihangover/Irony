@@ -4,7 +4,6 @@
 
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
-using Irony.Ast;
 
 namespace Refal
 {
@@ -17,7 +16,7 @@ namespace Refal
 		/// Converts identifiers to compound symbols (strings in double quotes),
 		/// expands character strings (in single quotes) to arrays of characters
 		/// </summary>
-		public static void InitNode(AstContext context, ParseTreeNode parseNode)
+		public static void InitNode(ParsingContext context, ParseTreeNode parseNode)
 		{
 			foreach (var node in parseNode.ChildNodes)
 			{

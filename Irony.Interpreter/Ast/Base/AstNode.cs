@@ -17,16 +17,10 @@ using System.Text;
 using System.CodeDom;
 using System.Xml;
 using System.IO;
-
-using Irony.Ast;
 using Irony.Parsing;
 using Irony.Interpreter;
 
 namespace Irony.Interpreter.Ast {
-
-  public static class CustomExpressionTypes {
-    public const ExpressionType NotAnExpression =(ExpressionType) (-1);
-  }
 
   public class AstNodeList : List<AstNode> { }
 
@@ -34,7 +28,7 @@ namespace Irony.Interpreter.Ast {
   public partial class AstNode : IAstNodeInit, IBrowsableAstNode, IVisitableNode {
     public AstNode Parent;
     public BnfTerm Term;
-    public SourceSpan Span { get; set; }
+    public SourceSpan Span;
     public AstNodeFlags Flags;
     protected ExpressionType ExpressionType = CustomExpressionTypes.NotAnExpression;
     protected object LockObject = new object();
@@ -53,20 +47,17 @@ namespace Irony.Interpreter.Ast {
     // Default AstNode.ToString() returns 'Role: AsString', which is used for showing node in AST tree. 
     public string AsString { get; protected set; }
     public readonly AstNodeList ChildNodes = new AstNodeList();  //List of child nodes
-
+    
     //Reference to Evaluate method implementation. Initially set to DoEvaluate virtual method. 
     public EvaluateMethod Evaluate;
-    public ValueSetterMethod SetValue; 
 
     // Public default constructor
     public AstNode() {
-      this.Evaluate = DoEvaluate;
-      this.SetValue = DoSetValue;
+      Evaluate = DoEvaluate;
     }
-    public SourceLocation Location { get { return Span.Location; } }
 
     #region IAstNodeInit Members
-    public virtual void Init(AstContext context, ParseTreeNode treeNode) {
+    public virtual void Init(ParsingContext context, ParseTreeNode treeNode) {
       this.Term = treeNode.Term;
       Span = treeNode.Span;
       ErrorAnchor = this.Location;
@@ -103,7 +94,7 @@ namespace Irony.Interpreter.Ast {
       return null; 
     }
 
-    public virtual void DoSetValue(ScriptThread thread, object value) {
+    protected internal virtual void SetValue(ScriptThread thread, object value) {
       //Place the prolog/epilog lines in every implementation of SetValue method (see DoEvaluate above)
     }
 
@@ -133,8 +124,8 @@ namespace Irony.Interpreter.Ast {
     public virtual System.Collections.IEnumerable GetChildNodes() {
       return ChildNodes;
     }
-    public int Position { 
-      get { return Span.Location.Position; } 
+    public SourceLocation Location {
+      get { return Span.Location; }
     }
     #endregion
 

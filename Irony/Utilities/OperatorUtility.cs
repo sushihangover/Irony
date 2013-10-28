@@ -4,62 +4,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
-using Irony.Parsing; 
+namespace Irony.Parsing {
 
-namespace Irony.Interpreter.Ast {
+  public static class OperatorUtility {
 
-
-  public class OperatorInfo {
-    public string Symbol;
-    public ExpressionType ExpressionType;
-    public int Precedence;
-    public Associativity Associativity;
-  }
-
-  public class OperatorInfoDictionary : Dictionary<string, OperatorInfo> {
-    public OperatorInfoDictionary(bool caseSensitive) : base(caseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase) { }
-
-    public void Add(string symbol, ExpressionType expressionType, int precedence, Associativity associativity = Associativity.Left) {
-      var info = new OperatorInfo() {
-        Symbol = symbol, ExpressionType = expressionType,
-        Precedence = precedence, Associativity = associativity
-      };
-      this[symbol] = info;
-    }
-  }//class
-
-
-  public class OperatorHandler {
-    private OperatorInfoDictionary _registeredOperators;
-
-
-    public OperatorHandler(bool languageCaseSensitive) {
-      _registeredOperators = new OperatorInfoDictionary(languageCaseSensitive);
-      BuildDefaultOperatorMappings(); 
-    }
-
-    public ExpressionType GetOperatorExpressionType(string symbol) {
-      OperatorInfo opInfo;
-      if (_registeredOperators.TryGetValue(symbol, out opInfo))
-        return opInfo.ExpressionType;
-      return CustomExpressionTypes.NotAnExpression;
-    }
-
-    public virtual ExpressionType GetUnaryOperatorExpressionType(string symbol) {
-      switch (symbol.ToLowerInvariant()) {
-        case "+": return ExpressionType.UnaryPlus;
-        case "-": return ExpressionType.Negate;
-        case "!":
-        case "not":
-        case "~":
-          return ExpressionType.Not;
-        default:
-          return CustomExpressionTypes.NotAnExpression;
-      }
-    }
-
-
-    public virtual ExpressionType GetBinaryOperatorForAugmented(ExpressionType augmented) {
+    public static ExpressionType GetBinaryOperatorForAugmented(ExpressionType augmented) {
       switch(augmented) {
         case ExpressionType.AddAssign:
         case ExpressionType.AddAssignChecked:
@@ -90,10 +39,18 @@ namespace Irony.Interpreter.Ast {
           return CustomExpressionTypes.NotAnExpression;
       }
     }
+
+    private static ExpressionType[] _overflowOperators = new ExpressionType[] { 
+       ExpressionType.Add, ExpressionType.AddChecked, ExpressionType.Subtract, ExpressionType.SubtractChecked, 
+       ExpressionType.Multiply, ExpressionType.MultiplyChecked, ExpressionType.Power};
     
-    public virtual OperatorInfoDictionary BuildDefaultOperatorMappings() {
-      var dict = _registeredOperators;
-      dict.Clear(); 
+    public static bool CanOverflow(ExpressionType expression) {
+      return _overflowOperators.Contains(expression);
+
+    }
+
+    public static OperatorInfoDictionary GetDefaultOperatorMappings(bool caseSensitive) {
+      var dict = new OperatorInfoDictionary(caseSensitive);
       int p = 0; //precedence
 
       p += 10;

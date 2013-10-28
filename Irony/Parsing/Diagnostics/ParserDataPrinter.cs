@@ -50,8 +50,9 @@ namespace Irony.Parsing {
         sb.Append("  Transitions: ");
         bool atFirst = true; 
         foreach (BnfTerm key in state.Actions.Keys) {
-          var action = state.Actions[key] as ShiftParserAction;
-          if (action == null)
+          ParserAction action = state.Actions[key];
+          var hasTransitions = action.ActionType == ParserActionType.Shift || action.ActionType == ParserActionType.Operator;
+          if (!hasTransitions)
             continue;
           if (!atFirst) sb.Append(", ");
           atFirst = false; 
@@ -66,17 +67,17 @@ namespace Irony.Parsing {
     }
 
     public static string PrintTerminals(LanguageData language) {
-      var termList = language.GrammarData.Terminals.ToList();
-      termList.Sort((x, y) => string.Compare(x.Name, y.Name));
-      var result = string.Join(Environment.NewLine, termList);
-      return result; 
+      StringBuilder sb = new StringBuilder();
+      foreach (Terminal term in language.GrammarData.Terminals) {
+        sb.Append(term.ToString());
+        sb.AppendLine();
+      }
+      return sb.ToString();
     }
 
     public static string PrintNonTerminals(LanguageData language) {
       StringBuilder sb = new StringBuilder();
-      var ntList = language.GrammarData.NonTerminals.ToList();
-      ntList.Sort((x, y) => string.Compare(x.Name, y.Name));
-      foreach (var nt in ntList) {
+      foreach (NonTerminal nt in language.GrammarData.NonTerminals) {
         sb.Append(nt.Name);
         sb.Append(nt.Flags.IsSet(TermFlags.IsNullable) ? "  (Nullable) " : string.Empty);
         sb.AppendLine();

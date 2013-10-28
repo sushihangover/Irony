@@ -15,7 +15,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Linq.Expressions;
+using Irony.Parsing; 
 
 namespace Irony.Interpreter.Ast{ 
 
@@ -34,9 +34,4 @@ namespace Irony.Interpreter.Ast{
     void AcceptVisitor(IAstVisitor visitor);
   }
 
-  public interface IOperatorHelper {
-    ExpressionType GetOperatorExpressionType(string symbol);
-    ExpressionType GetUnaryOperatorExpressionType(string symbol);
-
-  }
 }

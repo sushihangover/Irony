@@ -14,7 +14,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
-using System.Linq;
 
 //Helper data classes for ParserDataBuilder
 // Note about using LRItemSet vs LRItemList. 
@@ -24,7 +23,7 @@ using System.Linq;
 // is used everywhere.
 namespace Irony.Parsing.Construction { 
 
-  public class ParserStateData {
+  internal class ParserStateData {
     public readonly ParserState State;
     public readonly LRItemSet AllItems = new LRItemSet();
     public readonly LRItemSet ShiftItems = new LRItemSet();
@@ -33,6 +32,7 @@ namespace Irony.Parsing.Construction {
     public readonly BnfTermSet ShiftTerms = new BnfTermSet();
     public readonly TerminalSet ShiftTerminals = new TerminalSet();
     public readonly TerminalSet Conflicts = new TerminalSet();
+    public readonly TerminalSet ResolvedConflicts = new TerminalSet();
     public readonly bool IsInadequate;
     public LR0ItemSet AllCores = new LR0ItemSet();
 
@@ -83,21 +83,15 @@ namespace Irony.Parsing.Construction {
           _readStateSet = new ParserStateSet(); 
           foreach(var shiftTerm in State.BuilderData.ShiftTerms)
             if (shiftTerm.Flags.IsSet(TermFlags.IsNullable)) {
-              var shift = State.Actions[shiftTerm] as ShiftParserAction;
-              var targetState = shift.NewState;
+              var targetState = State.Actions[shiftTerm].NewState;
               _readStateSet.Add(targetState);
               _readStateSet.UnionWith(targetState.BuilderData.ReadStateSet); //we shouldn't get into loop here, the chain of reads is finite
             }
         }//if 
         return _readStateSet;
       }
-    } ParserStateSet _readStateSet;
+    } ParserStateSet _readStateSet; 
 
-    public ParserState GetNextState(BnfTerm shiftTerm) {
-      var shift = ShiftItems.FirstOrDefault(item => item.Core.Current == shiftTerm);
-      if (shift == null) return null;
-      return shift.ShiftedItem.State; 
-    }
 
     public TerminalSet GetShiftReduceConflicts() {
       var result = new TerminalSet();
@@ -115,7 +109,7 @@ namespace Irony.Parsing.Construction {
   }//class
 
   //An object representing inter-state transitions. Defines Includes, IncludedBy that are used for efficient lookahead computation 
-  public class Transition {
+  internal class Transition {
     public readonly ParserState FromState;
     public readonly ParserState ToState;
     public readonly NonTerminal OverNonTerminal;
@@ -127,8 +121,7 @@ namespace Irony.Parsing.Construction {
     public Transition(ParserState fromState, NonTerminal overNonTerminal) {
       FromState = fromState;
       OverNonTerminal = overNonTerminal;
-      var shiftItem = fromState.BuilderData.ShiftItems.First(item=>item.Core.Current == overNonTerminal);
-      ToState = FromState.BuilderData.GetNextState(overNonTerminal);
+      ToState = FromState.Actions[overNonTerminal].NewState; 
       _hashCode = unchecked(FromState.GetHashCode() - overNonTerminal.GetHashCode());
       FromState.BuilderData.Transitions.Add(overNonTerminal, this);   
       Items = FromState.BuilderData.ShiftItems.SelectByCurrent(overNonTerminal);
@@ -163,11 +156,11 @@ namespace Irony.Parsing.Construction {
     }
   }//class
 
-  public class TransitionSet : HashSet<Transition> { }
-  public class TransitionList : List<Transition> { }
-  public class TransitionTable : Dictionary<NonTerminal, Transition> { }
+  internal class TransitionSet : HashSet<Transition> { }
+  internal class TransitionList : List<Transition> { }
+  internal class TransitionTable : Dictionary<NonTerminal, Transition> { }
 
-  public class LRItem {
+  internal class LRItem {
     public readonly ParserState State;
     public readonly LR0Item Core;
     //these properties are used in lookahead computations
@@ -190,19 +183,12 @@ namespace Irony.Parsing.Construction {
     public override int GetHashCode() {
       return _hashCode; 
     }
-
-    public TerminalSet GetLookaheadsInConflict() {
-      var lkhc = new TerminalSet();
-      lkhc.UnionWith(Lookaheads);
-      lkhc.IntersectWith(State.BuilderData.Conflicts);
-      return lkhc; 
-    }
-
+    
   }//LRItem class
 
-  public class LRItemList : List<LRItem> {}
+  internal class LRItemList : List<LRItem> {}
 
-  public class LRItemSet : HashSet<LRItem> {
+  internal class LRItemSet : HashSet<LRItem> {
 
     public LRItem FindByCore(LR0Item core) {
       foreach (LRItem item in this)
@@ -281,8 +267,8 @@ namespace Irony.Parsing.Construction {
 
   }//LR0Item
 
-  public class LR0ItemList : List<LR0Item> { }
-  public class LR0ItemSet : HashSet<LR0Item> { }
+  internal class LR0ItemList : List<LR0Item> { }
+  internal class LR0ItemSet : HashSet<LR0Item> { }
 
 
 

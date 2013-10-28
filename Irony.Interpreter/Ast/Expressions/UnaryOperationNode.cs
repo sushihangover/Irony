@@ -14,9 +14,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
-
-using Irony.Ast;
 using Irony.Parsing;
+using Irony.Interpreter;
 
 namespace Irony.Interpreter.Ast {
 
@@ -25,14 +24,13 @@ namespace Irony.Interpreter.Ast {
     public AstNode Argument;
     private OperatorImplementation _lastUsed;
 
-    public override void Init(AstContext context, ParseTreeNode treeNode) {
+    public UnaryOperationNode() { }
+    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
-      var nodes = treeNode.GetMappedChildNodes();
-      OpSymbol = nodes[0].FindTokenAndGetText();
-      Argument = AddChild("Arg", nodes[1]);
+      OpSymbol = treeNode.MappedChildNodes[0].FindTokenAndGetText();
+      Argument = AddChild("Arg", treeNode.MappedChildNodes[1]);
       base.AsString = OpSymbol + "(unary op)";
-      var interpContext = (InterpreterAstContext)context; 
-      base.ExpressionType = interpContext.OperatorHandler.GetUnaryOperatorExpressionType(OpSymbol);
+      base.ExpressionType = context.GetUnaryOperatorExpressionType(OpSymbol);
     }
 
     protected override object DoEvaluate(ScriptThread thread) {

@@ -39,7 +39,8 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -121,8 +122,7 @@
     <None Include="SourceSamples\SampleExpressionEvaluator\PerfTest.txt" />
     <None Include="SourceSamples\SampleExpressionEvaluator\UseMath.txt" />
     <None Include="SourceSamples\SampleExpressionEvaluator\UseEnv.txt" />
-    <None Include="SourceSamples\SampleExpressionEvaluator\MemberAccess.txt" />
-    <None Include="SourceSamples\SampleExpressionEvaluator\_more_samples.txt" />
+    <None Include="SourceSamples\SampleExpressionEvaluator\UseCustomBuiltIns.txt" />
     <Content Include="SourceSamples\SampleExpressionEvaluator\TestIif.txt" />
     <Content Include="SourceSamples\SampleExpressionEvaluator\TestFormatAndPrint.txt" />
     <Content Include="SourceSamples\SampleExpressionEvaluator\StringSample.txt" />

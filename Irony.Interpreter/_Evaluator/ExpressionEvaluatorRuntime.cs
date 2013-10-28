@@ -18,19 +18,9 @@ namespace Irony.Interpreter.Evaluator {
       BuiltIns.ImportStaticMembers(typeof(Environment));
     }
 
-    //Built-in methods
+    //An example of built-in methods
     private object BuiltInPrintMethod(ScriptThread thread, object[] args) {
-      string text = string.Empty;
-      switch(args.Length) {
-        case 1:
-          text = string.Empty + args[0]; //compact and safe conversion ToString()
-          break; 
-        case 0:
-          break; 
-        default:
-          text = string.Join(" ", args);
-          break; 
-      }
+      var text = string.Join(" ", args);
       thread.App.WriteLine(text);
       return null; 
     }
@@ -39,7 +29,7 @@ namespace Irony.Interpreter.Evaluator {
       var template = args[0] as string;
       if (template == null)
         this.ThrowScriptError("Format template must be a string.");
-      if (args.Length == 1) return template;
+      if (args.Length == 1) return args[0];
       //create formatting args array
       var formatArgs = args.Skip(1).ToArray(); 
       var text = string.Format(template, formatArgs); 

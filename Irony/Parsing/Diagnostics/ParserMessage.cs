@@ -14,26 +14,24 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using Irony.Parsing;
+namespace Irony.Parsing {
 
-namespace Irony {
-
-  public enum ErrorLevel {
+  public enum ParserErrorLevel {
     Info = 0,
     Warning = 1,
     Error = 2,
   }
 
   //Container for syntax errors and warnings
-  public class LogMessage {
-    public LogMessage(ErrorLevel level, SourceLocation location, string message, ParserState parserState) {
+  public class ParserMessage {
+    public ParserMessage(ParserErrorLevel level, SourceLocation location, string message, ParserState parserState) {
       Level = level; 
       Location = location;
       Message = message;
       ParserState = parserState;
     }
 
-    public readonly ErrorLevel Level;
+    public readonly ParserErrorLevel Level;
     public readonly ParserState ParserState;
     public readonly SourceLocation Location;
     public readonly string Message;
@@ -43,8 +41,8 @@ namespace Irony {
     }
   }//class
 
-  public class LogMessageList : List<LogMessage> {
-    public static int ByLocation(LogMessage x, LogMessage y) {
+  public class ParserMessageList : List<ParserMessage> {
+    public static int ByLocation(ParserMessage x, ParserMessage y) {
       return SourceLocation.Compare(x.Location, y.Location);
     }
   }

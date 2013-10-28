@@ -27,7 +27,7 @@ namespace Irony.Parsing {
         return source.CreateToken(this.OutputTerminal, value);
       } catch(Exception ex) {
         //we throw exception in DsvLiteral when we cannot find a closing quote for quoted value
-        return context.CreateErrorToken(ex.Message);
+        return source.CreateErrorToken(ex.Message);
       }
     }//method
 

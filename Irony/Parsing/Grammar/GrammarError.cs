@@ -34,9 +34,6 @@ namespace Irony.Parsing {
       State = state;
       Message = message; 
     }
-    public override string ToString() {
-      return Message + " (" + State + ")";
-    }
   }//class
 
   public class GrammarErrorList : List<GrammarError> {

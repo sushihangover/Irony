@@ -15,9 +15,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml;
-
 using Irony.Parsing;
-using Irony.Ast;
+using Irony.Interpreter;
 
 namespace Irony.Interpreter.Ast {
 
@@ -27,7 +26,7 @@ namespace Irony.Interpreter.Ast {
 
     public IdentifierNode() { }
 
-    public override void Init(AstContext context, ParseTreeNode treeNode) {
+    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
       Symbol = treeNode.Token.ValueString;
       AsString = Symbol; 
@@ -43,7 +42,7 @@ namespace Irony.Interpreter.Ast {
       return result; 
     }
 
-    public override void DoSetValue(ScriptThread thread, object value) {
+    protected internal override void SetValue(ScriptThread thread, object value) {
       thread.CurrentNode = this;  //standard prolog
       if (_accessor == null) {
         _accessor = thread.Bind(Symbol, BindingRequestFlags.Write | BindingRequestFlags.ExistingOrNew);

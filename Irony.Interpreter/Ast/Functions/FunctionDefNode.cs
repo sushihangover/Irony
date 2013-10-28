@@ -14,8 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
-using Irony.Ast;
+using Irony.Interpreter;
 using Irony.Parsing;
 
 namespace Irony.Interpreter.Ast {
@@ -25,15 +24,16 @@ namespace Irony.Interpreter.Ast {
     public AstNode NameNode;
     public AstNode Parameters;
     public AstNode Body;
+    bool _languageCaseSensitive; 
 
-
-    public override void Init(AstContext context, ParseTreeNode treeNode) {
+     
+    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
+      _languageCaseSensitive = context.Language.Grammar.CaseSensitive;
       //child #0 is usually a keyword like "def"
-      var nodes = treeNode.GetMappedChildNodes();
-      NameNode = AddChild("Name", nodes[1]);
-      Parameters = AddChild("Parameters", nodes[2]);
-      Body = AddChild("Body", nodes[3]);
+      NameNode = AddChild("Name", treeNode.MappedChildNodes[1]);
+      Parameters = AddChild("Parameters", treeNode.MappedChildNodes[2]);
+      Body = AddChild("Body", treeNode.MappedChildNodes[3]);
       AsString = "<Function " + NameNode.AsString + ">";
       Body.SetIsTail(); //this will be propagated to the last statement
     }
@@ -46,10 +46,8 @@ namespace Irony.Interpreter.Ast {
     protected override object DoEvaluate(ScriptThread thread) {
       thread.CurrentNode = this;  //standard prolog
       lock (LockObject) {
-        if (DependentScopeInfo == null) {
-          var langCaseSensitive = thread.App.Language.Grammar.CaseSensitive;
-          DependentScopeInfo = new ScopeInfo(this, langCaseSensitive);
-        }
+        if (DependentScopeInfo == null)
+          base.DependentScopeInfo = new ScopeInfo(this, _languageCaseSensitive);
         // In the first evaluation the parameter list will add parameter's SlotInfo objects to Scope.ScopeInfo
         thread.PushScope(DependentScopeInfo, null);
         Parameters.Evaluate(thread);

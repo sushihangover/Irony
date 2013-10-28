@@ -7,7 +7,6 @@ using System.Linq;
 using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
-using Irony.Ast;
 
 namespace Refal
 {
@@ -27,7 +26,7 @@ namespace Refal
 			Sentences = new List<Sentence>();
 		}
 
-    public override void Init(AstContext context, ParseTreeNode parseNode)
+		public override void Init(ParsingContext context, ParseTreeNode parseNode)
 		{
 			base.Init(context, parseNode);
 

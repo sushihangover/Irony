@@ -14,24 +14,17 @@ namespace Irony.Tests {
 #endif
 
   [TestClass]
-  public class CommentTerminalTests {
+  public class CommentTerminalTests : TerminalTestsBase {
 
     [TestMethod]
     public void TestCommentTerminal() {
-      Parser parser; Token token; 
+      SetTerminal(new CommentTerminal("Comment", "/*", "*/"));
+      TryMatch("/* abc  */");
+      Assert.IsTrue(_token.Category == TokenCategory.Comment, "Failed to read comment");
 
-      parser = TestHelper.CreateParser(new CommentTerminal("Comment", "/*", "*/"));
-      token = parser.ParseInput("/* abc  */");
-      Assert.IsTrue(token.Category == TokenCategory.Comment, "Failed to read comment");
-
-      
-      parser = TestHelper.CreateParser(new CommentTerminal("Comment", "/*", "*/"));
-      token = parser.ParseInput("/* abc  */");
-      Assert.IsTrue(token.Category == TokenCategory.Comment, "Failed to read comment");
-
-      parser = TestHelper.CreateParser(new CommentTerminal("Comment", "//", "\n"));
-      token = parser.ParseInput("// abc  \n   ");
-      Assert.IsTrue(token.Category == TokenCategory.Comment, "Failed to read line comment");
+      SetTerminal(new CommentTerminal("Comment", "//", "\n"));
+      TryMatch("// abc  \n   ");
+      Assert.IsTrue(_token.Category == TokenCategory.Comment, "Failed to read line comment");
 
     }//method
 

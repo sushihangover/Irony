@@ -6,7 +6,6 @@ using System;
 using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
-using Irony.Ast;
 
 namespace Refal
 {
@@ -19,7 +18,7 @@ namespace Refal
 	{
 		public virtual string Index { get; protected set; }
 
-    public static void CreateVariableNode(AstContext context, ParseTreeNode parseNode)
+		public static void CreateVariableNode(ParsingContext context, ParseTreeNode parseNode)
 		{
 			Variable varNode = null;
 
