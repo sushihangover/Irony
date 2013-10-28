@@ -194,14 +194,12 @@ namespace Refal.Runtime
 			Pattern pattern = new Pattern(new ExpressionVariable("Key"), '=', new ExpressionVariable("Value"));
 			if (pattern.Match(expression))
 			{
-				var key = (PassiveExpression)pattern.GetVariable("Key");
-				var value = (PassiveExpression)pattern.GetVariable("Value");
-				var strKey = key.ToString();
+				PassiveExpression key = (PassiveExpression)pattern.GetVariable("Key");
+				PassiveExpression value = (PassiveExpression)pattern.GetVariable("Value");
+				string strKey = key.ToString();
 
 				BuriedKeys[strKey] = key;
 				BuriedValues[strKey] = value;
-
-				return PassiveExpression.Build();
 			}
 
 			throw new RecognitionImpossibleException("<Br e.N '=' e.Expr>: unexpected arguments");
