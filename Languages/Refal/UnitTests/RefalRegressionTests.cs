@@ -1,22 +1,15 @@
 ﻿using System;
 using System.IO;
-using System.Text.RegularExpressions;
+using System.Linq;
+using System.Text;
+using System.Collections.Generic;
 using Irony.Parsing;
 
 namespace Refal.UnitTests
 {
-	#region Unit testing platform abstraction layer
-#if NUNIT
-	using NUnit.Framework;
-	using TestClass = NUnit.Framework.TestFixtureAttribute;
-	using TestMethod = NUnit.Framework.TestAttribute;
-	using TestContext = System.Object;
-#else
 	using Microsoft.VisualStudio.TestTools.UnitTesting;
-#endif
-	#endregion
 
-	/// <summary>
+  /// <summary>
 	/// Refal regression tests
 	/// </summary>
 	[TestClass]
@@ -163,8 +156,6 @@ namespace Refal.UnitTests
 				{
 					var s = sr.ReadToEnd();
 					Assert.IsFalse(string.IsNullOrEmpty(s));
-
-					s = Regex.Replace(s, @"\r\n?", Environment.NewLine);
 					return s;
 				}
 			}

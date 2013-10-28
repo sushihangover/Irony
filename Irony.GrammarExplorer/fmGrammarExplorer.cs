@@ -38,8 +38,7 @@ namespace Irony.GrammarExplorer {
     Parser _parser;
     ParseTree _parseTree;
     RuntimeException _runtimeError;
-    GrammarItem _lastGrammarItem;
-    bool _loaded;
+    bool _loaded; 
 
     #region Form load/unload events
     private void fmExploreGrammar_Load(object sender, EventArgs e) {
@@ -486,7 +485,7 @@ namespace Irony.GrammarExplorer {
     }
 
     bool _changingGrammar;
-    private void LoadSelectedGrammar() {
+    private void cboGrammars_SelectedIndexChanged(object sender, EventArgs e) {
       try {
         ClearLanguageInfo();
         ClearParserOutput();
@@ -500,32 +499,6 @@ namespace Irony.GrammarExplorer {
         _changingGrammar = false; //in case of exception
       }
     }
-
-    private void cboGrammars_SelectedIndexChanged(object sender, EventArgs e) {
-      CancelLastGrammarUpdateSubscription();
-      LoadSelectedGrammar();
-      SubscribeToGrammarUpdates();
-    }
-
-    private void SubscribeToGrammarUpdates() {
-      _lastGrammarItem = cboGrammars.SelectedItem as GrammarItem;
-      if (_lastGrammarItem != null)
-          _lastGrammarItem.AssemblyUpdated += GrammarAssemblyUpdated;
-    }
-    private void CancelLastGrammarUpdateSubscription() {
-      if (_lastGrammarItem != null)
-        _lastGrammarItem.AssemblyUpdated -= GrammarAssemblyUpdated;
-      _lastGrammarItem = null;
-    }
-    private void GrammarAssemblyUpdated(object sender, EventArgs args) {
-      if (InvokeRequired) {
-        Invoke(new EventHandler(GrammarAssemblyUpdated), sender, args);
-        return;
-      }
-      LoadSelectedGrammar();
-      txtGrammarComments.Text += String.Format("{0}Grammar assembly reloaded: {1:HH:mm:ss}", Environment.NewLine, DateTime.Now);
-    }
-
     private void btnFileOpen_Click(object sender, EventArgs e) {
       if (dlgOpenFile.ShowDialog() != DialogResult.OK) return;
       LoadSourceFile(dlgOpenFile.FileName);

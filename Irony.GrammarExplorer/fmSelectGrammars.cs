@@ -19,8 +19,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Reflection;
-using Irony.Parsing;
-using System.IO; 
+using Irony.Parsing; 
 
 namespace Irony.GrammarExplorer {
   public partial class fmSelectGrammars : Form {
@@ -58,8 +57,7 @@ namespace Irony.GrammarExplorer {
     private static GrammarItemList LoadGrammars(string assemblyPath) {
       Assembly asm = null; 
       try {
-        // enforce loading every time, even if assembly name is not changed
-        asm = Assembly.Load(File.ReadAllBytes(assemblyPath));
+        asm = Assembly.LoadFrom(assemblyPath);
       } catch (Exception ex) {
         MessageBox.Show("Failed to load assembly: " + ex.Message);
         return null; 

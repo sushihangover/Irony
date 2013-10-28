@@ -485,13 +485,6 @@ namespace Refal.Runtime
 			foreach (object o in expression)
 			{
 				var v = (o is int) ? (char)Convert.ToByte(o) : o;
-
-				// <Chr NewLine> returns Environment.NewLine
-				if (o != null && o.ToString().ToLower() == "newline")
-				{
-					v = Environment.NewLine.ToCharArray();
-				}
-
 				args.Add(v);
 			}
 
