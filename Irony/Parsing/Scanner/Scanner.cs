@@ -36,7 +36,6 @@ namespace Irony.Parsing {
       Parser = parser; 
       Data = parser.Language.ScannerData;
       _grammar = parser.Language.Grammar;
-      Context.SourceStream = new SourceStream(this.Data, Context.TabWidth);
       //create token streams
       var tokenStream = GetUnfilteredTokens();
       //chain all token filters
@@ -83,14 +82,13 @@ namespace Irony.Parsing {
         Context.CurrentToken = Context.BufferedTokens.Pop();
         return; 
       }
-      //2. Skip whitespace. We don't need to check for EOF: at EOF we start getting 0-char, so we'll get out automatically
-      while (_grammar.WhitespaceChars.IndexOf(Context.SourceStream.PreviewChar) >= 0)
-        Context.SourceStream.PreviewPosition++;
+      //2. Skip whitespace.
+      _grammar.SkipWhitespace(Context.Source);
       //3. That's the token start, calc location (line and column)
-      Context.SourceStream.MoveLocationToPreviewPosition();
+      Context.Source.Position = Context.Source.PreviewPosition;
       //4. Check for EOF
-      if (Context.SourceStream.EOF()) {
-        Context.CurrentToken = new Token(_grammar.Eof, Context.SourceStream.Location, string.Empty, _grammar.Eof.Name);;
+      if (Context.Source.EOF()) {
+        Context.CurrentToken = new Token(_grammar.Eof, Context.Source.Location, string.Empty, _grammar.Eof.Name);;
         return; 
       }
       //5. Actually scan the source text and construct a new token
@@ -106,14 +104,15 @@ namespace Irony.Parsing {
       var token = Context.CurrentToken;
       //If we have normal token then return it
       if (token != null && !token.IsError()) {
+        var src = Context.Source;
         //set position to point after the result token
-        Context.SourceStream.PreviewPosition = Context.SourceStream.Location.Position + token.Length;
-        Context.SourceStream.MoveLocationToPreviewPosition();
+        src.PreviewPosition = src.Position + token.Length;
+        src.Position = src.PreviewPosition;
         return;
       }
       //we have an error: either error token or no token at all
       if (token == null)   //if no token then create error token
-        Context.CurrentToken = Context.SourceStream.CreateErrorToken(Resources.ErrInvalidChar, Context.Source.PreviewChar);
+        Context.CurrentToken = Context.CreateErrorToken(Resources.ErrInvalidChar, Context.Source.PreviewChar);
       Recover();
     }
 
@@ -122,7 +121,7 @@ namespace Irony.Parsing {
       if(!Data.NonGrammarTerminalsLookup.TryGetValue(Context.Source.PreviewChar, out terms)) 
         return false;
       foreach(var term in terms) {
-        Context.SourceStream.ResetPreviewPosition();
+        Context.Source.PreviewPosition = Context.Source.Location.Position; 
         Context.CurrentToken = term.TryMatch(Context, Context.Source);
         if (Context.CurrentToken != null) 
           term.OnValidateToken(Context);
@@ -139,7 +138,7 @@ namespace Irony.Parsing {
           return true;
         }//if
       }//foreach term
-      Context.SourceStream.ResetPreviewPosition();
+      Context.Source.PreviewPosition = Context.Source.Location.Position;
       return false; 
     }
 
@@ -167,7 +166,7 @@ namespace Irony.Parsing {
       MatchTerminals();
       //If we don't have a token from terminals, try Grammar's method
       if (Context.CurrentToken == null)
-        Context.CurrentToken = _grammar.TryMatch(Context, Context.SourceStream);
+        Context.CurrentToken = _grammar.TryMatch(Context, Context.Source);
       if (Context.CurrentToken is MultiToken)
         UnpackMultiToken();
       return Context.CurrentToken != null;
@@ -198,8 +197,8 @@ namespace Irony.Parsing {
     private void ComputeCurrentTerminals() {
       Context.CurrentTerminals.Clear(); 
       TerminalList termsForCurrentChar;
-      if(!Data.TerminalsLookup.TryGetValue(Context.SourceStream.PreviewChar, out termsForCurrentChar))
-        termsForCurrentChar = Data.FallbackTerminals; 
+      if(!Data.TerminalsLookup.TryGetValue(Context.Source.PreviewChar, out termsForCurrentChar))
+        termsForCurrentChar = Data.NoPrefixTerminals; 
       //if we are recovering, previewing or there's no parser state, then return list as is
       if(Context.Status == ParserStatus.Recovering || Context.Status == ParserStatus.Previewing
           || Context.CurrentParserState == null || _grammar.LanguageFlags.IsSet(LanguageFlags.DisableScannerParserLink)
@@ -220,15 +219,16 @@ namespace Irony.Parsing {
 
     private void MatchTerminals() {
       Token priorToken = null;
-      foreach (Terminal term in Context.CurrentTerminals) {
+      for (int i=0; i<Context.CurrentTerminals.Count; i++) {
+        var term = Context.CurrentTerminals[i];
         // If we have priorToken from prior term in the list, check if prior term has higher priority than this term; 
         //  if term.Priority is lower then we don't need to check anymore, higher priority (in prior token) wins
         // Note that terminals in the list are sorted in descending priority order
         if (priorToken  != null && priorToken.Terminal.Priority > term.Priority)
           return;
         //Reset source position and try to match
-        Context.SourceStream.ResetPreviewPosition();
-        var token = term.TryMatch(Context, Context.SourceStream);
+        Context.Source.PreviewPosition = Context.Source.Location.Position;
+        var token = term.TryMatch(Context, Context.Source);
         if (token == null) continue; 
         //skip it if it is shorter than previous token
         if (priorToken != null && !priorToken.IsError() && (token.Length < priorToken.Length))
@@ -248,12 +248,12 @@ namespace Irony.Parsing {
     //   start=token.Location.Position; end=start + token.Length;
     public Token VsReadToken(ref int state) {
       Context.VsLineScanState.Value = state;
-      if (Context.SourceStream.EOF()) return null;
+      if (Context.Source.EOF()) return null;
       if (state == 0)
         NextToken();
       else {
         Terminal term = Data.MultilineTerminals[Context.VsLineScanState.TerminalIndex - 1];
-        Context.CurrentToken = term.TryMatch(Context, Context.SourceStream); 
+        Context.CurrentToken = term.TryMatch(Context, Context.Source); 
       }
       //set state value from context
       state = Context.VsLineScanState.Value;
@@ -262,20 +262,23 @@ namespace Irony.Parsing {
       return Context.CurrentToken;
     }
     public void VsSetSource(string text, int offset) {
-      Context.SourceStream.SetText(text, offset, true);
+      var line = Context.Source==null ? 0 : Context.Source.Location.Line;
+      var newLoc = new SourceLocation(offset, line + 1, 0);
+      Context.Source = new SourceStream(text, Context.Language.Grammar.CaseSensitive, Context.TabWidth, newLoc); 
     }
     #endregion
 
     #region Error recovery
+    //Simply skip until whitespace or delimiter character
     private bool Recover() {
-      Context.SourceStream.PreviewPosition++;
-      var wsd = Data.Language.GrammarData.WhitespaceAndDelimiters;
-      while (!Context.SourceStream.EOF()) {
-        if(wsd.IndexOf(Context.SourceStream.PreviewChar) >= 0) {
-          Context.SourceStream.MoveLocationToPreviewPosition();
+      var src = Context.Source; 
+      src.PreviewPosition++;
+      while (!Context.Source.EOF()) {
+        if(_grammar.IsWhitespaceOrDelimiter(src.PreviewChar)) {
+          src.Position = src.PreviewPosition;
           return true;
         }
-        Context.SourceStream.PreviewPosition++;
+        src.PreviewPosition++;
       }
       return false; 
     }
@@ -294,7 +297,7 @@ namespace Irony.Parsing {
     //Switches Scanner into preview mode
     public void BeginPreview() {
       Context.Status = ParserStatus.Previewing;
-      _previewStartLocation = Context.SourceStream.Location;
+      _previewStartLocation = Context.Source.Location;
       Context.PreviewTokens.Clear();
     }
 
@@ -310,6 +313,8 @@ namespace Irony.Parsing {
       Context.Status = ParserStatus.Parsing;
     }
     #endregion
+
+
 
 
   }//class

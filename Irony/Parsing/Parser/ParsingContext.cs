@@ -23,7 +23,6 @@ namespace Irony.Parsing {
   [Flags]
   public enum ParseOptions {
     Reserved = 0x01,
-    TraceParser = 0x02,
     AnalyzeCode = 0x10,   //run code analysis; effective only in Module mode
   }
 
@@ -51,30 +50,31 @@ namespace Irony.Parsing {
 
     //Parser settings
     public ParseOptions Options;
+    public bool TracingEnabled; 
     public ParseMode Mode = ParseMode.File;
     public int MaxErrors = 20; //maximum error count to report
     public CultureInfo Culture; //defaults to Grammar.DefaultCulture, might be changed by app code
 
     #region properties and fields
     //Parser fields
-    public ParserState CurrentParserState { get; internal set; }
-    public ParseTreeNode CurrentParserInput { get; internal set; }
-    internal readonly ParserStack ParserStack = new ParserStack();
-    internal readonly ParserStack ParserInputStack = new ParserStack();
-
-    public CommentBlock CurrentCommentBlock; 
     public ParseTree CurrentParseTree { get; internal set; }
     public readonly TokenStack OpenBraces = new TokenStack();
     public ParserTrace ParserTrace = new ParserTrace();
-    public ISourceStream Source { get { return SourceStream; } }
-    //list for terminals - for current parser state and current input char
-    public TerminalList CurrentTerminals = new TerminalList();
+    internal readonly ParserStack ParserStack = new ParserStack();
+
+    public ParserState CurrentParserState { get; internal set; }
+    public ParseTreeNode CurrentParserInput { get; internal set; }
     public Token CurrentToken; //The token just scanned by Scanner
-    public Token PreviousToken; 
+    public TokenList CurrentCommentTokens = new TokenList(); //accumulated comment tokens
+    public Token PreviousToken;
     public SourceLocation PreviousLineStart; //Location of last line start
 
+    //list for terminals - for current parser state and current input char
+    public TerminalList CurrentTerminals = new TerminalList();
+
+    public ISourceStream Source;
+  
     //Internal fields
-    internal SourceStream SourceStream;
     internal TokenFilterList TokenFilters = new TokenFilterList();
     internal TokenStack BufferedTokens = new TokenStack();
     internal IEnumerator<Token> FilteredTokens; //stream of tokens after filter
@@ -87,17 +87,10 @@ namespace Irony.Parsing {
     public ParserStatus Status {get; internal set;}
     public bool HasErrors; //error flag, once set remains set
 
-    //values dictionary to use by custom language implementations to save some temporary values in parse process
+    //values dictionary to use by custom language implementations to save some temporary values during parsing
     public readonly Dictionary<string, object> Values = new Dictionary<string, object>();
 
-    public int TabWidth {
-      get { return _tabWidth; }
-      set {
-         _tabWidth = value;
-         if (SourceStream != null) 
-                SourceStream.TabWidth = value;
-        }
-    } int _tabWidth = 8;    
+    public int TabWidth = 8;    
     
     #endregion 
 
@@ -126,33 +119,75 @@ namespace Irony.Parsing {
     #endregion
 
     #region Error handling and tracing
-    public void EnableTracing(bool value) {
-      if (value)
-        Options |= ParseOptions.TraceParser;
-      else
-        Options &= ~ParseOptions.TraceParser;
+
+    public Token CreateErrorToken(string message, params object[] args) {
+      if (args != null && args.Length > 0)
+        message = string.Format(message, args);
+      return Source.CreateToken(Language.Grammar.SyntaxError, message);
     }
 
     public void AddParserError(string message, params object[] args) {
       var location = CurrentParserInput == null? Source.Location : CurrentParserInput.Span.Location;
       HasErrors = true; 
-      AddParserMessage(ParserErrorLevel.Error, location, message, args);
+      AddParserMessage(ErrorLevel.Error, location, message, args);
     }
-    public void AddParserMessage(ParserErrorLevel level, SourceLocation location, string message, params object[] args) {
+    public void AddParserMessage(ErrorLevel level, SourceLocation location, string message, params object[] args) {
       if (CurrentParseTree == null) return; 
       if (CurrentParseTree.ParserMessages.Count >= MaxErrors) return;
       if (args != null && args.Length > 0)
         message = string.Format(message, args);
-      CurrentParseTree.ParserMessages.Add(new ParserMessage(level, location, message, CurrentParserState));
-      if (Options.IsSet(ParseOptions.TraceParser)) 
-        ParserTrace.Add( new ParserTraceEntry(CurrentParserState, ParserStack.Top, CurrentParserInput, message, true));
+      CurrentParseTree.ParserMessages.Add(new LogMessage(level, location, message, CurrentParserState));
+      if (TracingEnabled)
+        AddTrace(true, message);
     }
 
     public void AddTrace(string message, params object[] args) {
-      if (!Options.IsSet(ParseOptions.TraceParser)) return;
+      AddTrace(false, message, args);
+    }
+    public void AddTrace(bool asError, string message, params object[] args) {
+      if (!TracingEnabled) 
+        return;
       if (args != null && args.Length > 0)
         message = string.Format(message, args); 
-      ParserTrace.Add(new ParserTraceEntry(CurrentParserState, ParserStack.Top, CurrentParserInput, message, false));
+      ParserTrace.Add(new ParserTraceEntry(CurrentParserState, ParserStack.Top, CurrentParserInput, message, asError));
+    }
+
+    #region comments
+    // Computes set of expected terms in a parser state. While there may be extended list of symbols expected at some point,
+    // we want to reorganize and reduce it. For example, if the current state expects all arithmetic operators as an input,
+    // it would be better to not list all operators (+, -, *, /, etc) but simply put "operator" covering them all. 
+    // To achieve this grammar writer can group operators (or any other terminals) into named groups using Grammar's methods
+    // AddTermReportGroup, AddNoReportGroup etc. Then instead of reporting each operator separately, Irony would include 
+    // a single "group name" to represent them all.
+    // The "expected report set" is not computed during parser construction (it would take considerable time), 
+    // but does it on demand during parsing, when error is detected and the expected set is actually needed for error message. 
+    // Multi-threading concerns. When used in multi-threaded environment (web server), the LanguageData would be shared in 
+    // application-wide cache to avoid rebuilding the parser data on every request. The LanguageData is immutable, except 
+    // this one case - the expected sets are constructed late by CoreParser on the when-needed basis. 
+    // We don't do any locking here, just compute the set and on return from this function the state field is assigned. 
+    // We assume that this field assignment is an atomic, concurrency-safe operation. The worst thing that might happen
+    // is "double-effort" when two threads start computing the same set around the same time, and the last one to finish would 
+    // leave its result in the state field. 
+    #endregion
+    internal static StringSet ComputeGroupedExpectedSetForState(Grammar grammar, ParserState state) {
+      var terms = new TerminalSet();
+      terms.UnionWith(state.ExpectedTerminals);
+      var result = new StringSet();
+      //Eliminate no-report terminals
+      foreach (var group in grammar.TermReportGroups)
+        if (group.GroupType == TermReportGroupType.DoNotReport)
+          terms.ExceptWith(group.Terminals);
+      //Add normal and operator groups
+      foreach (var group in grammar.TermReportGroups)
+        if ((group.GroupType == TermReportGroupType.Normal || group.GroupType == TermReportGroupType.Operator) &&
+              terms.Overlaps(group.Terminals)) {
+          result.Add(group.Alias);
+          terms.ExceptWith(group.Terminals);
+        }
+      //Add remaining terminals "as is"
+      foreach (var terminal in terms)
+        result.Add(terminal.ErrorAlias);
+      return result;
     }
 
     #endregion
@@ -160,10 +195,10 @@ namespace Irony.Parsing {
     internal void Reset() {
       CurrentParserState = Parser.InitialState; 
       CurrentParserInput = null;
+      CurrentCommentTokens = new TokenList(); 
       ParserStack.Clear();
       HasErrors = false; 
       ParserStack.Push(new ParseTreeNode(CurrentParserState));
-      ParserInputStack.Clear();
       CurrentParseTree = null;
       OpenBraces.Clear();
       ParserTrace.Clear();
@@ -181,8 +216,17 @@ namespace Irony.Parsing {
     public void SetSourceLocation(SourceLocation location) {
       foreach (var filter in TokenFilters)
         filter.OnSetSourceLocation(location); 
-      SourceStream.Location = location;
+      Source.Location = location;
     }
+
+    public SourceSpan ComputeStackRangeSpan(int nodeCount) {
+      if (nodeCount == 0)
+        return new SourceSpan(CurrentParserInput.Span.Location, 0);
+      var first = ParserStack[ParserStack.Count - nodeCount];
+      var last = ParserStack.Top;
+      return new SourceSpan(first.Span.Location, last.Span.EndPosition - first.Span.Location.Position);
+    }
+
 
     #region Expected term set computations
     public StringSet GetExpectedTermSet() {
@@ -190,7 +234,7 @@ namespace Irony.Parsing {
         return new StringSet(); 
       //See note about multi-threading issues in ComputeReportedExpectedSet comments.
       if (CurrentParserState.ReportedExpectedSet == null)
-        CurrentParserState.ReportedExpectedSet = CoreParser.ComputeGroupedExpectedSetForState(Language.Grammar, CurrentParserState);
+        CurrentParserState.ReportedExpectedSet = Construction.ParserDataBuilder.ComputeGroupedExpectedSetForState(Language.Grammar, CurrentParserState);
       //Filter out closing braces which are not expected based on previous input.
       // While the closing parenthesis ")" might be expected term in a state in general, 
       // if there was no opening parenthesis in preceding input then we would not
@@ -211,37 +255,18 @@ namespace Irony.Parsing {
           nextClosingBrace = nextClosingBraceTerm.Text; 
       }
       //Now check all closing braces in result set, and leave only nextClosingBrace
-      foreach(var closingBrace in Language.GrammarData.ClosingBraces) {
-        if (result.Contains(closingBrace) && closingBrace != nextClosingBrace)
-          result.Remove(closingBrace); 
-        
-      }
+      foreach (var term in Language.Grammar.KeyTerms.Values) {
+        if (term.Flags.IsSet(TermFlags.IsCloseBrace)) {
+          var brace = term.Text; 
+          if (result.Contains(brace) && brace != nextClosingBrace)
+            result.Remove(brace);
+        }
+      }//foreach term
       return result; 
     }
 
     #endregion
 
-    #region Operators handling
-    public ExpressionType GetOperatorExpressionType(string symbol) {
-      OperatorInfo opInfo;
-      if (Language.Grammar.OperatorMappings.TryGetValue(symbol, out opInfo))
-        return opInfo.ExpressionType;
-      return CustomExpressionTypes.NotAnExpression;
-    }
-
-    public ExpressionType GetUnaryOperatorExpressionType(string symbol) {
-      switch (symbol.ToLowerInvariant()) {
-        case "+":   return ExpressionType.UnaryPlus;
-        case "-":   return ExpressionType.Negate;
-        case "!":
-        case "not":
-        case "~" :
-          return ExpressionType.Not;
-        default:
-          return CustomExpressionTypes.NotAnExpression; 
-      }
-    }
-    #endregion
 
   }//class
 

@@ -84,14 +84,16 @@ namespace Irony.Parsing {
       Prefixes.Add(prefix);
     }
     public void AddSuffix(string suffix, params TypeCode[] typeCodes) {
-			SuffixTypeCodes.Add(suffix, typeCodes);
-			Suffixes.Add(suffix);
-		}
+      SuffixTypeCodes.Add(suffix, typeCodes);
+      Suffixes.Add(suffix);
+    }
     #endregion
 
     #region public Properties/Fields
     public Char EscapeChar = '\\';
     public EscapeTable Escapes = new EscapeTable();
+    //Case sensitivity for prefixes and suffixes
+    public bool CaseSensitivePrefixesSuffixes = false; 
     #endregion
 
 
@@ -100,29 +102,25 @@ namespace Irony.Parsing {
     protected readonly TypeCodeTable SuffixTypeCodes = new TypeCodeTable();
     protected StringList Prefixes = new StringList();
     protected StringList Suffixes = new StringList();
-    protected bool CaseSensitive; //case sensitivity for prefixes and suffixes
-    string _prefixesFirsts; //first chars of all prefixes, for fast prefix detection
-    string _suffixesFirsts; //first chars of all suffixes, for fast suffix detection
+    CharHashSet _prefixesFirsts; //first chars of all prefixes, for fast prefix detection
+    CharHashSet _suffixesFirsts; //first chars of all suffixes, for fast suffix detection
     #endregion
 
 
     #region overrides: Init, TryMatch
     public override void Init(GrammarData grammarData) {
       base.Init(grammarData);
-      //collect all suffixes, prefixes in lists and create strings of first chars for both
+      //collect all suffixes, prefixes in lists and create sets of first chars for both
       Prefixes.Sort(StringList.LongerFirst);
-      _prefixesFirsts = string.Empty;
-      foreach (string pfx in Prefixes)
-        _prefixesFirsts += pfx[0];
-
       Suffixes.Sort(StringList.LongerFirst);
-      _suffixesFirsts = string.Empty;
+
+      _prefixesFirsts = new CharHashSet(CaseSensitivePrefixesSuffixes);
+      _suffixesFirsts = new CharHashSet(CaseSensitivePrefixesSuffixes);
+      foreach (string pfx in Prefixes)
+        _prefixesFirsts.Add(pfx[0]);
+
       foreach (string sfx in Suffixes)
-        _suffixesFirsts += sfx[0]; //we don't care if there are repetitions
-      if (!CaseSensitive) {
-        _prefixesFirsts = _prefixesFirsts.ToLower() + _prefixesFirsts.ToUpper();
-        _suffixesFirsts = _suffixesFirsts.ToLower() + _suffixesFirsts.ToUpper();
-      }
+        _suffixesFirsts.Add(sfx[0]); 
     }//method
 
     public override IList<string> GetFirsts() {
@@ -146,7 +144,7 @@ namespace Irony.Parsing {
       if (!ReadBody(source, details))
         return null;
       if (details.Error != null) 
-        return source.CreateErrorToken(details.Error);
+        return context.CreateErrorToken(details.Error);
       if (details.IsPartial) {
         details.Value = details.Body;
       } else {
@@ -155,7 +153,7 @@ namespace Irony.Parsing {
         if(!ConvertValue(details)) {
           if (string.IsNullOrEmpty(details.Error))
             details.Error = Resources.ErrInvNumber;
-          return source.CreateErrorToken(details.Error); // "Failed to convert the value: {0}"
+          return context.CreateErrorToken(details.Error); // "Failed to convert the value: {0}"
         }
       }
       token = CreateToken(context, source, details);
@@ -188,10 +186,14 @@ namespace Irony.Parsing {
     }
 
     protected virtual void ReadPrefix(ISourceStream source, CompoundTokenDetails details) {
-      if (_prefixesFirsts.IndexOf(source.PreviewChar) < 0)
+      if (!_prefixesFirsts.Contains(source.PreviewChar))
         return;
+      var comparisonType = CaseSensitivePrefixesSuffixes ? StringComparison.InvariantCulture : StringComparison.InvariantCultureIgnoreCase;
       foreach (string pfx in Prefixes) {
-        if (!source.MatchSymbol(pfx, !CaseSensitive)) continue; 
+        // Prefixes are usually case insensitive, even if language is case-sensitive. So we cannot use source.MatchSymbol here,
+        // we need case-specific comparison
+        if (string.Compare(source.Text, source.PreviewPosition, pfx, 0, pfx.Length, comparisonType) != 0) 
+          continue;
         //We found prefix
         details.Prefix = pfx;
         source.PreviewPosition += pfx.Length;
@@ -208,9 +210,13 @@ namespace Irony.Parsing {
     }
 
     protected virtual void ReadSuffix(ISourceStream source, CompoundTokenDetails details) {
-      if (_suffixesFirsts.IndexOf(source.PreviewChar) < 0) return;
+      if (!_suffixesFirsts.Contains(source.PreviewChar)) return;
+      var comparisonType = CaseSensitivePrefixesSuffixes ? StringComparison.InvariantCulture : StringComparison.InvariantCultureIgnoreCase;
       foreach (string sfx in Suffixes) {
-        if (!source.MatchSymbol(sfx, !CaseSensitive)) continue;
+        //Suffixes are usually case insensitive, even if language is case-sensitive. So we cannot use source.MatchSymbol here,
+        // we need case-specific comparison
+        if (string.Compare(source.Text, source.PreviewPosition, sfx, 0, sfx.Length, comparisonType) != 0)
+          continue;
         //We found suffix
         details.Suffix = sfx;
         source.PreviewPosition += sfx.Length;

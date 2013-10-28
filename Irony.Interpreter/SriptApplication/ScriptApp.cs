@@ -26,6 +26,7 @@ namespace Irony.Interpreter {
     WaitingMoreInput, //command line only
     SyntaxError,
     RuntimeError,
+    Crash, //interpreter crash
     Aborted
   }
 
@@ -87,7 +88,7 @@ namespace Irony.Interpreter {
     
     #endregion
 
-    public ParserMessageList GetParserMessages() {
+    public LogMessageList GetParserMessages() {
       return Parser.Context.CurrentParseTree.ParserMessages;
     }
     // Utilities
@@ -103,21 +104,29 @@ namespace Irony.Interpreter {
 
     #region Evaluation
     public object Evaluate(string script) {
-      var parsedScript = Parser.Parse(script);
-      if (parsedScript.HasErrors()) {
-        Status = AppStatus.SyntaxError;
-        if (RethrowExceptions)
-          throw new ScriptException("Syntax errors found.");
+      try {
+        var parsedScript = Parser.Parse(script);
+        if (parsedScript.HasErrors()) {
+          Status = AppStatus.SyntaxError;
+          if (RethrowExceptions)
+            throw new ScriptException("Syntax errors found.");
+          return null;
+        }
+
+        if (ParserMode == ParseMode.CommandLine && Parser.Context.Status == ParserStatus.AcceptedPartial) {
+          Status = AppStatus.WaitingMoreInput;
+          return null;
+        }
+        LastScript = parsedScript;
+        var result = EvaluateParsedScript();
+        return result;
+      } catch (ScriptException) {
+        throw;
+      } catch (Exception ex) {
+        this.LastException = ex;
+        this.Status = AppStatus.Crash;
         return null; 
       }
- 
-      if (ParserMode == ParseMode.CommandLine && Parser.Context.Status == ParserStatus.AcceptedPartial) {
-        Status = AppStatus.WaitingMoreInput;
-        return null; 
-      }
-      LastScript = parsedScript;
-      var result = EvaluateParsedScript(); 
-      return result;
     }
 
     // Irony interpreter requires that once a script is executed in a ScriptApp, it is bound to AppDataMap object, 
@@ -125,16 +134,18 @@ namespace Irony.Interpreter {
     // The reason is because the first execution sets up a data-binding fields, like slots, scopes, etc, which are bound to ScopeInfo objects, 
     // which in turn is part of DataMap.
     public object Evaluate(ParseTree parsedScript) {
+      Util.Check (parsedScript.Root.AstNode != null,  "Root AST node is null, cannot evaluate script. Create AST tree first.");
       var root = parsedScript.Root.AstNode as AstNode;
-      if (root.Parent != null && root.Parent != DataMap.ProgramRoot)
-        throw new Exception("Cannot evaluate parsed script. It had been already evaluated in a different application.");
+      Util.Check(root != null, 
+        "Root AST node {0} is not a subclass of Irony.Interpreter.AstNode. ScriptApp cannot evaluate this script.", root.GetType());
+      Util.Check (root.Parent == null || root.Parent == DataMap.ProgramRoot, 
+        "Cannot evaluate parsed script. It had been already evaluated in a different application.");
       LastScript = parsedScript;
       return EvaluateParsedScript(); 
     }
 
     public object Evaluate() {
-      if (LastScript == null)
-        throw new Exception("No previously parsed/evaluated script.");
+      Util.Check (LastScript != null, "No previously parsed/evaluated script.");
       return EvaluateParsedScript(); 
     }
 

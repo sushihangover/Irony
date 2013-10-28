@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Reflection; 
+using System.Reflection;
+
+using Irony.Ast; 
 using Irony.Parsing; 
 
 namespace Irony.Interpreter.Ast {
@@ -13,10 +15,11 @@ namespace Irony.Interpreter.Ast {
     AstNode _left;
     string _memberName;
 
-    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
+    public override void Init(AstContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
-      _left = AddChild("Target", treeNode.FirstChild);
-      var right = treeNode.LastChild;
+      var nodes = treeNode.GetMappedChildNodes();
+      _left = AddChild("Target", nodes[0]);
+      var right = nodes[nodes.Count - 1];
       _memberName = right.FindTokenAndGetText();
       ErrorAnchor = right.Span.Location; 
       AsString = "." + _memberName;

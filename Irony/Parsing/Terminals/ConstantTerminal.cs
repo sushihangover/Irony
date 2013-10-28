@@ -23,7 +23,7 @@ namespace Irony.Parsing {
     public readonly ConstantsTable Constants = new ConstantsTable();
     public ConstantTerminal(string name, Type nodeType) : base(name) {
       base.SetFlag(TermFlags.IsConstant);
-      AstNodeType = nodeType;
+      base.AstConfig.NodeType = nodeType;
     }
 
     public void Add(string lexeme, object value) {
@@ -41,7 +41,7 @@ namespace Irony.Parsing {
       foreach (var entry in Constants) {
         var constant = entry.Key;
         if (source.PreviewPosition + constant.Length > text.Length) continue;
-        if (source.MatchSymbol(constant, !Grammar.CaseSensitive)) {
+        if (source.MatchSymbol(constant)) {
           source.PreviewPosition += constant.Length;
           return source.CreateToken(this.OutputTerminal, entry.Value);
         }

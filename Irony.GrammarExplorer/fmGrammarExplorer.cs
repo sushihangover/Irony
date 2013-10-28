@@ -21,12 +21,15 @@ using System.IO;
 using System.Configuration;
 using System.Text.RegularExpressions;
 using System.Xml;
+
+using Irony.Ast;
 using Irony.Parsing;
-using Irony.Interpreter.Ast; 
-using Irony.Interpreter;
+
 using Irony.GrammarExplorer.Properties;
 
 namespace Irony.GrammarExplorer {
+  using ScriptException = Irony.Interpreter.ScriptException; //that's the only place we use stuff from Irony.Interpreter
+
   public partial class fmGrammarExplorer : Form {
     public fmGrammarExplorer() {
       InitializeComponent();
@@ -41,6 +44,7 @@ namespace Irony.GrammarExplorer {
     ScriptException _runtimeError;
     GrammarLoader _grammarLoader = new GrammarLoader();
     bool _loaded;
+    bool _treeClickDisabled; //to temporarily disable tree click when we locate the node programmatically
 
     #region Form load/unload events
     private void fmExploreGrammar_Load(object sender, EventArgs e) {
@@ -184,10 +188,10 @@ namespace Irony.GrammarExplorer {
       txtNonTerms.Text = string.Empty;
       txtParserStates.Text = string.Empty;
       tabBottom.SelectedTab = pageLanguage;
-      if (_parser == null) return;
-      txtTerms.Text = ParserDataPrinter.PrintTerminals(_parser.Language);
-      txtNonTerms.Text = ParserDataPrinter.PrintNonTerminals(_parser.Language);
-      txtParserStates.Text = ParserDataPrinter.PrintStateList(_parser.Language);
+      if (_parser == null) return; 
+      txtTerms.Text = ParserDataPrinter.PrintTerminals(_language);
+      txtNonTerms.Text = ParserDataPrinter.PrintNonTerminals(_language);
+      txtParserStates.Text = ParserDataPrinter.PrintStateList(_language);
       ShowGrammarErrors();
     }//method
 
@@ -201,9 +205,9 @@ namespace Irony.GrammarExplorer {
         tabBottom.SelectedTab = pageGrammarErrors;
     }
 
-    private void ShowSourceLocation(SourceLocation location, int length) {
-      if (location.Position < 0) return;
-      txtSource.SelectionStart = location.Position;
+    private void ShowSourcePosition(int position, int length) {
+      if (position < 0) return;
+      txtSource.SelectionStart = position;
       txtSource.SelectionLength = length;
       //txtSource.Select(location.Position, length);
       txtSource.ScrollToCaret();
@@ -212,12 +216,12 @@ namespace Irony.GrammarExplorer {
       txtSource.Focus();
       //lblLoc.Text = location.ToString();
     }
-    private void ShowSourceLocationAndTraceToken(SourceLocation location, int length) {
-      ShowSourceLocation(location, length);
+    private void ShowSourcePositionAndTraceToken(int position, int length) {
+      ShowSourcePosition(position, length);
       //find token in trace
       for (int i = 0; i < lstTokens.Items.Count; i++) {
         var tkn = lstTokens.Items[i] as Token;
-        if (tkn.Location.Position == location.Position) {
+        if (tkn.Location.Position == position) {
           lstTokens.SelectedIndex = i;
           return;
         }//if
@@ -240,7 +244,7 @@ namespace Irony.GrammarExplorer {
       if (_runtimeError != null) {
         //the exception was caught and processed by Interpreter
         WriteOutput("Error: " + error.Message + " At " + _runtimeError.Location.ToUiString() + ".");
-        ShowSourceLocation(_runtimeError.Location, 1); 
+        ShowSourcePosition(_runtimeError.Location.Position, 1); 
       } else {
         //the exception was not caught by interpreter/AST node. Show full exception info
         WriteOutput("Error: " + error.Message);
@@ -249,6 +253,16 @@ namespace Irony.GrammarExplorer {
       }
       tabBottom.SelectedTab = pageOutput; 
     }
+
+    private void SelectTreeNode(TreeView tree, TreeNode node) {
+      _treeClickDisabled = true;
+      tree.SelectedNode = node;
+      if (node != null)
+        node.EnsureVisible();
+      _treeClickDisabled = false;
+    }
+
+
 
     private void ClearRuntimeInfo() {
       lnkShowErrLocation.Enabled = false;
@@ -322,7 +336,7 @@ namespace Irony.GrammarExplorer {
       if (_parser == null || !_parser.Language.CanParse()) return; 
       _parseTree = null;
       GC.Collect(); //to avoid disruption of perf times with occasional collections
-      _parser.Context.EnableTracing(chkParserTrace.Checked);
+      _parser.Context.TracingEnabled = chkParserTrace.Checked;
       try {
         _parser.Parse(txtSource.Text, "<source>");
       } catch (Exception ex) {
@@ -389,6 +403,7 @@ namespace Irony.GrammarExplorer {
         txtSource.Text = null;  //to clear any old formatting
         txtSource.Text = reader.ReadToEnd();
         txtSource.Select(0, 0);
+        
       } catch (Exception e) {
         MessageBox.Show(e.Message);
       } finally {
@@ -485,19 +500,23 @@ namespace Irony.GrammarExplorer {
     }
 
     private void tvParseTree_AfterSelect(object sender, TreeViewEventArgs e) {
+      if (_treeClickDisabled) 
+        return; 
       var vtreeNode = tvParseTree.SelectedNode;
       if (vtreeNode == null) return;
       var parseNode = vtreeNode.Tag as ParseTreeNode;
       if (parseNode == null) return;
-      ShowSourceLocation(parseNode.Span.Location, 1);
+      ShowSourcePosition(parseNode.Span.Location.Position, 1);
     }
 
     private void tvAst_AfterSelect(object sender, TreeViewEventArgs e) {
+      if (_treeClickDisabled)
+        return;
       var treeNode = tvAst.SelectedNode;
       if (treeNode == null) return;
       var iBrowsable = treeNode.Tag as IBrowsableAstNode;
       if (iBrowsable == null) return;
-      ShowSourceLocation(iBrowsable.Location, 1);
+      ShowSourcePosition(iBrowsable.Position, 1);
     }
 
     bool _changingGrammar;
@@ -534,6 +553,7 @@ namespace Irony.GrammarExplorer {
 
     private void btnFileOpen_Click(object sender, EventArgs e) {
       if (dlgOpenFile.ShowDialog() != DialogResult.OK) return;
+      ClearParserOutput();
       LoadSourceFile(dlgOpenFile.FileName);
     }
 
@@ -543,16 +563,6 @@ namespace Irony.GrammarExplorer {
 
     private void btnManageGrammars_Click(object sender, EventArgs e) {
       menuGrammars.Show(btnManageGrammars, 0, btnManageGrammars.Height);
-    }
-
-    private void btnToXml_Click(object sender, EventArgs e) {
-      txtOutput.Text = string.Empty;
-      if (_parseTree == null)
-        ParseSample(); 
-      if (_parseTree == null)  return;
-      txtOutput.Text += _parseTree.ToXml();
-      txtOutput.Select(0, 0);
-      tabBottom.SelectedTab = pageOutput;
     }
 
     private void cboParseMethod_SelectedIndexChanged(object sender, EventArgs e) {
@@ -572,11 +582,11 @@ namespace Irony.GrammarExplorer {
           break;
         case 1: //stack top
           if (entry.StackTop != null)
-            ShowSourceLocationAndTraceToken(entry.StackTop.Span.Location, entry.StackTop.Span.Length);
+            ShowSourcePositionAndTraceToken(entry.StackTop.Span.Location.Position, entry.StackTop.Span.Length);
           break;
         case 2: //input
           if (entry.Input != null)
-            ShowSourceLocationAndTraceToken(entry.Input.Span.Location, entry.Input.Span.Length);
+            ShowSourcePositionAndTraceToken(entry.Input.Span.Location.Position, entry.Input.Span.Length);
           break;
       }//switch
     }
@@ -585,16 +595,16 @@ namespace Irony.GrammarExplorer {
       if (lstTokens.SelectedIndex < 0)
         return;
       Token token = (Token)lstTokens.SelectedItem;
-      ShowSourceLocation(token.Location, token.Length);
+      ShowSourcePosition(token.Location.Position, token.Length);
     }
 
     private void gridCompileErrors_CellDoubleClick(object sender, DataGridViewCellEventArgs e) {
       if (e.RowIndex < 0 || e.RowIndex >= gridCompileErrors.Rows.Count) return;
-      var err = gridCompileErrors.Rows[e.RowIndex].Cells[1].Value as ParserMessage;
+      var err = gridCompileErrors.Rows[e.RowIndex].Cells[1].Value as LogMessage;
       switch (e.ColumnIndex) {
         case 0: //state
         case 1: //stack top
-          ShowSourceLocation(err.Location, 1);
+          ShowSourcePosition(err.Location.Position, 1);
           break;
         case 2: //input
           if (err.ParserState != null)
@@ -621,7 +631,7 @@ namespace Irony.GrammarExplorer {
 
     private void lnkShowErrLocation_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
       if (_runtimeError != null)
-        ShowSourceLocation(_runtimeError.Location, 1); 
+        ShowSourcePosition(_runtimeError.Location.Position, 1); 
     }
 
     private void lnkShowErrStack_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
@@ -632,12 +642,36 @@ namespace Irony.GrammarExplorer {
         fmShowException.ShowException(_runtimeError); 
     }
 
-    #endregion
+    private void btnLocate_Click(object sender, EventArgs e) {
+      if (_parseTree == null)
+        ParseSample();
+      var p = txtSource.SelectionStart;
+      tvParseTree.SelectedNode = null; //just in case we won't find
+      tvAst.SelectedNode = null; 
+      SelectTreeNode(tvParseTree, LocateTreeNode(tvParseTree.Nodes, p, node => (node.Tag as ParseTreeNode).Span.Location.Position));
+      SelectTreeNode(tvAst, LocateTreeNode(tvAst.Nodes, p, node => (node.Tag as IBrowsableAstNode).Position));
+      txtSource.Focus(); //set focus back to source
+    }
+
+    private TreeNode LocateTreeNode(TreeNodeCollection nodes, int position, Func<TreeNode, int> positionFunction) {
+      TreeNode current = null;
+      //Find the last node in the list that is "before or at" the position 
+      foreach (TreeNode node in nodes) {
+        if (positionFunction(node) > position) break; //from loop
+        current = node;
+      }
+      //if current has children, search them
+      if (current != null && current.Nodes.Count > 0) 
+        current = LocateTreeNode(current.Nodes, position, positionFunction) ?? current; 
+      return current;
+    }
 
     private void chkDisableHili_CheckedChanged(object sender, EventArgs e) {
-      if (!_loaded) return; 
-      EnableHighlighter(!chkDisableHili.Checked); 
+      if (!_loaded) return;
+      EnableHighlighter(!chkDisableHili.Checked);
     }
+
+    #endregion
 
   }//class
 }

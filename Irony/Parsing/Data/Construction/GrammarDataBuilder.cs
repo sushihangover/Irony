@@ -33,10 +33,8 @@ namespace Irony.Parsing.Construction {
       _grammarData = _language.GrammarData;
       CreateAugmentedRoots(); 
       CollectTermsFromGrammar();
-      AssignWhitespaceAndDelimiters(); 
       InitTermLists();
       FillOperatorReportGroup(); 
-      FindClosingBraces(); 
       CreateProductions();
       ComputeNonTerminalsNullability(_grammarData);
       ComputeTailsNullability(_grammarData);
@@ -113,36 +111,13 @@ namespace Irony.Parsing.Construction {
         }
     }
 
-    private void FindClosingBraces() {
-      foreach(var term in _grammar.KeyTerms.Values) {
-        if (term.Flags.IsSet(TermFlags.IsCloseBrace))
-          _grammarData.ClosingBraces.Add(term.Text);
-      }
-    }
-
-    private void AssignWhitespaceAndDelimiters() {
-      var delims = _grammar.Delimiters;
-        //if it was not assigned by language creator, let's guess them
-      if(delims == null) {
-        delims = string.Empty;
-        var commonDelims = ",;[](){}";  //chars usually used as delimiters in programming languages
-        foreach(var delim in commonDelims) 
-          if (_grammar.KeyTerms.ContainsKey(delim.ToString()))  //if language uses this char as a Term, then include it
-            delims += delim; 
-      }//if 
-      _grammarData.WhitespaceAndDelimiters = _grammar.WhitespaceChars + delims 
-           + "\n"  //in case if it is removed from whitespace chars by NewLineTerminal 
-           + "\0"; //EOF: SourceStream returns this char when we reach end of file
-    }
-
-
     private void InitTermLists() {
       //Collect terminals and NonTerminals
+      var empty = _grammar.Empty; 
       foreach (BnfTerm term in _grammarData.AllTerms) {  //remember - we may have hints, so it's not only terminals and non-terminals
         if (term is NonTerminal) _grammarData.NonTerminals.Add((NonTerminal)term);
-        if (term is Terminal) _grammarData.Terminals.Add((Terminal)term);
+        if (term is Terminal && term != empty) _grammarData.Terminals.Add((Terminal)term);
       }
-      _grammarData.Terminals.Sort(Terminal.ByName);
       //Mark keywords - any "word" symbol directly mentioned in the grammar
       foreach (var term in _grammarData.Terminals) {
         var symTerm = term as KeyTerm;
@@ -158,8 +133,7 @@ namespace Irony.Parsing.Construction {
     private void CreateProductions() {
       _lastItemId = 0;
       //CheckWrapTailHints() method may add non-terminals on the fly, so we have to use for loop here (not foreach)
-      for (int i = 0; i < _grammarData.NonTerminals.Count; i++) {
-        var nt = _grammarData.NonTerminals[i];
+      foreach (var nt in _grammarData.NonTerminals) {
         nt.Productions.Clear();
         //Get data (sequences) from both Rule and ErrorRule
         BnfExpressionData allData = new BnfExpressionData();
@@ -171,8 +145,6 @@ namespace Irony.Parsing.Construction {
           Production prod = CreateProduction(nt, prodOperands);
           nt.Productions.Add(prod);
         } //foreach prodOperands
-        // insert pending custom hints in all productions
-        nt.InsertCustomHints();
       }
     }
 
@@ -215,17 +187,12 @@ namespace Irony.Parsing.Construction {
         }
         if(rv.Flags.IsSet(TermFlags.IsPunctuation)) continue;
       }//foreach
-      var lvalue = production.LValue;
-      //Set IsListBuilder flag
-      if (production.RValues.Count > 0 && production.RValues[0] == production.LValue
-          && lvalue.Flags.IsSet(TermFlags.IsList))
-        production.Flags |= ProductionFlags.IsListBuilder;
     }//method
 
     private static void ComputeNonTerminalsNullability(GrammarData data) {
-      NonTerminalList undecided = data.NonTerminals;
+      var undecided = data.NonTerminals;
       while (undecided.Count > 0) {
-        NonTerminalList newUndecided = new NonTerminalList();
+        var newUndecided = new NonTerminalSet();
         foreach (NonTerminal nt in undecided)
           if (!ComputeNullability(nt))
             newUndecided.Add(nt);
@@ -241,7 +208,7 @@ namespace Irony.Parsing.Construction {
           return true; //decided, Nullable
         }//if 
         //If production has terminals, it is not nullable and cannot contribute to nullability
-        if (prod.IsSet(ProductionFlags.HasTerminals)) continue;
+        if (prod.Flags.IsSet(ProductionFlags.HasTerminals)) continue;
         //Go thru all elements of production and check nullability
         bool allNullable = true;
         foreach (BnfTerm child in prod.RValues) {
@@ -273,12 +240,8 @@ namespace Irony.Parsing.Construction {
     #region Grammar Validation
     private void ValidateGrammar() {
       var createAst = _grammar.LanguageFlags.IsSet(LanguageFlags.CreateAst); 
-      var missingAstTypeSet = new NonTerminalSet();
       var invalidTransSet = new NonTerminalSet();
       foreach(var nt in _grammarData.NonTerminals) {
-        //Check that if CreateAst flag is set then AstNodeType or AstNodeCreator is assigned on all non-transient nodes.
-        if(createAst && nt.AstNodeCreator == null && nt.AstNodeType == null && !nt.Flags.IsSet(TermFlags.NoAstNode))
-          missingAstTypeSet.Add(nt);
         if(nt.Flags.IsSet(TermFlags.IsTransient)) {
           //List non-terminals cannot be marked transient - otherwise there may be some ambiguities and inconsistencies
           if (nt.Flags.IsSet(TermFlags.IsList))
@@ -289,7 +252,7 @@ namespace Irony.Parsing.Construction {
         }//if transient
         //Validate error productions
         foreach(var prod in nt.Productions)
-          if(prod.IsSet(ProductionFlags.IsError)) {
+          if(prod.Flags.IsSet(ProductionFlags.IsError)) {
             var lastTerm = prod.RValues[prod.RValues.Count -1];
             if (!(lastTerm is Terminal) || lastTerm == _grammar.SyntaxError)
               _language.Errors.Add(GrammarErrorLevel.Warning, null, Resources.ErrLastTermOfErrorProd, nt.Name);
@@ -297,8 +260,6 @@ namespace Irony.Parsing.Construction {
           }//foreach prod
       }//foreac nt
 
-      if (missingAstTypeSet.Count > 0)
-        _language.Errors.Add(GrammarErrorLevel.Warning, null, Resources.ErrNodeTypeNotSetOn, missingAstTypeSet.ToString());
       if (invalidTransSet.Count > 0)
         _language.Errors.Add(GrammarErrorLevel.Error, null, Resources.ErrTransientNtMustHaveOneTerm,invalidTransSet.ToString());
     }//method

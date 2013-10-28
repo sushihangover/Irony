@@ -34,21 +34,15 @@ namespace Irony.Parsing {
     public int Precedence;
     public Associativity Associativity;
     public SourceSpan Span;
-    public Production ReduceProduction;
     //Making ChildNodes property (not field) following request by Matt K, Bill H
     public ParseTreeNodeList ChildNodes {get; private set;}
-    //A list of of child nodes passed thru mapping operation using AstPartsMap. By default, the same as ChildNodes
-    public ParseTreeNodeList MappedChildNodes { get; internal set; }
     public bool IsError;
     internal ParserState State;      //used by parser to store current state when node is pushed into the parser stack
     public object Tag; //for use by custom parsers, Irony does not use it
-    public CommentBlock Comments; //Comments preceding this node
+    public TokenList Comments; //Comments preceding this node
 
     private ParseTreeNode(){
-      ChildNodes = MappedChildNodes = new ParseTreeNodeList();
-    }
-    public ParseTreeNode(BnfTerm term) : this() {
-      Term = term;
+      ChildNodes = new ParseTreeNodeList();
     }
 
     public ParseTreeNode(Token token) : this()  {
@@ -64,27 +58,18 @@ namespace Irony.Parsing {
       State = initialState;
     }
 
-    public ParseTreeNode(Production reduceProduction, SourceSpan span)  : this(){
-      ReduceProduction = reduceProduction;
+    public ParseTreeNode(NonTerminal term, SourceSpan span)  : this(){
+      Term = term;
       Span = span; 
-      Term = ReduceProduction.LValue;
-      Precedence = Term.Precedence;
     }
     
-    public ParseTreeNode(object node, BnfTerm term, int precedence, Associativity associativity, SourceSpan span)
-        : this()  {
-      AstNode = node;
-      Term = term;
-      Precedence = precedence;
-      Associativity = associativity;
-    }
-
     public override string ToString() {
       if (Term == null) 
         return "(S0)"; //initial state node
       else 
         return Term.GetParseNodeCaption(this); 
     }//method
+
 
     public string FindTokenAndGetText() {
       var tkn = FindToken();
@@ -95,29 +80,30 @@ namespace Irony.Parsing {
     }
     private static Token FindFirstChildTokenRec(ParseTreeNode node) {
       if (node.Token != null) return node.Token;
-      foreach (var child in node.MappedChildNodes) {
+      foreach (var child in node.ChildNodes) {
         var tkn = FindFirstChildTokenRec(child);
         if (tkn != null) return tkn; 
       }
       return null; 
     }
-    public ParseTreeNode FirstChild {
-      get { return MappedChildNodes[0]; }
+
+    /// <summary>Returns true if the node is punctuation or it is transient with empty child list.</summary>
+    /// <returns>True if parser can safely ignore this node.</returns>
+    public bool IsPunctuationOrEmptyTransient() {
+      if (Term.Flags.IsSet(TermFlags.IsPunctuation))
+        return true;
+      if (Term.Flags.IsSet(TermFlags.IsTransient) && ChildNodes.Count == 0)
+        return true;
+      return false; 
     }
-    public ParseTreeNode LastChild {
-      get { return MappedChildNodes[MappedChildNodes.Count - 1]; }
+
+    public bool IsOperator() {
+      return Term.Flags.IsSet(TermFlags.IsOperator);
     }
 
   }//class
 
   public class ParseTreeNodeList : List<ParseTreeNode> { }
-
-  public class CommentBlock {
-    public TokenList Tokens = new TokenList();
-    public override string ToString() {
-      return string.Join(Environment.NewLine, Tokens); 
-    }
-  }
 
   public enum ParseTreeStatus {
     Parsing,
@@ -133,7 +119,7 @@ namespace Irony.Parsing {
     public readonly TokenList Tokens = new TokenList();
     public readonly TokenList OpenBraces = new TokenList(); 
     public ParseTreeNode Root;
-    public readonly ParserMessageList ParserMessages = new ParserMessageList();
+    public readonly LogMessageList ParserMessages = new LogMessageList();
     public long ParseTimeMilliseconds;
     public object Tag; //custom data object, use it anyway you want
 
@@ -146,14 +132,9 @@ namespace Irony.Parsing {
     public bool HasErrors() {
       if (ParserMessages.Count == 0) return false;
       foreach (var err in ParserMessages)
-        if (err.Level == ParserErrorLevel.Error) return true;
+        if (err.Level == ErrorLevel.Error) return true;
       return false; 
     }//method
-
-    public void CopyMessages(ParserMessageList others, SourceLocation baseLocation, string messagePrefix) {
-      foreach(var other in others) 
-        this.ParserMessages.Add(new ParserMessage(other.Level, baseLocation + other.Location, messagePrefix + other.Message, other.ParserState)); 
-    }//
 
   }//class
 

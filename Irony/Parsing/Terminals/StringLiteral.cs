@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using Irony.Ast;
 
 namespace Irony.Parsing {
 
@@ -87,11 +88,11 @@ namespace Irony.Parsing {
 
     public StringLiteral(string name, string startEndSymbol, StringOptions options, Type astNodeType) 
           : this(name, startEndSymbol, options) {
-      base.AstNodeType = astNodeType;
+      base.AstConfig.NodeType = astNodeType;
     }
     public StringLiteral(string name, string startEndSymbol, StringOptions options, AstNodeCreator astNodeCreator) 
          : this(name, startEndSymbol, options) {
-      base.AstNodeCreator = astNodeCreator;
+      base.AstConfig.NodeCreator = astNodeCreator;
     }
 
     public void AddStartEnd(string startEndSymbol, StringOptions stringOptions) {
@@ -114,8 +115,6 @@ namespace Irony.Parsing {
     #region overrides: Init, GetFirsts, ReadBody, etc...
     public override void Init(GrammarData grammarData) {
       base.Init(grammarData);
-      if (AstNodeType == null)
-        base.AstNodeType = grammarData.Grammar.DefaultLiteralNodeType;
       _startSymbolsFirsts = string.Empty;
       if (_subtypes.Count == 0) {
         grammarData.Language.Errors.Add(GrammarErrorLevel.Error, null, Resources.ErrInvStrDef, this.Name); //"Error in string literal [{0}]: No start/end symbols specified."
@@ -133,7 +132,7 @@ namespace Irony.Parsing {
         _startSymbolsFirsts += subType.Start[0].ToString();
         if ((subType.Flags & StringOptions.IsTemplate) != 0) isTemplate = true; 
       }
-      if (!CaseSensitive) 
+      if (!CaseSensitivePrefixesSuffixes) 
         _startSymbolsFirsts = _startSymbolsFirsts.ToLower() + _startSymbolsFirsts.ToUpper();
       //Set multiline flag
       foreach (StringSubType info in _subtypes) {
@@ -145,7 +144,7 @@ namespace Irony.Parsing {
       //For templates only
       if(isTemplate) {
         //Check that template settings object is provided
-        var templateSettings = this.AstData as StringTemplateSettings;
+        var templateSettings = this.AstConfig.Data as StringTemplateSettings;
         if(templateSettings == null)
           grammarData.Language.Errors.Add(GrammarErrorLevel.Error, null, Resources.ErrTemplNoSettings, this.Name); //"Error in string literal [{0}]: IsTemplate flag is set, but TemplateSettings is not provided."
         else if (templateSettings.ExpressionRoot == null)
@@ -213,7 +212,7 @@ namespace Irony.Parsing {
         
         //Check if it is doubled end symbol
         source.PreviewPosition = endPos;
-        if (details.IsSet((short)StringOptions.AllowsDoubledQuote) && source.MatchSymbol(endQuoteDoubled, !CaseSensitive)) {
+        if (details.IsSet((short)StringOptions.AllowsDoubledQuote) && source.MatchSymbol(endQuoteDoubled)) {
           source.PreviewPosition = endPos + endQuoteDoubled.Length;
           continue;
         }//checking for doubled end symbol
@@ -271,7 +270,7 @@ namespace Irony.Parsing {
       if (_startSymbolsFirsts.IndexOf(source.PreviewChar) < 0)
         return false;
       foreach (StringSubType subType in _subtypes) {
-        if (!source.MatchSymbol(subType.Start, !CaseSensitive))
+        if (!source.MatchSymbol(subType.Start))
           continue; 
         //We found start symbol
         details.StartSymbol = subType.Start;

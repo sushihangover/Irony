@@ -14,7 +14,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Irony.Interpreter;
+
+using Irony.Ast;
 using Irony.Parsing;
 
 namespace Irony.Interpreter.Ast {
@@ -25,14 +26,15 @@ namespace Irony.Interpreter.Ast {
     AstNode Arguments;
     string _targetName;
     SpecialForm _specialForm;
-    AstNode[] _specialFormArgs; 
-     
-    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
+    AstNode[] _specialFormArgs;
+
+    public override void Init(AstContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
-      TargetRef = AddChild("Target", treeNode.MappedChildNodes[0]);
+      var nodes = treeNode.GetMappedChildNodes();
+      TargetRef = AddChild("Target", nodes[0]);
       TargetRef.UseType = NodeUseType.CallTarget;
-      _targetName = treeNode.MappedChildNodes[0].FindTokenAndGetText();
-      Arguments = AddChild("Args", treeNode.MappedChildNodes[1]);
+      _targetName = nodes[0].FindTokenAndGetText();
+      Arguments = AddChild("Args", nodes[1]);
       AsString = "Call " + _targetName;
     }
 

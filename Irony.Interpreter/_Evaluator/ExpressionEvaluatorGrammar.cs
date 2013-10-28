@@ -18,7 +18,7 @@ using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 
 namespace Irony.Interpreter.Evaluator {
-  // An ready-to-use evaluator implementation.
+  // A ready-to-use evaluator implementation.
 
   // This grammar describes programs that consist of simple expressions and assignments
   // for ex:
@@ -51,12 +51,12 @@ bool operations &,&&, |, ||; ternary '?:' operator." ;
       //String literal with embedded expressions  ------------------------------------------------------------------
       var stringLit = new StringLiteral("string", "\"", StringOptions.AllowsAllEscapes | StringOptions.IsTemplate);
       stringLit.AddStartEnd("'", StringOptions.AllowsAllEscapes | StringOptions.IsTemplate); 
-      stringLit.AstNodeType = typeof(StringTemplateNode);
+      stringLit.AstConfig.NodeType = typeof(StringTemplateNode);
       var Expr = new NonTerminal("Expr"); //declare it here to use in template definition 
       var templateSettings = new StringTemplateSettings(); //by default set to Ruby-style settings 
       templateSettings.ExpressionRoot = Expr; //this defines how to evaluate expressions inside template
       this.SnippetRoots.Add(Expr);
-      stringLit.AstData = templateSettings;
+      stringLit.AstConfig.Data = templateSettings;
       //--------------------------------------------------------------------------------------------------------
 
       // 2. Non-terminals

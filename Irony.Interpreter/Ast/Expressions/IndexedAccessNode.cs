@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Reflection; 
+using System.Reflection;
+
+using Irony.Ast;
 using Irony.Parsing; 
 
 namespace Irony.Interpreter.Ast {
@@ -11,10 +13,11 @@ namespace Irony.Interpreter.Ast {
   public class IndexedAccessNode : AstNode {
     AstNode _target, _index;
 
-    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
+    public override void Init(AstContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
-      _target = AddChild("Target", treeNode.FirstChild);
-      _index = AddChild("Index", treeNode.LastChild); 
+      var nodes = treeNode.GetMappedChildNodes();
+      _target = AddChild("Target", nodes.First());
+      _index = AddChild("Index", nodes.Last()); 
       AsString = "[" + _index + "]";
     }
 

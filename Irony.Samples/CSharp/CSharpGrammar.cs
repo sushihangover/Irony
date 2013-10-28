@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using Irony.Parsing;
+using System.Globalization;
 
 namespace Irony.Samples.CSharp {
 
@@ -79,6 +81,7 @@ namespace Irony.Samples.CSharp {
       var type_ref = new NonTerminal("type_ref");
       var new_type_ref = new NonTerminal("new_type_ref");
       var type_argument_list = new NonTerminal("type_argument_list");
+      var typearg_or_gendimspec_list = new NonTerminal("typearg_or_gendimspec_list");
       var type_argument_list_opt = new NonTerminal("type_argument_list_opt");
       var integral_type = new NonTerminal("integral_type");
 
@@ -95,6 +98,7 @@ namespace Irony.Samples.CSharp {
       var unary_operator = new NonTerminal("unary_operator");
       var assignment_operator = new NonTerminal("assignment_operator");
       var primary_expression = new NonTerminal("primary_expression");
+      var unary_expression = new NonTerminal("unary_expression");
       var pre_incr_decr_expression = new NonTerminal("pre_incr_decr_expression");
       var post_incr_decr_expression = new NonTerminal("post_incr_decr_expression");
       var primary_no_array_creation_expression = new NonTerminal("primary_no_array_creation_expression");
@@ -297,7 +301,6 @@ namespace Irony.Samples.CSharp {
       //B.2.11 Enums
       var enum_declaration = new NonTerminal("enum_declaration");
       var enum_base_opt = new NonTerminal("enum_base_opt");
-      var enum_body = new NonTerminal("enum_body");
       var enum_member_declaration = new NonTerminal("enum_member_declaration");
       var enum_member_declarations = new NonTerminal("enum_member_declarations");
 
@@ -327,8 +330,7 @@ namespace Irony.Samples.CSharp {
       RegisterOperators(8, "<<", ">>");
       RegisterOperators(9, "+", "-");
       RegisterOperators(10, "*", "/", "%");
-      RegisterOperators(11, ".");
-      //RestrictPrecedence(bin_op, unary_operator); 
+      //RegisterOperators(11, ".");
       // RegisterOperators(12, "++", "--");
       #region comments
       //The following makes sense, if you think about "?" in context of operator precedence. 
@@ -345,19 +347,32 @@ namespace Irony.Samples.CSharp {
 
       this.Delimiters = "{}[](),:;+-*/%&|^!~<>=";
       this.MarkPunctuation(";", ",", "(", ")", "{", "}", "[", "]", ":");
-      this.MarkTransient(namespace_member_declaration, member_declaration, type_declaration, statement, embedded_statement, expression);
-      //Whitespace and NewLine characters
-      //TODO: 
-      // 1. In addition to "normal" whitespace chars, the spec mentions "any char of unicode class Z" -
-      //   need to create special comment-based terminal that simply eats these category-based whitechars and produces comment token. 
-      // 2. Add support for multiple line terminators to LineComment
-      this.LineTerminators = "\r\n\u2085\u2028\u2029"; //CR, linefeed, nextLine, LineSeparator, paragraphSeparator
-      this.WhitespaceChars = " \t\r\n\v\u2085\u2028\u2029"; //add extra line terminators
+      this.MarkTransient(namespace_member_declaration, member_declaration, type_declaration, statement, embedded_statement, expression, 
+        literal, bin_op, primary_expression, expression);
+
+      this.AddTermsReportGroup("assignment", "=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=");
+      this.AddTermsReportGroup("typename", "bool", "decimal", "float", "double", "string", "object", 
+        "sbyte", "byte", "short", "ushort", "int", "uint", "long", "ulong", "char");
+      this.AddTermsReportGroup("statement", "if", "switch", "do", "while", "for", "foreach", "continue", "goto", "return", "try", "yield", 
+                                            "break", "throw", "unchecked", "using");
+      this.AddTermsReportGroup("type declaration", "public", "private", "protected", "static", "internal", "sealed", "abstract", "partial", 
+                                                   "class", "struct", "delegate", "interface", "enum");
+      this.AddTermsReportGroup("member declaration", "virtual", "override", "readonly", "volatile", "extern");
+      this.AddTermsReportGroup("constant", Number, StringLiteral, CharLiteral);
+      this.AddTermsReportGroup("constant", "true", "false", "null");
+
+      this.AddTermsReportGroup("unary operator", "+", "-", "!", "~");
+      
+      this.AddToNoReportGroup(comma, semi);
+      this.AddToNoReportGroup("var", "const", "new", "++", "--", "this", "base", "checked", "lock", "typeof", "default",
+                               "{", "}", "[");
+     
+      //
       #endregion
 
       #region "<" conflict resolution
-      var lt = new NonTerminal("_<_");
-      lt.Rule = ResolveInCode() + "<";
+      var gen_lt = new NonTerminal("gen_lt");
+      gen_lt.Rule = CustomActionHere(this.ResolveLessThanConflict) + "<";
       #endregion
       /*
       #region Keywords
@@ -377,7 +392,7 @@ namespace Irony.Samples.CSharp {
       //B.2.1. Basic concepts
       //qual_name_with_targs is an alias for namespace-name, namespace-or-type-name, type-name,
 
-      generic_dimension_specifier.Rule = lt + commas_opt + ">";
+      generic_dimension_specifier.Rule = gen_lt + commas_opt + ">";
       qual_name_segments_opt.Rule = MakeStarRule(qual_name_segments_opt, null, qual_name_segment);
       identifier_or_builtin.Rule = identifier | builtin_type;
       identifier_ext.Rule = identifier_or_builtin | "this" | "base";
@@ -385,17 +400,18 @@ namespace Irony.Samples.CSharp {
                               | "::" + identifier
                               | type_argument_list;
       //generic_dimension_specifier.Rule = lt + commas_opt + ">";
-      generic_dimension_specifier.Rule = lt + commas_opt + ">";
+      generic_dimension_specifier.Rule = gen_lt + commas_opt + ">";
       qual_name_with_targs.Rule = identifier_or_builtin + qual_name_segments_opt;
 
-      type_argument_list.Rule = lt + type_ref_list + ">";
+      type_argument_list.Rule = gen_lt + type_ref_list + ">";
       type_argument_list_opt.Rule = Empty | type_argument_list;
+      typearg_or_gendimspec_list.Rule = type_argument_list | generic_dimension_specifier_opt;
 
       //B.2.2. Types
       type_or_void.Rule = qual_name_with_targs | "void";
       builtin_type.Rule = integral_type | "bool" | "decimal" | "float" | "double" | "string" | "object";
 
-      type_ref.Rule = type_or_void + qmark_opt + rank_specifiers_opt + generic_dimension_specifier_opt;
+      type_ref.Rule = type_or_void + qmark_opt + rank_specifiers_opt + typearg_or_gendimspec_list;
       type_ref_list.Rule = MakePlusRule(type_ref_list, comma, type_ref);
 
       var comma_list_opt = new NonTerminal("comma_list_opt");
@@ -431,7 +447,7 @@ namespace Irony.Samples.CSharp {
       typecast_expression.Rule = parenthesized_expression + primary_expression;
       primary_expression.Rule =
         literal
-        | unary_operator + primary_expression
+        | unary_expression
         | parenthesized_expression
         | member_access
         | pre_incr_decr_expression
@@ -443,6 +459,7 @@ namespace Irony.Samples.CSharp {
         | unchecked_expression
         | default_value_expression
         | anonymous_method_expression;
+      unary_expression.Rule = unary_operator + primary_expression;
       dim_specifier.Rule = "[" + expression_list + "]";
       dim_specifier_opt.Rule = dim_specifier.Q();
       literal.Rule = Number | StringLiteral | CharLiteral | "true" | "false" | "null";
@@ -481,7 +498,7 @@ namespace Irony.Samples.CSharp {
       member_declarator_list.Rule = MakePlusRule(member_declarator_list, comma, member_declarator);
       //typeof
       typeof_expression.Rule = "typeof" + Lpar + type_ref + Rpar;
-      generic_dimension_specifier_opt.Rule = Empty | lt + commas_opt + ">";
+      generic_dimension_specifier_opt.Rule = Empty | gen_lt + commas_opt + ">";
       //checked, unchecked
       checked_expression.Rule = "checked" + parenthesized_expression;
       unchecked_expression.Rule = "unchecked" + parenthesized_expression;
@@ -509,7 +526,7 @@ namespace Irony.Samples.CSharp {
       //I think it's a mistake; there must be additional entry here for arithm expressions, so we put them here. 
       // We also have to add "is" and "as" expressions here, as we don't build entire hierarchy of elements for expressing
       // precedence (where they appear in original spec); so we put them here 
-      bin_op.Rule = lt       
+      bin_op.Rule = ToTerm("<")       
                   | "||" | "&&" | "|" | "^" | "&" | "==" | "!=" | ">" | "<=" | ">=" | "<<" | ">>" | "+" | "-" | "*" | "/" | "%"
                   | "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "|=" | "^=" | "<<=" | ">>="
                   | "is" | "as" | "??";
@@ -625,7 +642,7 @@ namespace Irony.Samples.CSharp {
       //Type parameters
       type_parameter.Rule = attributes_opt + identifier;
       type_parameters.Rule = MakePlusRule(type_parameters, comma, type_parameter);
-      type_parameter_list_opt.Rule = Empty | lt + type_parameters + ">";
+      type_parameter_list_opt.Rule = Empty | gen_lt + type_parameters + ">";
       type_parameter_constraints_clause.Rule = "where" + type_parameter + colon + type_parameter_constraints;
       type_parameter_constraints.Rule = MakePlusRule(type_parameter_constraints, comma, type_parameter_constraint);
       type_parameter_constraints_clauses_opt.Rule = MakeStarRule(type_parameter_constraints_clauses_opt, null, type_parameter_constraints_clause);
@@ -735,11 +752,10 @@ namespace Irony.Samples.CSharp {
       new_opt.Rule = Empty | "new";
 
       //B.2.11 Enums
-      enum_declaration.Rule = member_header + "enum" + identifier + enum_base_opt + Lbr + enum_body + Rbr + semi_opt;
+      enum_declaration.Rule = member_header + "enum" + identifier + enum_base_opt + Lbr + enum_member_declarations + Rbr + semi_opt;
       enum_base_opt.Rule = Empty | colon + integral_type;
-      enum_body.Rule = Empty | enum_member_declarations + comma_opt;
       enum_member_declaration.Rule = attributes_opt + identifier | attributes_opt + identifier + "=" + expression;
-      enum_member_declarations.Rule = MakePlusRule(enum_member_declarations, comma, enum_member_declaration);
+      enum_member_declarations.Rule = MakeListRule(enum_member_declarations, comma, enum_member_declaration, TermListOptions.PlusList | TermListOptions.AllowTrailingDelimiter);
 
       //B.2.12 Delegates
       delegate_declaration.Rule = member_header + "delegate" + type_ref + identifier +
@@ -767,7 +783,7 @@ namespace Irony.Samples.CSharp {
     #region conflict resolution for "<"
 /* The shift-reduce conflict for "<" symbol is the problem of deciding what is "<" symbol in the input - is it 
  * opening brace for generic reference, or logical operator. The following is a printout of parser state that has a conflict
- * The handling code need to run ahead and decide a proper action: if we see ">", then it is a generic bracket and we do shift; 
+ * The handling code needs to run ahead and decide a proper action: if we see ">", then it is a generic bracket and we do shift; 
  * otherwise, it is an operator and we make Reduce
  * 
 State S188 (Inadequate)
@@ -789,36 +805,38 @@ State S188 (Inadequate)
     //Here is an elaborate generic declaration which can be used as a good test. Perfectly legal, uncomment it to check that c#
     // accepts it:
     // List<Dictionary<string, object[,]>> genericVar; 
-    public override void OnResolvingConflict(ConflictResolutionArgs args) {
-      switch(args.Context.CurrentParserInput.Term.Name) {
-        case "<":
-          args.Scanner.BeginPreview(); 
-          int ltCount = 0;
-          string previewSym;
-          while(true) {
-            //Find first token ahead (using preview mode) that is either end of generic parameter (">") or something else
-            Token preview;
-            do {
-              preview = args.Scanner.GetToken();
-            } while (_skipTokensInPreview.Contains(preview.Terminal) && preview.Terminal != base.Eof);
-            //See what did we find
-            previewSym = preview.Terminal.Name; 
-            if (previewSym == "<")
-              ltCount++;
-            else if (previewSym == ">" && ltCount > 0) {
-              ltCount--;
-              continue;               
-            } else 
-              break; 
-          }
-          //if we see ">", then it is type argument, not operator
-          if (previewSym == ">")
-            args.Result = ParserActionType.Shift;
-          else
-            args.Result = ParserActionType.Reduce;
-          args.Scanner.EndPreview(true); //keep previewed tokens; important to keep ">>" matched to two ">" symbols, not one combined symbol (see method below)
-          return; 
-      }
+    private void ResolveLessThanConflict(ParsingContext context, CustomParserAction customAction) {
+      var scanner = context.Parser.Scanner;
+      string previewSym = null;
+      if (context.CurrentParserInput.Term.Name == "<") {
+        scanner.BeginPreview(); 
+        int ltCount = 0;
+        while(true) {
+          //Find first token ahead (using preview mode) that is either end of generic parameter (">") or something else
+          Token preview;
+          do {
+            preview = scanner.GetToken();
+          } while (_skipTokensInPreview.Contains(preview.Terminal) && preview.Terminal != base.Eof);
+          //See what did we find
+          previewSym = preview.Terminal.Name; 
+          if (previewSym == "<")
+            ltCount++;
+          else if (previewSym == ">" && ltCount > 0) {
+            ltCount--;
+            continue;               
+          } else 
+            break; 
+        }
+        scanner.EndPreview(true); //keep previewed tokens; important to keep ">>" matched to two ">" symbols, not one combined symbol (see method below)
+      }//if
+      //if we see ">", then it is type argument, not operator
+      ParserAction action;
+      if (previewSym == ">")
+        action = customAction.ShiftActions.First(a => a.Term.Name == "<");
+      else
+        action = customAction.ReduceActions.First();
+      // Actually execute action
+      action.Execute(context);
     }
 
     //In preview, we may run into combination '>>' which is a comletion of nested generic parameters.
@@ -834,7 +852,30 @@ State S188 (Inadequate)
     }
     #endregion
 
-
+    // See    http://www.jaggersoft.com/csharp_standard/9.3.3.htm
+    public override void SkipWhitespace(ISourceStream source) {
+      while (!source.EOF()) {
+        var ch = source.PreviewChar;
+        switch (ch) {
+          case ' ':
+          case '\t':
+          case '\n':
+          case '\v':
+          case '\u2085':
+          case '\u2028':
+          case '\u2029':
+            source.PreviewPosition++;
+            break;
+          default:
+            //Check unicode class Zs
+            UnicodeCategory chCat = char.GetUnicodeCategory(ch);
+            if (chCat == UnicodeCategory.SpaceSeparator) //it is whitespace, continue moving
+              continue;//while loop 
+            //Otherwize return
+            return;
+        }//switch
+      }//while
+    }
   }//class
 }//namespace
 

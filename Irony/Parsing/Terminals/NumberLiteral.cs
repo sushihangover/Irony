@@ -17,10 +17,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Diagnostics;
+using Irony.Ast;
 
 namespace Irony.Parsing {
   using BigInteger = System.Numerics.BigInteger; //Microsoft.Scripting.Math.BigInteger;
-  using Complex64 = System.Numerics.Complex; // Microsoft.Scripting.Math.Complex64;
+  using Complex64 = System.Numerics.Complex;
+  using Irony.Ast; // Microsoft.Scripting.Math.Complex64;
 
   [Flags]
   public enum NumberOptions {
@@ -64,10 +66,10 @@ namespace Irony.Parsing {
     public NumberLiteral(string name) : this(name, NumberOptions.Default) {
     }
     public NumberLiteral(string name, NumberOptions options, Type astNodeType)  : this(name, options) {
-      base.AstNodeType = astNodeType;
+      base.AstConfig.NodeType = astNodeType;
     }
     public NumberLiteral(string name, NumberOptions options, AstNodeCreator astNodeCreator)  : this(name, options) {
-      base.AstNodeCreator = astNodeCreator;
+      base.AstConfig.NodeCreator = astNodeCreator;
     }
     public NumberLiteral(string name, NumberOptions options) : base(name) {
       Options = options;
@@ -91,7 +93,6 @@ namespace Irony.Parsing {
     public TypeCode[] DefaultIntTypes = new TypeCode[] { TypeCode.Int32 };
     public TypeCode DefaultFloatType = TypeCode.Double;
     private ExponentsTable _exponentsTable = new ExponentsTable(); 
-    private string _allExponentSymbols; 
 
     public bool IsSet(NumberOptions option) {
       return (Options & option) != 0;
@@ -109,11 +110,6 @@ namespace Irony.Parsing {
         _exponentsTable['e'] = DefaultFloatType;
         _exponentsTable['E'] = DefaultFloatType;
       }
-      // collect all exponent symbols
-      _allExponentSymbols = string.Empty;
-      foreach(var exp in _exponentsTable.Keys)
-        _allExponentSymbols += exp; 
-
       if (this.EditorInfo == null) 
         this.EditorInfo = new TokenEditorInfo(TokenType.Literal, TokenColor.Number, TokenTriggers.None);
     }
@@ -136,8 +132,9 @@ namespace Irony.Parsing {
     protected override Token QuickParse(ParsingContext context, ISourceStream source) {
       if (IsSet(NumberOptions.DisableQuickParse)) return null;
       char current = source.PreviewChar;
-      //it must be a digit followed by a terminator
-      if (!char.IsDigit(current) || GrammarData.WhitespaceAndDelimiters.IndexOf(source.NextPreviewChar) < 0)
+      //it must be a digit followed by a whitespace or delimiter
+      if (!char.IsDigit(current))  return null;
+      if (!Grammar.IsWhitespaceOrDelimiter(source.NextPreviewChar))
         return null; 
       int iValue = current - '0';
       object value = null;
@@ -203,7 +200,7 @@ namespace Irony.Parsing {
           continue;
         }
         //3. Check if it is int number followed by dot or exp symbol
-        bool isExpSymbol = (details.ExponentSymbol == null) && _allExponentSymbols.IndexOf(current) >= 0;
+        bool isExpSymbol = (details.ExponentSymbol == null) && _exponentsTable.ContainsKey(current);
         if (!allowFloat && foundDigits && (isDot || isExpSymbol)) {
           //If no partial float allowed then return false - it is not integer, let float terminal recognize it as float
           if (IsSet(NumberOptions.NoDotAfterInt)) return false;  
@@ -241,7 +238,7 @@ namespace Irony.Parsing {
       if (!IsSet(NumberOptions.AllowLetterAfter)) {
         var current = context.Source.PreviewChar;
         if(char.IsLetter(current) || current == '_') {
-          context.CurrentToken = context.Source.CreateErrorToken(Resources.ErrNoLetterAfterNum); // "Number cannot be followed by a letter." 
+          context.CurrentToken = context.CreateErrorToken(Resources.ErrNoLetterAfterNum); // "Number cannot be followed by a letter." 
         }
       }
       base.OnValidateToken(context);

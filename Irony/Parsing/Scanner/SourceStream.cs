@@ -17,63 +17,70 @@ using System.Text;
 namespace Irony.Parsing {
 
   public class SourceStream : ISourceStream {
-    ScannerData _scannerData;
-    public const int DefaultTabWidth = 8;
-    private int _nextNewLinePosition = -1; //private field to cache position of next \n character
-    
-    public SourceStream(ScannerData scannerData, int tabWidth) {
-      _scannerData = scannerData;
-      TabWidth = tabWidth;
-    }
+    StringComparison _stringComparison;
+    int _tabWidth;
+    char[] _chars;
+    int _textLength;
 
-    public void SetText(string text, int offset, bool keepLineNumbering) {
-      Text = text;
-      //For line-by-line input, automatically increment line# for every new line
-      var line = keepLineNumbering ? _location.Line + 1 : 0;
-      Location = new SourceLocation(offset, line, 0);
-      _nextNewLinePosition = text.IndexOfAny(_scannerData.LineTerminatorsArray, offset);
+    public SourceStream(string text, bool caseSensitive, int tabWidth) : this(text, caseSensitive, tabWidth, new SourceLocation()) {
+    }
+    
+    public SourceStream(string text, bool caseSensitive, int tabWidth, SourceLocation initialLocation) {
+      _text = text;
+      _textLength = _text.Length; 
+      _chars = Text.ToCharArray(); 
+      _stringComparison = caseSensitive ? StringComparison.InvariantCulture : StringComparison.InvariantCultureIgnoreCase;
+      _tabWidth = tabWidth; 
+      _location = initialLocation;
+      _previewPosition = _location.Position;
+      if (_tabWidth <= 1) 
+        _tabWidth = 8;
     }
 
     #region ISourceStream Members
-    public string Text {get; internal set;}
+    public string Text {
+      get { return _text; } 
+    } string _text;
+
+    public int Position {
+      get { return _location.Position; }
+      set {
+        if (_location.Position != value) 
+          SetNewPosition(value); 
+      }
+    }
 
     public SourceLocation Location {
       [System.Diagnostics.DebuggerStepThrough]
       get { return _location; }
-      set { 
-        _location = value;
-        PreviewPosition = _location.Position;
-      }
+      set { _location = value; }
     } SourceLocation _location;
 
-    public int PreviewPosition {get; set; }
-
-    public int TabWidth { get; set; }
+    public int PreviewPosition {
+      get { return _previewPosition; }
+      set { _previewPosition = value; } 
+    } int _previewPosition;
 
     public char PreviewChar {
       [System.Diagnostics.DebuggerStepThrough]
       get {
-        if (PreviewPosition >= Text.Length) return '\0';
-        return Text[PreviewPosition];
+        if (_previewPosition >= _textLength) 
+          return '\0';
+        return _chars[_previewPosition];
       }
     }
 
     public char NextPreviewChar {
       [System.Diagnostics.DebuggerStepThrough]
       get {
-        if (PreviewPosition + 1 >= Text.Length) return '\0';
-        return Text[PreviewPosition + 1];
+        if (_previewPosition + 1 >= _textLength) return '\0';
+        return _chars[_previewPosition + 1];
       }
     }
 
-    public void ResetPreviewPosition() {
-      PreviewPosition = Location.Position;
-    }
-
-    public bool MatchSymbol(string symbol, bool ignoreCase) {
+    public bool MatchSymbol(string symbol) {
       try {
-        var compType =  ignoreCase ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture;
-        int cmp = string.Compare(Text, PreviewPosition, symbol, 0, symbol.Length, compType);
+        int cmp = string.Compare(_text, PreviewPosition, symbol, 0, symbol.Length, _stringComparison);
         return cmp == 0;
       } catch { 
         //exception may be thrown if Position + symbol.length > text.Length; 
@@ -92,99 +99,56 @@ namespace Irony.Parsing {
       var tokenText = GetPreviewText();
       return new Token(terminal, this.Location, tokenText, value); 
     }
-    public Token CreateErrorToken(string message, params object[] args) {
-      if (args != null && args.Length > 0)
-        message = string.Format(message, args);
-      return new Token(_scannerData.Language.Grammar.SyntaxError, Location, GetPreviewText(), message);
-    }
-
 
     [System.Diagnostics.DebuggerStepThrough]
     public bool EOF() {
-      return PreviewPosition >= Text.Length;
+      return _previewPosition >= _textLength;
     }
     #endregion
 
     //returns substring from Location.Position till (PreviewPosition - 1)
     private string GetPreviewText() {
-      var until = PreviewPosition;
-
-      if (until > Text.Length) until = Text.Length;
-      string text = Text.Substring(_location.Position, until - _location.Position);
+      var until = _previewPosition;
+      if (until > _textLength) until = _textLength;
+      var p = _location.Position;
+      string text = Text.Substring(p, until - p);
       return text;
     }
 
+    // To make debugging easier: show 20 chars from current position
     public override string ToString() {
       string result;
       try {
-        //show just 20 chars from current position
-        if (Location.Position + 20 < Text.Length)
-          result = Text.Substring(Location.Position, 20) + Resources.LabelSrcHaveMore;// " ..."
+        var p = Location.Position;
+        if (p + 20 < _textLength)
+          result = _text.Substring(p, 20) + Resources.LabelSrcHaveMore;// " ..."
         else
-          result = Text.Substring(Location.Position) + Resources.LabelEofMark; //"(EOF)"
+          result = _text.Substring(p) + Resources.LabelEofMark; //"(EOF)"
       } catch (Exception) {
         result = PreviewChar + Resources.LabelSrcHaveMore;
       }
       return string.Format(Resources.MsgSrcPosToString , result, Location); //"[{0}], at {1}"
     }
 
-    #region Location calculations
-    private static char[] _tab_arr = { '\t' };
-    //Calculates Location (row/column/position) to PreviewPosition.
-    public void MoveLocationToPreviewPosition() {
-      if (_location.Position == PreviewPosition) return; 
-      if (PreviewPosition > Text.Length)
-        PreviewPosition = Text.Length;
-      // First, check if preview position is in the same line; if so, just adjust column and return
-      //  Note that this case is not line start, so we do not need to check tab chars (and adjust column) 
-      if (PreviewPosition <= _nextNewLinePosition || _nextNewLinePosition < 0) {
-        _location.Column += PreviewPosition - _location.Position;
-        _location.Position = PreviewPosition;
-        return;
+    //Computes the Location info (line, col) for a new source position.
+    private void SetNewPosition(int newPosition) {
+      if (newPosition < Position)
+        throw new Exception(Resources.ErrCannotMoveBackInSource); 
+      int p = Position; 
+      int col = Location.Column;
+      int line = Location.Line; 
+      while(p <  newPosition) {
+        var curr = _chars[p];
+        switch (curr) {
+          case '\n': line++; col = 0; break;
+          case '\r': break; 
+          case '\t': col = (col / _tabWidth + 1) * _tabWidth;     break;
+          default: col++; break; 
+        } //switch
+        p++;
       }
-      //So new position is on new line (beyond _nextNewLinePosition)
-      //First count \n chars in the string fragment
-      int lineStart = _nextNewLinePosition;
-      int nlCount = 1; //we start after old _nextNewLinePosition, so we count one NewLine char
-      CountCharsInText(Text, _scannerData.LineTerminatorsArray, lineStart + 1, PreviewPosition - 1, ref nlCount, ref lineStart);
-      _location.Line += nlCount;
-      //at this moment lineStart is at start of line where newPosition is located 
-      //Calc # of tab chars from lineStart to newPosition to adjust column#
-      int tabCount = 0;
-      int dummy = 0;
-      if (TabWidth > 1)
-        CountCharsInText(Text, _tab_arr, lineStart, PreviewPosition - 1, ref tabCount, ref dummy);
-
-      //adjust TokenStart with calculated information
-      _location.Position = PreviewPosition;
-      _location.Column = PreviewPosition - lineStart - 1;
-      if (tabCount > 0)
-        _location.Column += (TabWidth - 1) * tabCount; // "-1" to count for tab char itself
-
-      //finally cache new line and assign TokenStart
-      _nextNewLinePosition = Text.IndexOfAny(_scannerData.LineTerminatorsArray, PreviewPosition);
+      Location = new SourceLocation(p, line, col); 
     }
-
-    private static void CountCharsInText(string text, char[] chars, int from, int until, ref int count, ref int lastCharOccurrencePosition) {
-//      if (from >= until) return;
-      if (from > until) return;
-      if (until >= text.Length) until = text.Length - 1;
-      while (true) {
-        int next = text.IndexOfAny(chars, from, until - from + 1);
-        if (next < 0) return;
-        //CR followed by LF is one line terminator, not two; we put it here, just to cover for special case; it wouldn't break
-        // the case when this function is called to count tabs
-        bool isCRLF = (text[next] == '\n' && next > 0 && text[next - 1] == '\r');
-        if (!isCRLF)
-          count++; //count
-        lastCharOccurrencePosition = next;
-        from = next + 1;
-      }
-
-    }
-    #endregion
-
-
 
 
   }//class

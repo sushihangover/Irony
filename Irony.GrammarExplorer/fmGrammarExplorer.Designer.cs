@@ -44,8 +44,8 @@ namespace Irony.GrammarExplorer {
       this.pageTest = new System.Windows.Forms.TabPage();
       this.txtSource = new System.Windows.Forms.RichTextBox();
       this.panel1 = new System.Windows.Forms.Panel();
+      this.btnLocate = new System.Windows.Forms.Button();
       this.chkDisableHili = new System.Windows.Forms.CheckBox();
-      this.btnToXml = new System.Windows.Forms.Button();
       this.btnRun = new System.Windows.Forms.Button();
       this.btnFileOpen = new System.Windows.Forms.Button();
       this.btnParse = new System.Windows.Forms.Button();
@@ -221,7 +221,7 @@ namespace Irony.GrammarExplorer {
       this.txtNonTerms.Multiline = true;
       this.txtNonTerms.Name = "txtNonTerms";
       this.txtNonTerms.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-      this.txtNonTerms.Size = new System.Drawing.Size(1456, 534);
+      this.txtNonTerms.Size = new System.Drawing.Size(1456, 535);
       this.txtNonTerms.TabIndex = 1;
       this.txtNonTerms.WordWrap = false;
       // 
@@ -247,7 +247,7 @@ namespace Irony.GrammarExplorer {
       this.txtParserStates.Multiline = true;
       this.txtParserStates.Name = "txtParserStates";
       this.txtParserStates.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-      this.txtParserStates.Size = new System.Drawing.Size(1456, 534);
+      this.txtParserStates.Size = new System.Drawing.Size(1456, 535);
       this.txtParserStates.TabIndex = 2;
       this.txtParserStates.WordWrap = false;
       // 
@@ -274,15 +274,15 @@ namespace Irony.GrammarExplorer {
       this.txtSource.Location = new System.Drawing.Point(4, 41);
       this.txtSource.Margin = new System.Windows.Forms.Padding(4);
       this.txtSource.Name = "txtSource";
-      this.txtSource.Size = new System.Drawing.Size(981, 497);
+      this.txtSource.Size = new System.Drawing.Size(981, 498);
       this.txtSource.TabIndex = 22;
       this.txtSource.Text = "";
       this.txtSource.TextChanged += new System.EventHandler(this.txtSource_TextChanged);
       // 
       // panel1
       // 
+      this.panel1.Controls.Add(this.btnLocate);
       this.panel1.Controls.Add(this.chkDisableHili);
-      this.panel1.Controls.Add(this.btnToXml);
       this.panel1.Controls.Add(this.btnRun);
       this.panel1.Controls.Add(this.btnFileOpen);
       this.panel1.Controls.Add(this.btnParse);
@@ -292,6 +292,19 @@ namespace Irony.GrammarExplorer {
       this.panel1.Name = "panel1";
       this.panel1.Size = new System.Drawing.Size(981, 37);
       this.panel1.TabIndex = 2;
+      // 
+      // btnLocate
+      // 
+      this.btnLocate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.btnLocate.Location = new System.Drawing.Point(883, 4);
+      this.btnLocate.Margin = new System.Windows.Forms.Padding(4);
+      this.btnLocate.Name = "btnLocate";
+      this.btnLocate.Size = new System.Drawing.Size(87, 28);
+      this.btnLocate.TabIndex = 10;
+      this.btnLocate.Text = "Locate >>";
+      this.toolTip.SetToolTip(this.btnLocate, "Locate the source position in parse/Ast tree. ");
+      this.btnLocate.UseVisualStyleBackColor = true;
+      this.btnLocate.Click += new System.EventHandler(this.btnLocate_Click);
       // 
       // chkDisableHili
       // 
@@ -305,51 +318,42 @@ namespace Irony.GrammarExplorer {
       this.chkDisableHili.UseVisualStyleBackColor = true;
       this.chkDisableHili.CheckedChanged += new System.EventHandler(this.chkDisableHili_CheckedChanged);
       // 
-      // btnToXml
-      // 
-      this.btnToXml.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.btnToXml.Location = new System.Drawing.Point(875, 4);
-      this.btnToXml.Margin = new System.Windows.Forms.Padding(4);
-      this.btnToXml.Name = "btnToXml";
-      this.btnToXml.Size = new System.Drawing.Size(87, 28);
-      this.btnToXml.TabIndex = 8;
-      this.btnToXml.Text = "->XML";
-      this.btnToXml.UseVisualStyleBackColor = true;
-      this.btnToXml.Click += new System.EventHandler(this.btnToXml_Click);
-      // 
       // btnRun
       // 
       this.btnRun.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.btnRun.Location = new System.Drawing.Point(781, 4);
+      this.btnRun.Location = new System.Drawing.Point(787, 4);
       this.btnRun.Margin = new System.Windows.Forms.Padding(4);
       this.btnRun.Name = "btnRun";
       this.btnRun.Size = new System.Drawing.Size(87, 28);
       this.btnRun.TabIndex = 7;
       this.btnRun.Text = "Run";
+      this.toolTip.SetToolTip(this.btnRun, "Run the source sample");
       this.btnRun.UseVisualStyleBackColor = true;
       this.btnRun.Click += new System.EventHandler(this.btnRun_Click);
       // 
       // btnFileOpen
       // 
       this.btnFileOpen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.btnFileOpen.Location = new System.Drawing.Point(589, 4);
+      this.btnFileOpen.Location = new System.Drawing.Point(595, 4);
       this.btnFileOpen.Margin = new System.Windows.Forms.Padding(4);
       this.btnFileOpen.Name = "btnFileOpen";
       this.btnFileOpen.Size = new System.Drawing.Size(87, 28);
       this.btnFileOpen.TabIndex = 6;
       this.btnFileOpen.Text = "Load ...";
+      this.toolTip.SetToolTip(this.btnFileOpen, "Load a source sample...");
       this.btnFileOpen.UseVisualStyleBackColor = true;
       this.btnFileOpen.Click += new System.EventHandler(this.btnFileOpen_Click);
       // 
       // btnParse
       // 
       this.btnParse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-      this.btnParse.Location = new System.Drawing.Point(683, 4);
+      this.btnParse.Location = new System.Drawing.Point(689, 4);
       this.btnParse.Margin = new System.Windows.Forms.Padding(4);
       this.btnParse.Name = "btnParse";
       this.btnParse.Size = new System.Drawing.Size(89, 28);
       this.btnParse.TabIndex = 1;
       this.btnParse.Text = "Parse";
+      this.toolTip.SetToolTip(this.btnParse, "Parse source sample");
       this.btnParse.UseVisualStyleBackColor = true;
       this.btnParse.Click += new System.EventHandler(this.btnParse_Click);
       // 
@@ -359,7 +363,7 @@ namespace Irony.GrammarExplorer {
       this.splitter3.Location = new System.Drawing.Point(985, 4);
       this.splitter3.Margin = new System.Windows.Forms.Padding(4);
       this.splitter3.Name = "splitter3";
-      this.splitter3.Size = new System.Drawing.Size(8, 534);
+      this.splitter3.Size = new System.Drawing.Size(8, 535);
       this.splitter3.TabIndex = 14;
       this.splitter3.TabStop = false;
       // 
@@ -372,7 +376,7 @@ namespace Irony.GrammarExplorer {
       this.tabOutput.Margin = new System.Windows.Forms.Padding(4);
       this.tabOutput.Name = "tabOutput";
       this.tabOutput.SelectedIndex = 0;
-      this.tabOutput.Size = new System.Drawing.Size(467, 534);
+      this.tabOutput.Size = new System.Drawing.Size(467, 535);
       this.tabOutput.TabIndex = 13;
       // 
       // pageSyntaxTree
@@ -383,7 +387,7 @@ namespace Irony.GrammarExplorer {
       this.pageSyntaxTree.Margin = new System.Windows.Forms.Padding(4);
       this.pageSyntaxTree.Name = "pageSyntaxTree";
       this.pageSyntaxTree.Padding = new System.Windows.Forms.Padding(4);
-      this.pageSyntaxTree.Size = new System.Drawing.Size(459, 505);
+      this.pageSyntaxTree.Size = new System.Drawing.Size(459, 506);
       this.pageSyntaxTree.TabIndex = 1;
       this.pageSyntaxTree.Text = "Parse Tree";
       this.pageSyntaxTree.UseVisualStyleBackColor = true;
@@ -392,11 +396,12 @@ namespace Irony.GrammarExplorer {
       // 
       this.tvParseTree.Dock = System.Windows.Forms.DockStyle.Fill;
       this.tvParseTree.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.tvParseTree.HideSelection = false;
       this.tvParseTree.Indent = 16;
       this.tvParseTree.Location = new System.Drawing.Point(4, 4);
       this.tvParseTree.Margin = new System.Windows.Forms.Padding(4);
       this.tvParseTree.Name = "tvParseTree";
-      this.tvParseTree.Size = new System.Drawing.Size(451, 497);
+      this.tvParseTree.Size = new System.Drawing.Size(451, 498);
       this.tvParseTree.TabIndex = 0;
       this.tvParseTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvParseTree_AfterSelect);
       // 
@@ -407,7 +412,7 @@ namespace Irony.GrammarExplorer {
       this.pageAst.Margin = new System.Windows.Forms.Padding(4);
       this.pageAst.Name = "pageAst";
       this.pageAst.Padding = new System.Windows.Forms.Padding(4);
-      this.pageAst.Size = new System.Drawing.Size(459, 505);
+      this.pageAst.Size = new System.Drawing.Size(459, 506);
       this.pageAst.TabIndex = 0;
       this.pageAst.Text = "AST";
       this.pageAst.UseVisualStyleBackColor = true;
@@ -416,11 +421,12 @@ namespace Irony.GrammarExplorer {
       // 
       this.tvAst.Dock = System.Windows.Forms.DockStyle.Fill;
       this.tvAst.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+      this.tvAst.HideSelection = false;
       this.tvAst.Indent = 16;
       this.tvAst.Location = new System.Drawing.Point(4, 4);
       this.tvAst.Margin = new System.Windows.Forms.Padding(4);
       this.tvAst.Name = "tvAst";
-      this.tvAst.Size = new System.Drawing.Size(451, 497);
+      this.tvAst.Size = new System.Drawing.Size(451, 498);
       this.tvAst.TabIndex = 1;
       this.tvAst.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvAst_AfterSelect);
       // 
@@ -839,7 +845,7 @@ namespace Irony.GrammarExplorer {
       this.groupBox1.Margin = new System.Windows.Forms.Padding(4);
       this.groupBox1.Name = "groupBox1";
       this.groupBox1.Padding = new System.Windows.Forms.Padding(4);
-      this.groupBox1.Size = new System.Drawing.Size(1247, 191);
+      this.groupBox1.Size = new System.Drawing.Size(1249, 193);
       this.groupBox1.TabIndex = 3;
       this.groupBox1.TabStop = false;
       this.groupBox1.Text = "Compile Errors";
@@ -855,14 +861,15 @@ namespace Irony.GrammarExplorer {
             this.dataGridViewTextBoxColumn4,
             this.dataGridViewTextBoxColumn1});
       this.gridCompileErrors.Dock = System.Windows.Forms.DockStyle.Fill;
-      this.gridCompileErrors.Location = new System.Drawing.Point(4, 20);
+      this.gridCompileErrors.Location = new System.Drawing.Point(4, 19);
       this.gridCompileErrors.Margin = new System.Windows.Forms.Padding(4);
       this.gridCompileErrors.MultiSelect = false;
       this.gridCompileErrors.Name = "gridCompileErrors";
       this.gridCompileErrors.ReadOnly = true;
       this.gridCompileErrors.RowHeadersVisible = false;
+      this.gridCompileErrors.RowTemplate.Height = 24;
       this.gridCompileErrors.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-      this.gridCompileErrors.Size = new System.Drawing.Size(1239, 167);
+      this.gridCompileErrors.Size = new System.Drawing.Size(1241, 170);
       this.gridCompileErrors.TabIndex = 2;
       this.gridCompileErrors.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gridCompileErrors_CellDoubleClick);
       // 
@@ -885,7 +892,7 @@ namespace Irony.GrammarExplorer {
       this.dataGridViewTextBoxColumn4.Name = "dataGridViewTextBoxColumn4";
       this.dataGridViewTextBoxColumn4.ReadOnly = true;
       this.dataGridViewTextBoxColumn4.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.dataGridViewTextBoxColumn4.Width = 600;
+      this.dataGridViewTextBoxColumn4.Width = 1000;
       // 
       // dataGridViewTextBoxColumn1
       // 
@@ -916,7 +923,7 @@ namespace Irony.GrammarExplorer {
       this.grpCompileInfo.Margin = new System.Windows.Forms.Padding(4);
       this.grpCompileInfo.Name = "grpCompileInfo";
       this.grpCompileInfo.Padding = new System.Windows.Forms.Padding(4);
-      this.grpCompileInfo.Size = new System.Drawing.Size(207, 191);
+      this.grpCompileInfo.Size = new System.Drawing.Size(207, 193);
       this.grpCompileInfo.TabIndex = 5;
       this.grpCompileInfo.TabStop = false;
       this.grpCompileInfo.Text = "Statistics";
@@ -1025,7 +1032,7 @@ namespace Irony.GrammarExplorer {
       this.grpParserActions.Margin = new System.Windows.Forms.Padding(4);
       this.grpParserActions.Name = "grpParserActions";
       this.grpParserActions.Padding = new System.Windows.Forms.Padding(4);
-      this.grpParserActions.Size = new System.Drawing.Size(1075, 161);
+      this.grpParserActions.Size = new System.Drawing.Size(1101, 161);
       this.grpParserActions.TabIndex = 4;
       this.grpParserActions.TabStop = false;
       // 
@@ -1048,8 +1055,9 @@ namespace Irony.GrammarExplorer {
       this.gridParserTrace.Name = "gridParserTrace";
       this.gridParserTrace.ReadOnly = true;
       this.gridParserTrace.RowHeadersVisible = false;
+      this.gridParserTrace.RowTemplate.Height = 24;
       this.gridParserTrace.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-      this.gridParserTrace.Size = new System.Drawing.Size(1067, 138);
+      this.gridParserTrace.Size = new System.Drawing.Size(1093, 138);
       this.gridParserTrace.TabIndex = 0;
       this.gridParserTrace.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.gridParserTrace_CellDoubleClick);
       // 
@@ -1077,7 +1085,7 @@ namespace Irony.GrammarExplorer {
       this.Stack.Resizable = System.Windows.Forms.DataGridViewTriState.True;
       this.Stack.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
       this.Stack.ToolTipText = "Double-click grid cell to locate node in source code";
-      this.Stack.Width = 220;
+      this.Stack.Width = 200;
       // 
       // Input
       // 
@@ -1087,7 +1095,7 @@ namespace Irony.GrammarExplorer {
       this.Input.ReadOnly = true;
       this.Input.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
       this.Input.ToolTipText = "Double-click grid cell to locate in source code";
-      this.Input.Width = 150;
+      this.Input.Width = 200;
       // 
       // Action
       // 
@@ -1096,13 +1104,13 @@ namespace Irony.GrammarExplorer {
       this.Action.Name = "Action";
       this.Action.ReadOnly = true;
       this.Action.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-      this.Action.Width = 300;
+      this.Action.Width = 600;
       // 
       // splitter1
       // 
       this.splitter1.BackColor = System.Drawing.SystemColors.Control;
       this.splitter1.Dock = System.Windows.Forms.DockStyle.Right;
-      this.splitter1.Location = new System.Drawing.Point(1079, 34);
+      this.splitter1.Location = new System.Drawing.Point(1105, 34);
       this.splitter1.Margin = new System.Windows.Forms.Padding(4);
       this.splitter1.Name = "splitter1";
       this.splitter1.Size = new System.Drawing.Size(8, 161);
@@ -1113,11 +1121,11 @@ namespace Irony.GrammarExplorer {
       // 
       this.grpTokens.Controls.Add(this.lstTokens);
       this.grpTokens.Dock = System.Windows.Forms.DockStyle.Right;
-      this.grpTokens.Location = new System.Drawing.Point(1087, 34);
+      this.grpTokens.Location = new System.Drawing.Point(1113, 34);
       this.grpTokens.Margin = new System.Windows.Forms.Padding(4);
       this.grpTokens.Name = "grpTokens";
       this.grpTokens.Padding = new System.Windows.Forms.Padding(4);
-      this.grpTokens.Size = new System.Drawing.Size(371, 161);
+      this.grpTokens.Size = new System.Drawing.Size(345, 161);
       this.grpTokens.TabIndex = 3;
       this.grpTokens.TabStop = false;
       this.grpTokens.Text = "Tokens";
@@ -1131,7 +1139,7 @@ namespace Irony.GrammarExplorer {
       this.lstTokens.Location = new System.Drawing.Point(4, 19);
       this.lstTokens.Margin = new System.Windows.Forms.Padding(4);
       this.lstTokens.Name = "lstTokens";
-      this.lstTokens.Size = new System.Drawing.Size(363, 138);
+      this.lstTokens.Size = new System.Drawing.Size(337, 138);
       this.lstTokens.TabIndex = 2;
       this.lstTokens.Click += new System.EventHandler(this.lstTokens_Click);
       // 
@@ -1383,7 +1391,6 @@ namespace Irony.GrammarExplorer {
     private System.Windows.Forms.ToolStripMenuItem miRemove;
     private System.Windows.Forms.OpenFileDialog dlgSelectAssembly;
     private System.Windows.Forms.ToolStripMenuItem miRemoveAll;
-    private System.Windows.Forms.Button btnToXml;
     private System.Windows.Forms.TabControl tabBottom;
     private System.Windows.Forms.TabPage pageOutput;
     private System.Windows.Forms.TextBox txtOutput;
@@ -1431,22 +1438,23 @@ namespace Irony.GrammarExplorer {
     private System.Windows.Forms.CheckBox chkDisableHili;
     private System.Windows.Forms.LinkLabel lnkShowErrStack;
     private System.Windows.Forms.Label label13;
-    private System.Windows.Forms.DataGridViewTextBoxColumn State;
-    private System.Windows.Forms.DataGridViewTextBoxColumn Stack;
-    private System.Windows.Forms.DataGridViewTextBoxColumn Input;
-    private System.Windows.Forms.DataGridViewTextBoxColumn Action;
     private System.Windows.Forms.Label label8;
     private System.Windows.Forms.Label lblParserStateCount;
     private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn2;
     private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn5;
     private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn6;
-    private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
-    private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
-    private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
     private System.Windows.Forms.CheckBox chkAutoRefresh;
     private System.Windows.Forms.Label label14;
     private System.Windows.Forms.Label lblGCCount;
     private System.Windows.Forms.ToolTip toolTip;
+    private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn3;
+    private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn4;
+    private System.Windows.Forms.DataGridViewTextBoxColumn dataGridViewTextBoxColumn1;
+    private System.Windows.Forms.DataGridViewTextBoxColumn State;
+    private System.Windows.Forms.DataGridViewTextBoxColumn Stack;
+    private System.Windows.Forms.DataGridViewTextBoxColumn Input;
+    private System.Windows.Forms.DataGridViewTextBoxColumn Action;
+    private System.Windows.Forms.Button btnLocate;
 
   }
 }
