@@ -18,15 +18,14 @@ using Irony.Interpreter.Ast;
 
 namespace Irony.Interpreter {
 
-  public partial class LanguageRuntime : IBindingSource {
+  public partial class LanguageRuntime {
 
-    //Binds to local variables, enclosing scopes, module scopes/globals and built-ins
-    public virtual Binding Bind(BindingRequest request) {
+    public virtual Binding BindSymbol(BindingRequest request) {
       var symbol = request.Symbol;
-      var mode = request.Flags;
-      if (mode.IsSet(BindingRequestFlags.Write))
+      var mode = request.Options;
+      if (mode.HasFlag(BindingOptions.Write))
         return BindSymbolForWrite(request);
-      else if (mode.IsSet(BindingRequestFlags.Read))
+      else if (mode.HasFlag(BindingOptions.Read))
         return BindSymbolForRead(request);
       else {
         //TODO: need to throw fatal error here
@@ -39,16 +38,16 @@ namespace Irony.Interpreter {
       var scope = request.Thread.CurrentScope;
       var existingSlot = scope.Info.GetSlot(request.Symbol);
       //1. If new only, check it does not exist yet, create and return it
-      if (request.Flags.IsSet(BindingRequestFlags.NewOnly)) {
+      if (request.Options.HasFlag(BindingOptions.NewOnly)) {
         if (existingSlot != null) 
             request.Thread.ThrowScriptError("Variable {0} already exists.", request.Symbol);     
         var newSlot = scope.AddSlot(request.Symbol);
-        return new SlotBinding(newSlot, request.FromNode, request.FromScopeInfo);
+        return new SlotBinding(request.FromNode, newSlot, request.FromScopeInfo, request.Options);
       }
       //2. If exists, then return it
-      if (existingSlot != null && request.Flags.IsSet(BindingRequestFlags.ExistingOrNew)) {
+      if (existingSlot != null && request.Options.HasFlag(BindingOptions.ExistingOrNew)) {
         //TODO: For external client, check that slot is actually public or exported
-        return new SlotBinding(existingSlot, request.FromNode, request.FromScopeInfo);
+        return new SlotBinding(request.FromNode, existingSlot, request.FromScopeInfo, request.Options);
       }
 
       //3. Check external module imports
@@ -59,15 +58,16 @@ namespace Irony.Interpreter {
       }
 
       //4. If nothing found, create new slot in current scope
-      if (request.Flags.IsSet(BindingRequestFlags.ExistingOrNew)) {
+      if (request.Options.HasFlag(BindingOptions.ExistingOrNew)) {
         var newSlot = scope.AddSlot(request.Symbol);
-        return new SlotBinding(newSlot, request.FromNode, request.FromScopeInfo);
+        return new SlotBinding(request.FromNode, newSlot, request.FromScopeInfo, request.Options);
       }
-
-      //5. Check built-in methods
-      var builtIn = BuiltIns.Bind(request);
-      if (builtIn != null) return builtIn; 
-
+      //5. Check built-in modules
+      foreach (var imp in this.BuiltIns) {
+        var result = imp.Bind(request);
+        if (result != null)
+          return result;
+      }
       //6. If still not found, return null.
       return null; 
     }//method
@@ -79,7 +79,7 @@ namespace Irony.Interpreter {
       do {
         var existingSlot = currScope.Info.GetSlot(symbol);
         if (existingSlot != null)
-          return new SlotBinding(existingSlot, request.FromNode, request.FromScopeInfo);
+          return new SlotBinding(request.FromNode, existingSlot, request.FromScopeInfo, request.Options);
         currScope = currScope.Parent;
       } while (currScope != null);
 
@@ -89,11 +89,12 @@ namespace Irony.Interpreter {
         if (result != null)
           return result; 
       }
-
       // Check built-in modules
-      var builtIn = BuiltIns.Bind(request);
-      if (builtIn != null) return builtIn;
-      
+      foreach (var imp in this.BuiltIns) {
+        var result = imp.Bind(request);
+        if (result != null)
+          return result;
+      }
       // if not found, return null
       return null;
     }
@@ -102,7 +103,6 @@ namespace Irony.Interpreter {
     public virtual Binding BindSymbol(BindingRequest request, ModuleInfo module) {
       return module.BindToExport(request); 
     }
-
 
   }//class
 }

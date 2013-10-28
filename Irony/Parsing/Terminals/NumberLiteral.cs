@@ -237,14 +237,14 @@ namespace Irony.Parsing {
       return true;
     }
 
-    protected internal override void OnValidateToken(ParsingContext context) {
+    protected internal override void InvokeValidateToken(ParsingContext context) {
       if (!IsSet(NumberOptions.AllowLetterAfter)) {
         var current = context.Source.PreviewChar;
         if(char.IsLetter(current) || current == '_') {
           context.CurrentToken = context.Source.CreateErrorToken(Resources.ErrNoLetterAfterNum); // "Number cannot be followed by a letter." 
         }
       }
-      base.OnValidateToken(context);
+      base.InvokeValidateToken(context);
     }
 
     protected override bool ConvertValue(CompoundTokenDetails details) {

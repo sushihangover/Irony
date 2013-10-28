@@ -67,7 +67,6 @@ namespace Irony.GrammarExplorer {
       var types = asm.GetTypes();
       var grammars = new GrammarItemList();
       foreach (Type t in types) {
-        if (t.IsAbstract) continue; 
         if (!t.IsSubclassOf(typeof(Grammar))) continue;
         grammars.Add(new GrammarItem(t, assemblyPath));
       }

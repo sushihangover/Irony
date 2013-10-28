@@ -27,9 +27,9 @@ namespace Irony.Interpreter {
     public int StaticScopeIndex;
     public AstNode FromNode;
 
-    public SlotBinding(SlotInfo slot, AstNode fromNode, ScopeInfo fromScope) : base(slot.Name, BindingTargetType.Slot) {
-      Slot = slot;
+    public SlotBinding(AstNode fromNode, SlotInfo slot, ScopeInfo fromScope, BindingOptions options) : base(BindingTarget.Slot, options) {
       FromNode = fromNode;
+      Slot = slot;
       FromScope = fromScope;
       SlotIndex = slot.Index;
       StaticScopeIndex = Slot.ScopeInfo.StaticIndex;

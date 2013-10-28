@@ -16,6 +16,8 @@ using System.Linq;
 using System.Text;
 
 namespace Irony.Parsing {
+
+
   /* 
     A node for a parse tree (concrete syntax tree) - an initial syntax representation produced by parser.
     It contains all syntax elements of the input text, each element represented by a generic node ParseTreeNode. 
@@ -37,15 +39,12 @@ namespace Irony.Parsing {
     public Production ReduceProduction;
     //Making ChildNodes property (not field) following request by Matt K, Bill H
     public ParseTreeNodeList ChildNodes {get; private set;}
-    //A list of of child nodes passed thru mapping operation using AstPartsMap. By default, the same as ChildNodes
-    public ParseTreeNodeList MappedChildNodes { get; internal set; }
     public bool IsError;
     internal ParserState State;      //used by parser to store current state when node is pushed into the parser stack
     public object Tag; //for use by custom parsers, Irony does not use it
-    public CommentBlock Comments; //Comments preceding this node
 
     private ParseTreeNode(){
-      ChildNodes = MappedChildNodes = new ParseTreeNodeList();
+      ChildNodes = new ParseTreeNodeList();
     }
     public ParseTreeNode(BnfTerm term) : this() {
       Term = term;
@@ -95,29 +94,22 @@ namespace Irony.Parsing {
     }
     private static Token FindFirstChildTokenRec(ParseTreeNode node) {
       if (node.Token != null) return node.Token;
-      foreach (var child in node.MappedChildNodes) {
+      foreach (var child in node.ChildNodes) {
         var tkn = FindFirstChildTokenRec(child);
         if (tkn != null) return tkn; 
       }
       return null; 
     }
     public ParseTreeNode FirstChild {
-      get { return MappedChildNodes[0]; }
+      get { return ChildNodes[0]; }
     }
     public ParseTreeNode LastChild {
-      get { return MappedChildNodes[MappedChildNodes.Count - 1]; }
+      get { return ChildNodes[ChildNodes.Count -1]; }
     }
 
   }//class
 
   public class ParseTreeNodeList : List<ParseTreeNode> { }
-
-  public class CommentBlock {
-    public TokenList Tokens = new TokenList();
-    public override string ToString() {
-      return string.Join(Environment.NewLine, Tokens); 
-    }
-  }
 
   public enum ParseTreeStatus {
     Parsing,

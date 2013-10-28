@@ -39,13 +39,12 @@ namespace Irony.Interpreter {
     //An unassigned reserved object for a language implementation
     public NoneClass NoneValue { get; protected set; }
     
-    //Built-in binding sources
-    public BindingSourceTable BuiltIns;
+    //Built-in entities
+    public ImportSpecList BuiltIns = new ImportSpecList(); 
     
     public LanguageRuntime(LanguageData language) {
       Language = language;
       NoneValue = NoneClass.Value;
-      BuiltIns = new BindingSourceTable(Language.Grammar.CaseSensitive);
       Init();
     }
 
@@ -63,6 +62,18 @@ namespace Irony.Interpreter {
       return value != null; 
     }
 
+    #region ConsoleWrite event
+    public event EventHandler<ConsoleWriteEventArgs> ConsoleWrite;
+    protected void OnConsoleWrite(ScriptThread thread, string text) {
+      if (ConsoleWrite != null) {
+        ConsoleWriteEventArgs args = new ConsoleWriteEventArgs(text);
+        ConsoleWrite(this, args);
+      }
+      thread.App.Write(text); 
+    }
+    #endregion
+
+
     internal protected void ThrowError(string message, params object[] args) {
       if (args != null && args.Length > 0)
         message = string.Format(message, args);
@@ -74,6 +85,7 @@ namespace Irony.Interpreter {
         message = string.Format(message, args);
       throw new ScriptException(message);
     }
+  
 
   }//class
 

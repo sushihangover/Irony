@@ -26,7 +26,18 @@ namespace Irony.Interpreter {
     Error,
   }
 
-  // Default implementation of IConsoleAdaptor with System Console as input/output. 
+  //An abstraction of a Console. 
+  public interface IConsoleAdaptor {
+    bool Canceled { get; set; }
+    void Write(string text);
+    void WriteLine(string text);
+    void SetTextStyle(ConsoleTextStyle style);
+    int Read(); //reads a key
+    string ReadLine(); //reads a line; returns null if Ctrl-C is pressed
+    void SetTitle(string title);
+  }
+
+  //Default adapter
   public class ConsoleAdapter : IConsoleAdaptor {
     public ConsoleAdapter() {
       Console.CancelKeyPress += Console_CancelKeyPress;
