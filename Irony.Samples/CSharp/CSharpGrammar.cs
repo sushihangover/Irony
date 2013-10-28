@@ -859,7 +859,6 @@ State S188 (Inadequate)
         switch (ch) {
           case ' ':
           case '\t':
-          case '\r':
           case '\n':
           case '\v':
           case '\u2085':
