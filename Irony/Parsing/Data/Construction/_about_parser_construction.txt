@@ -16,10 +16,10 @@
 
  Note about immediate Include propagation
   I think that the method with immediate Includes propagation is as efficient as it can be, and using Transitive Closure optimization
-  through Strongly-Connected Components (SCC) algorithm would not be any faster. With immediate propagation we attempt to add 
+  through Srongly-Connected Components (SCC) algorithm would not be much faster. With immediate propagation we attempt to add 
   a transition to Includes set of another transition only once and stop propagation of the transition further down the chain if it is
   already there. Essentially, we don't waste time propagating sets of transitions through chains of Includes if the transitions are 
-  already there, propagated through different route. This is what SCC method is trying to mitigate - repeated propagation of transitions - 
+  alredy there, propagated through different route. This is what SCC method is trying to mitigate - repeated propagation of transitions - 
   but this is not happening in our implementation. Maybe I'm mistaken, this is a guess, not a formal proof - let me know if you see 
   any flaws in my reasoning.
  
@@ -41,5 +41,5 @@
   current state has a single reduce action (DefaultReduceAction property is not null). We do not read next token because it is not needed
   for finding an action - there is one single possible action anyway. As a result the Scanner would never start scanning a new token 
   when parser in this single-reduce state - and therefore scanner would not invoke the parser-scanner link. 
-  See Parser.ExecuteAction method for details.
+  See CoreParser.ExecuteAction method for details.
  

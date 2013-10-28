@@ -15,9 +15,7 @@ namespace Refal.UnitTests
 	#endregion
 
 	/// <summary>
-	/// Refal runtime library tests.
-	/// Written by Alexey Yakovlev, yallie@yandex.ru.
-	/// http://refal.codeplex.com
+	/// Refal runtime library tests
 	/// </summary>
 	[TestClass]
 	public class RefalLibraryTests

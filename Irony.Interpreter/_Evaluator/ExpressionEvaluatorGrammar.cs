@@ -18,7 +18,7 @@ using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 
 namespace Irony.Interpreter.Evaluator {
-  // A ready-to-use evaluator implementation.
+  // An ready-to-use evaluator implementation.
 
   // This grammar describes programs that consist of simple expressions and assignments
   // for ex:
@@ -50,13 +50,12 @@ bool operations &,&&, |, ||; ternary '?:' operator." ;
 
       //String literal with embedded expressions  ------------------------------------------------------------------
       var stringLit = new StringLiteral("string", "\"", StringOptions.AllowsAllEscapes | StringOptions.IsTemplate);
-      stringLit.AddStartEnd("'", StringOptions.AllowsAllEscapes | StringOptions.IsTemplate); 
-      stringLit.AstConfig.NodeType = typeof(StringTemplateNode);
+      stringLit.AstNodeType = typeof(StringTemplateNode);
       var Expr = new NonTerminal("Expr"); //declare it here to use in template definition 
       var templateSettings = new StringTemplateSettings(); //by default set to Ruby-style settings 
       templateSettings.ExpressionRoot = Expr; //this defines how to evaluate expressions inside template
       this.SnippetRoots.Add(Expr);
-      stringLit.AstConfig.Data = templateSettings;
+      stringLit.AstData = templateSettings;
       //--------------------------------------------------------------------------------------------------------
 
       // 2. Non-terminals
@@ -67,9 +66,6 @@ bool operations &,&&, |, ||; ternary '?:' operator." ;
       var TernaryIfExpr = new NonTerminal("TernaryIf", typeof(IfNode));
       var ArgList = new NonTerminal("ArgList", typeof(ExpressionListNode));
       var FunctionCall = new NonTerminal("FunctionCall", typeof(FunctionCallNode));
-      var MemberAccess = new NonTerminal("MemberAccess", typeof(MemberAccessNode));
-      var IndexedAccess = new NonTerminal("IndexedAccess", typeof(IndexedAccessNode));
-      var ObjectRef = new NonTerminal("ObjectRef"); // foo, foo.bar or f['bar']
       var UnOp = new NonTerminal("UnOp");
       var BinOp = new NonTerminal("BinOp", "operator");
       var PrefixIncDec = new NonTerminal("PrefixIncDec", typeof(IncDecNode));
@@ -82,25 +78,22 @@ bool operations &,&&, |, ||; ternary '?:' operator." ;
 
       // 3. BNF rules
       Expr.Rule = Term | UnExpr | BinExpr | PrefixIncDec | PostfixIncDec | TernaryIfExpr;
-      Term.Rule = number | ParExpr | stringLit | FunctionCall | identifier | MemberAccess | IndexedAccess;
+      Term.Rule = number | ParExpr | identifier | stringLit | FunctionCall;
       ParExpr.Rule = "(" + Expr + ")";
-      UnExpr.Rule = UnOp + Term + ReduceHere();
-      UnOp.Rule = ToTerm("+") | "-" | "!"; 
+      UnExpr.Rule = UnOp + Term;
+      UnOp.Rule = ToTerm("+") | "-"; 
       BinExpr.Rule = Expr + BinOp + Expr;
       BinOp.Rule = ToTerm("+") | "-" | "*" | "/" | "**" | "==" | "<" | "<=" | ">" | ">=" | "!=" | "&&" | "||" | "&" | "|";
       PrefixIncDec.Rule = IncDecOp + identifier;
-      PostfixIncDec.Rule = identifier + PreferShiftHere() + IncDecOp;
+      PostfixIncDec.Rule = identifier + IncDecOp;
       IncDecOp.Rule = ToTerm("++") | "--";
       TernaryIfExpr.Rule = Expr + "?" + Expr + ":" + Expr;
-      MemberAccess.Rule = Expr + PreferShiftHere() + "." + identifier; 
-      AssignmentStmt.Rule = ObjectRef + AssignmentOp + Expr;
+      AssignmentStmt.Rule = identifier + AssignmentOp + Expr;
       AssignmentOp.Rule = ToTerm("=") | "+=" | "-=" | "*=" | "/=";
       Statement.Rule = AssignmentStmt | Expr | Empty;
       ArgList.Rule = MakeStarRule(ArgList, comma, Expr);
-      FunctionCall.Rule = Expr + PreferShiftHere() + "(" + ArgList + ")";
+      FunctionCall.Rule = identifier + "(" + ArgList + ")";
       FunctionCall.NodeCaptionTemplate = "call #{0}(...)";
-      ObjectRef.Rule = identifier | MemberAccess | IndexedAccess;
-      IndexedAccess.Rule = Expr + PreferShiftHere() + "[" + Expr + "]";
 
       Program.Rule = MakePlusRule(Program, NewLine, Statement);
 
@@ -113,17 +106,11 @@ bool operations &,&&, |, ||; ternary '?:' operator." ;
       RegisterOperators(30, "+", "-");
       RegisterOperators(40, "*", "/");
       RegisterOperators(50, Associativity.Right, "**");
-      RegisterOperators(60, "!");
-      // For precedence to work, we need to take care of one more thing: BinOp. 
-      //For BinOp which is or-combination of binary operators, we need to either 
-      // 1) mark it transient or 2) set flag TermFlags.InheritPrecedence
-      // We use first option, making it Transient.  
 
       // 5. Punctuation and transient terms
-      MarkPunctuation("(", ")", "?", ":", "[", "]");
+      MarkPunctuation("(", ")", "?", ":");
       RegisterBracePair("(", ")");
-      RegisterBracePair("[", "]");
-      MarkTransient(Term, Expr, Statement, BinOp, UnOp, IncDecOp, AssignmentOp, ParExpr, ObjectRef);
+      MarkTransient(Term, Expr, Statement, BinOp, UnOp, IncDecOp, AssignmentOp, ParExpr);
 
       // 7. Syntax error reporting
       MarkNotReported("++", "--");
@@ -155,24 +142,6 @@ Press Ctrl-C to exit the program at any time.
     public override LanguageRuntime CreateRuntime(LanguageData language) {
       return new ExpressionEvaluatorRuntime(language); 
     }
-
-    #region Running in Grammar Explorer
-    private static ExpressionEvaluator _evaluator;
-    public override string RunSample(RunSampleArgs args) {
-      if (_evaluator == null) {
-        _evaluator = new ExpressionEvaluator(this);
-        _evaluator.Globals.Add("null", _evaluator.Runtime.NoneValue);
-        _evaluator.Globals.Add("true", true);
-        _evaluator.Globals.Add("false", false);
-
-      }
-      _evaluator.ClearOutput();
-      //for (int i = 0; i < 1000; i++)  //for perf measurements, to execute 1000 times
-      _evaluator.Evaluate(args.ParsedSample);
-      return _evaluator.GetOutput();
-    }
-    #endregion
-
 
 
 

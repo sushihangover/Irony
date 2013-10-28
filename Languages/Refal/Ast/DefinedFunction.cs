@@ -1,17 +1,14 @@
-// Refal5.NET interpreter
-// Written by Alexey Yakovlev <yallie@yandex.ru>
-// http://refal.codeplex.com
-
-using Irony.Interpreter;
+using System;
+using System.Collections.Generic;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
+using Irony.Interpreter;
 using Refal.Runtime;
-using Irony.Ast;
 
 namespace Refal
 {
 	/// <summary>
-	/// DefinedFunction is a function defined in the current compulation unit.
+	/// DefinedFunction is a function defined in the current compulation unit
 	/// </summary>
 	public class DefinedFunction : Function
 	{
@@ -19,9 +16,7 @@ namespace Refal
 
 		public bool IsPublic { get; private set; }
 
-		private ScopeInfo ScopeInfo { get; set; }
-
-    public override void Init(AstContext context, ParseTreeNode parseNode)
+		public override void Init(ParsingContext context, ParseTreeNode parseNode)
 		{
 			base.Init(context, parseNode);
 
@@ -34,16 +29,12 @@ namespace Refal
 				else if (node.AstNode is Block)
 				{
 					Block = (node.AstNode as Block);
-					Block.Parent = this;
 				}
 				else if (node.Term is KeyTerm && node.Term.Name == "$ENTRY")
 				{
 					IsPublic = true;
 				}
 			}
-
-			ScopeInfo = new ScopeInfo(this, context.Language.Grammar.CaseSensitive);
-			AsString = (IsPublic ? "public " : "private ") + Name;
 		}
 
 		public override System.Collections.IEnumerable GetChildNodes()
@@ -51,25 +42,16 @@ namespace Refal
 			return Block.GetChildNodes();
 		}
 
-		public override object Call(ScriptThread thread, object[] parameters)
+		public override void Call(ScriptAppInfo context)
 		{
-			thread.PushScope(ScopeInfo, parameters);
+			context.PushFrame(Name, null, context.CurrentFrame); // AstNode argument
+			Block.Evaluate(context, AstMode.None);
+			context.PopFrame();
+		}
 
-			try
-			{
-				var expression =
-					parameters != null && parameters.Length > 0 ?
-						parameters[0] as PassiveExpression : null;
-
-				Block.InputExpression = expression;
-				Block.BlockPattern = null;
-
-				return Block.Evaluate(thread);
-			}
-			finally
-			{
-				thread.PopScope();
-			}
+		public override string ToString()
+		{
+			return (IsPublic ? "public " : "private ") + Name;
 		}
 	}
 }

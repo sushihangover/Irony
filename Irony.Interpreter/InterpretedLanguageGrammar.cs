@@ -14,8 +14,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
-using Irony.Ast; 
 using Irony.Parsing;
 using Irony.Interpreter.Ast;
 
@@ -25,6 +23,8 @@ namespace Irony.Interpreter {
        // making the class abstract so it won't load into Grammar Explorer
     public InterpretedLanguageGrammar(bool caseSensitive)
       : base(caseSensitive) {
+      this.DefaultLiteralNodeType = typeof(LiteralValueNode);  //default node type for literals
+      this.DefaultIdentifierNodeType = typeof(IdentifierNode); 
       this.LanguageFlags = LanguageFlags.CreateAst;
     }
 
@@ -50,15 +50,7 @@ namespace Irony.Interpreter {
 
     public virtual LanguageRuntime CreateRuntime(LanguageData language) {
       return new LanguageRuntime(language); 
-    }
-
-    public override void BuildAst(LanguageData language, ParseTree parseTree) {
-      var opHandler = new OperatorHandler(language.Grammar.CaseSensitive);
-      Util.Check(!parseTree.HasErrors(), "ParseTree has errors, cannot build AST.");
-      var astContext = new InterpreterAstContext(language, opHandler);
-      var astBuilder = new AstBuilder(astContext);
-      astBuilder.BuildAst(parseTree);
-    }
+    }  
   } //grammar class
 
 }

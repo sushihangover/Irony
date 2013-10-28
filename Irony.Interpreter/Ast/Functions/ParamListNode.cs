@@ -14,17 +14,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
-using Irony.Ast;
+using Irony.Interpreter;
 using Irony.Parsing;
 
 namespace Irony.Interpreter.Ast {
 
   public class ParamListNode : AstNode {
-
-    public override void Init(AstContext context, ParseTreeNode treeNode) {
+     
+    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
-      foreach (var child in treeNode.ChildNodes)
+      foreach (var child in treeNode.MappedChildNodes)
         AddChild(NodeUseType.Parameter, "param", child); 
       AsString = "param_list[" + ChildNodes.Count + "]";
     }

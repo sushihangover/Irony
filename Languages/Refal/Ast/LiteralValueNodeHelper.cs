@@ -1,15 +1,14 @@
-﻿// Refal5.NET interpreter
-// Written by Alexey Yakovlev <yallie@yandex.ru>
-// http://refal.codeplex.com
-
+﻿using System;
+using System.Text;
+using System.Linq;
+using System.Collections.Generic;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
-using Irony.Ast;
 
 namespace Refal
 {
 	/// <summary>
-	/// Initializes Refal literal nodes.
+	/// Initializes Refal literal nodes
 	/// </summary>
 	public static class LiteralValueNodeHelper
 	{
@@ -17,7 +16,7 @@ namespace Refal
 		/// Converts identifiers to compound symbols (strings in double quotes),
 		/// expands character strings (in single quotes) to arrays of characters
 		/// </summary>
-		public static void InitNode(AstContext context, ParseTreeNode parseNode)
+		public static void InitNode(ParsingContext context, ParseTreeNode parseNode)
 		{
 			foreach (var node in parseNode.ChildNodes)
 			{

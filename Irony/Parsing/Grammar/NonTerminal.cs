@@ -13,14 +13,13 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Reflection;
-using Irony.Ast; 
+using System.Reflection; 
 
 namespace Irony.Parsing {
 
   internal class IntList : List<int> { }
 
-  public partial class NonTerminal : BnfTerm {
+  public class NonTerminal : BnfTerm {
 
     #region constructors
     public NonTerminal(string name)  : base(name, null) { }  //by default display name is null
@@ -71,19 +70,36 @@ namespace Irony.Parsing {
       base.Init(grammarData);
       if (!string.IsNullOrEmpty(NodeCaptionTemplate))
         ConvertNodeCaptionTemplate();
+      if (TokenPreviewHint != null)
+        TokenPreviewHint.Init(grammarData);
     }
     #endregion
 
     // Contributed by Alexey Yakovlev (yallie)
-    #region Grammar hints
-    // Adds a hint at the end of all productions
-    public void AddHintToAll(GrammarHint hint) {
-      if (this.Rule == null)
-        throw new Exception("Rule property must be set on non-terminal before calling AddHintToAll.");
-      foreach (var plusList in this.Rule.Data)
-        plusList.Add(hint);
+    #region custom grammar hints
+    //TODO: API needs some refinement
+    TokenPreviewHint TokenPreviewHint { get; set; }
+    internal void InsertCustomHints() {
+      if (TokenPreviewHint != null && Productions.Count > 0) {
+        foreach (var production in Productions) {
+          foreach (var lr0item in production.LR0Items) {
+            lr0item.Hints.Add(TokenPreviewHint);
+          }
+        }
+      }
     }
-
+    public TokenPreviewHint ReduceIf(string first) {
+      return TokenPreviewHint = new TokenPreviewHint(ParserActionType.Reduce, first);
+    }
+    public TokenPreviewHint ReduceIf(Terminal first) {
+      return TokenPreviewHint = new TokenPreviewHint(ParserActionType.Reduce, first);
+    }
+    public TokenPreviewHint ShiftIf(string first) {
+      return TokenPreviewHint = new TokenPreviewHint(ParserActionType.Shift, first);
+    }
+    public TokenPreviewHint ShiftIf(Terminal first) {
+      return TokenPreviewHint = new TokenPreviewHint(ParserActionType.Shift, first);
+    }
     #endregion
 
     #region NodeCaptionTemplate utilities

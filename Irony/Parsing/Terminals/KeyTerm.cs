@@ -27,7 +27,7 @@ namespace Irony.Parsing {
     public KeyTerm(string text, string name)  : base(name) {
       Text = text;
       base.ErrorAlias = name;
-      this.Flags |= TermFlags.NoAstNode;
+
     }
 
     public string Text {get; private set;}
@@ -50,9 +50,9 @@ namespace Irony.Parsing {
       // Reserved words are the opposite - they have the highest priority
       #endregion
       if (Flags.IsSet(TermFlags.IsReservedWord)) 
-        base.Priority = TerminalPriority.ReservedWords + Text.Length; //the longer the word, the higher is the priority
+        base.Priority = ReservedWordsPriority + Text.Length;
       else 
-        base.Priority = TerminalPriority.Low + Text.Length;
+        base.Priority = LowestPriority + Text.Length;
       //Setup editor info      
       if (this.EditorInfo != null) return;
       TokenType tknType = TokenType.Identifier;
@@ -72,7 +72,7 @@ namespace Irony.Parsing {
     }
 
     public override Token TryMatch(ParsingContext context, ISourceStream source) {
-      if (!source.MatchSymbol(Text))
+      if (!source.MatchSymbol(Text, !Grammar.CaseSensitive))
         return null;
       source.PreviewPosition += Text.Length;
       //In case of keywords, check that it is not followed by letter or digit

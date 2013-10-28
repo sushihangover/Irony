@@ -21,11 +21,9 @@ namespace Irony.Parsing {
   public class ConstantsTable : Dictionary<string, object> { }
   public class ConstantTerminal : Terminal {
     public readonly ConstantsTable Constants = new ConstantsTable();
-    public ConstantTerminal(string name, Type nodeType = null) : base(name) {
+    public ConstantTerminal(string name, Type nodeType) : base(name) {
       base.SetFlag(TermFlags.IsConstant);
-      if (nodeType != null)
-        base.AstConfig.NodeType = nodeType;
-      this.Priority = TerminalPriority.High; //constants have priority over normal identifiers
+      AstNodeType = nodeType;
     }
 
     public void Add(string lexeme, object value) {
@@ -41,19 +39,15 @@ namespace Irony.Parsing {
     public override Token TryMatch(ParsingContext context, ISourceStream source) {
       string text = source.Text;
       foreach (var entry in Constants) {
-        source.PreviewPosition = source.Position;
         var constant = entry.Key;
         if (source.PreviewPosition + constant.Length > text.Length) continue;
-        if (source.MatchSymbol(constant)) {
+        if (source.MatchSymbol(constant, !Grammar.CaseSensitive)) {
           source.PreviewPosition += constant.Length;
-          if (!this.Grammar.IsWhitespaceOrDelimiter(source.PreviewChar))
-            continue; //make sure it is delimiter
           return source.CreateToken(this.OutputTerminal, entry.Value);
         }
       }
       return null;
     }
-
     public override IList<string> GetFirsts() {
       string[] array = new string[Constants.Count];
       Constants.Keys.CopyTo(array, 0);

@@ -70,7 +70,7 @@ namespace Irony.Samples.MiniPython {
       BinExpr.Rule = Expr + BinOp + Expr;
       BinOp.Rule = ToTerm("+") | "-" | "*" | "/" | "**";
       AssignmentStmt.Rule = identifier + "=" + Expr;
-      Stmt.Rule = AssignmentStmt | Expr | ReturnStmt | Empty;
+      Stmt.Rule = AssignmentStmt | Expr | ReturnStmt;
       ReturnStmt.Rule = "return" + Expr; //Not supported for execution! - we associate NotSupportedNode with ReturnStmt
       //Eos is End-Of-Statement token produced by CodeOutlineFilter
       ExtStmt.Rule = Stmt + Eos | FunctionDef;

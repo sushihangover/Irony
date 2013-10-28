@@ -27,13 +27,13 @@ namespace Refal.Runtime
 			get { return List[index] as PatternItem; }
 		}
 
-		public override int Add(object item)
+		public override int Add(object symbol)
 		{
 			// handle variables in a special way
-			if (item is Variable)
+			if (symbol is Variable)
 			{
 				// don't add duplicate variables, add same instances instead
-				Variable variable = (Variable)item;
+				Variable variable = (Variable)symbol;
 				if (Variables.ContainsKey(variable.Name))
 					return base.Add(Variables[variable.Name]);
 
@@ -45,31 +45,20 @@ namespace Refal.Runtime
 			}
 
 			// don't wrap pattern item
-			if (item is PatternItem)
-				return base.Add(item);
+			if (symbol is PatternItem)
+				return base.Add(symbol);
 
 			// decompose char[] into chars, wrap each char as symbol
-			if (item is char[])
+			if (symbol is char[])
 			{
 				int index = -1;
-				foreach (char c in (char[])item)
+				foreach (char c in (char[])symbol)
 					index = List.Add(new Symbol(c));
 				return index;
 			}
 
-			// flatten PassiveExpressions
-			if (item is PassiveExpression)
-			{
-				var index = -1;
-				foreach (var exItem in (PassiveExpression)item)
-				{
-					index = Add(exItem);
-				}
-				return index;
-			}
-
 			// wrap any other object as symbol pattern
-			return base.Add(new Symbol(item));
+			return base.Add(new Symbol(symbol));
 		}
 
 		public object GetVariable(string name)

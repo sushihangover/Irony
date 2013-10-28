@@ -1,19 +1,15 @@
-// Refal5.NET interpreter
-// Written by Alexey Yakovlev <yallie@yandex.ru>
-// http://refal.codeplex.com
-
-using System.Collections.Generic;
+using System;
 using System.Linq;
-using Irony.Interpreter;
+using System.Collections.Generic;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
+using Irony.Interpreter;
 using Refal.Runtime;
-using Irony.Ast;
 
 namespace Refal
 {
 	/// <summary>
-	/// Program is a list of functions.
+	/// Program is a list of functions
 	/// </summary>
 	public class Program : AstNode
 	{
@@ -30,7 +26,7 @@ namespace Refal
 			EntryPoint = null;
 		}
 
-    public override void Init(AstContext context, ParseTreeNode parseNode)
+		public override void Init(ParsingContext context, ParseTreeNode parseNode)
 		{
 			base.Init(context, parseNode);
 
@@ -53,8 +49,6 @@ namespace Refal
 					}
 				}
 			}
-
-			AsString = "Refal-5 program";
 		}
 
 		public override System.Collections.IEnumerable GetChildNodes()
@@ -65,7 +59,6 @@ namespace Refal
 
 		public void AddFunction(Function function)
 		{
-			function.Parent = this;
 			Functions[function.Name] = function;
 			FunctionList.Add(function);
 			
@@ -75,37 +68,36 @@ namespace Refal
 			}
 		}
 
-		protected override object DoEvaluate(ScriptThread thread)
+		public override void EvaluateNode(ScriptAppInfo context, AstMode mode)
 		{
-			// standard prolog
-			thread.CurrentNode = this;
-
 			if (EntryPoint == null)
+				context.ThrowError("No entry point defined (entry point is a function named «Go»)");
+
+			// load standard run-time library functions
+			var libraryFunctions = LibraryFunction.ExtractLibraryFunctions(context, new RefalLibrary(context));
+			foreach (LibraryFunction libFun in libraryFunctions)
 			{
-				thread.ThrowScriptError("No entry point defined (entry point is a function named «Go»)");
-				return null;
+				context.SetValue(libFun.Name, libFun);
 			}
 
-			// define built-in runtime library functions
-			var libraryFunctions = LibraryFunction.ExtractLibraryFunctions(thread, new RefalLibrary(thread));
-			foreach (var libFun in libraryFunctions)
+			// define all functions
+			foreach (Function fun in FunctionList)
 			{
-				var binding = thread.Bind(libFun.Name, BindingRequestFlags.Write | BindingRequestFlags.ExistingOrNew);
-				binding.SetValueRef(thread, libFun);
+				fun.Evaluate(context, mode);
 			}
 
-			// define functions declared in the compiled program
-			foreach (var fun in FunctionList)
-			{
-				fun.Evaluate(thread);
-			}
+			// call entry point with empty expression as an argument
+			context.Data.Push(Runtime.PassiveExpression.Build());
+			EntryPoint.Call(context);
 
-			// call entry point with an empty expression
-			EntryPoint.Call(thread, new object[] { PassiveExpression.Build() });
+			// discard execution results
+			context.Data.Pop();
+			context.ClearLastResult();
+		}
 
-			// standard epilog
-			thread.CurrentNode = Parent;
-			return null;
+		public override string ToString()
+		{
+			return "Refal-5 program";
 		}
 	}
 }

@@ -14,52 +14,44 @@ namespace Irony.Tests {
 #endif
 
   [TestClass]
-  public class LineContinuationTests {
+  public class LineContinuationTests : TerminalTestsBase {
 
     [TestMethod]
-    public void TestContinuationTerminal_Simple() {
-      Parser parser; Token token;
-
-      parser = TestHelper.CreateParser(new LineContinuationTerminal("LineContinuation", "\\"));
-      token = parser.ParseInput("\\\r\t");
-      Assert.IsTrue(token.Category == TokenCategory.Outline, "Failed to read simple line continuation terminal");
+    public void TestSimpleContinuationTerminal() {
+      SetTerminal(new LineContinuationTerminal("LineContinuation", "\\"));
+      TryMatch("\\\r\t");
+      Assert.IsTrue(_token.Category == TokenCategory.Outline, "Failed to read simple line continuation terminal");
     }
 
     [TestMethod]
-    public void TestContinuationTerminal_Default() {
-      Parser parser; Token token;
+    public void TestDefaultContinuationTerminal() {
+      SetTerminal(new LineContinuationTerminal("LineContinuation"));
+      TryMatch("_\r\n\t");
+      Assert.IsTrue(_token.Category == TokenCategory.Outline, "Failed to read default line continuation terminal");
 
-      parser = TestHelper.CreateParser(new LineContinuationTerminal("LineContinuation"));
-      token = parser.ParseInput("_\r\n\t");
-      Assert.IsTrue(token.Category == TokenCategory.Outline, "Failed to read default line continuation terminal");
-
-      token = parser.ParseInput("\\\v    ");
-      Assert.IsTrue(token.Category == TokenCategory.Outline, "Failed to read default line continuation terminal");
+      TryMatch("\\\v    ");
+      Assert.IsTrue(_token.Category == TokenCategory.Outline, "Failed to read default line continuation terminal");
     }
 
     [TestMethod]
-    public void TestContinuationTerminal_Complex() {
-      Parser parser; Token token;
+    public void TestComplexContinuationTerminal() {
+      SetTerminal(new LineContinuationTerminal("LineContinuation", @"\continue", @"\cont", "++CONTINUE++"));
+      TryMatch("\\cont   \r\n    ");
+      Assert.IsTrue(_token.Category == TokenCategory.Outline, "Failed to read complex line continuation terminal");
 
-      parser = TestHelper.CreateParser(new LineContinuationTerminal("LineContinuation", @"\continue", @"\cont", "++CONTINUE++"));
-      token = parser.ParseInput("\\cont   \r\n    ");
-      Assert.IsTrue(token.Category == TokenCategory.Outline, "Failed to read complex line continuation terminal");
-
-      token = parser.ParseInput("++CONTINUE++\t\v");
-      Assert.IsTrue(token.Category == TokenCategory.Outline, "Failed to read complex line continuation terminal");
+      TryMatch("++CONTINUE++\t\v");
+      Assert.IsTrue(_token.Category == TokenCategory.Outline, "Failed to read complex line continuation terminal");
     }
 
     [TestMethod]
-    public void TestContinuationTerminal_Incomplete() {
-      Parser parser; Token token;
+    public void TestIncompleteContinuationTerminal() {
+      SetTerminal(new LineContinuationTerminal("LineContinuation"));
+      TryMatch("\\   garbage");
+      Assert.IsTrue(_token.Category == TokenCategory.Error, "Failed to read incomplete line continuation terminal");
 
-      parser = TestHelper.CreateParser(new LineContinuationTerminal("LineContinuation"));
-      token = parser.ParseInput("\\   garbage");
-      Assert.IsTrue(token.Category == TokenCategory.Error, "Failed to read incomplete line continuation terminal");
-
-      parser = TestHelper.CreateParser(new LineContinuationTerminal("LineContinuation"));
-      token = parser.ParseInput("_");
-      Assert.IsTrue(token.Category == TokenCategory.Error, "Failed to read incomplete line continuation terminal");
+      SetTerminal(new LineContinuationTerminal("LineContinuation"));
+      TryMatch("_");
+      Assert.IsTrue(_token.Category == TokenCategory.Error, "Failed to read incomplete line continuation terminal");
     }
   }
 }

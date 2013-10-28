@@ -16,30 +16,31 @@ using System.Globalization;
 using System.Linq.Expressions;
 using System.Text;
 
-using Irony.Ast; 
+namespace Irony.Parsing { 
 
-namespace Irony.Parsing {
-
-
-  public class Grammar {
+  public partial class Grammar {
 
     #region properties
     /// <summary>
     /// Gets case sensitivity of the grammar. Read-only, true by default. 
     /// Can be set to false only through a parameter to grammar constructor.
     /// </summary>
-    public readonly bool CaseSensitive;
+    public readonly bool CaseSensitive = true;
+    public readonly StringComparer LanguageStringComparer; 
     
     //List of chars that unambigously identify the start of new token. 
     //used in scanner error recovery, and in quick parse path in NumberLiterals, Identifiers 
-    [Obsolete("Use IsWhitespaceOrDelimiter() method instead.")]
     public string Delimiters = null; 
 
-    [Obsolete("Override Grammar.SkipWhitespace method instead.")]
-    // Not used anymore
     public string WhitespaceChars = " \t\r\n\v";
     
+    //Used for line counting in source file
+    public string LineTerminators = "\n\r\v";
+
+    #region Language Flags
     public LanguageFlags LanguageFlags = LanguageFlags.Default;
+
+    #endregion
 
     public TermReportGroupList TermReportGroups = new TermReportGroupList();
     
@@ -47,6 +48,19 @@ namespace Irony.Parsing {
     // (Comment terminal is usually one of them)
     // Tokens produced by these terminals will be ignored by parser input. 
     public readonly TerminalSet NonGrammarTerminals = new TerminalSet();
+
+    //Terminals that either don't have explicitly declared Firsts symbols, or can start with chars not covered by these Firsts 
+    // For ex., identifier in c# can start with a Unicode char in one of several Unicode classes, not necessarily latin letter.
+    //  Whenever terminals with explicit Firsts() cannot produce a token, the Scanner would call terminals from this fallback 
+    // collection to see if they can produce it. 
+    // Note that IdentifierTerminal automatically add itself to this collection if its StartCharCategories list is not empty, 
+    // so programmer does not need to do this explicitly
+    public readonly TerminalSet FallbackTerminals = new TerminalSet();
+
+    public Type DefaultNodeType;
+    public Type DefaultLiteralNodeType; //default node type for literals
+    public Type DefaultIdentifierNodeType; //default node type for identifiers
+
 
     /// <summary>
     /// The main root entry for the grammar. 
@@ -67,6 +81,8 @@ namespace Irony.Parsing {
     public string ConsoleGreeting;
     public string ConsolePrompt; //default prompt
     public string ConsolePromptMoreInput; //prompt to show when more input is expected
+
+    public readonly OperatorInfoDictionary OperatorMappings;
     #endregion 
 
     #region constructors
@@ -77,13 +93,14 @@ namespace Irony.Parsing {
       _currentGrammar = this;
       this.CaseSensitive = caseSensitive;
       bool ignoreCase =  !this.CaseSensitive;
-      var stringComparer = StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, ignoreCase);
-      KeyTerms = new KeyTermTable(stringComparer);
+      LanguageStringComparer = StringComparer.Create(System.Globalization.CultureInfo.InvariantCulture, ignoreCase);
+      KeyTerms = new KeyTermTable(LanguageStringComparer);
       //Initialize console attributes
       ConsoleTitle = Resources.MsgDefaultConsoleTitle;
       ConsoleGreeting = string.Format(Resources.MsgDefaultConsoleGreeting, this.GetType().Name);
       ConsolePrompt = ">"; 
       ConsolePromptMoreInput = ".";
+      OperatorMappings = OperatorUtility.GetDefaultOperatorMappings(caseSensitive); 
     }
     #endregion
     
@@ -131,6 +148,15 @@ namespace Irony.Parsing {
       closeS.IsPairFor = openS;
     }
 
+    [Obsolete("RegisterPunctuation is renamed to MarkPunctuation.")]
+    public void RegisterPunctuation(params string[] symbols) {
+      MarkPunctuation(symbols);
+    }
+    [Obsolete("RegisterPunctuation is renamed to MarkPunctuation.")]
+    public void RegisterPunctuation(params BnfTerm[] terms) {
+      MarkPunctuation(terms);
+    }
+
     public void MarkPunctuation(params string[] symbols) {
       foreach (string symbol in symbols) {
         KeyTerm term = ToTerm(symbol);
@@ -166,7 +192,7 @@ namespace Irony.Parsing {
 
     #endregion
 
-    #region virtual methods: CreateTokenFilters, TryMatch
+    #region virtual methods: TryMatch, CreateNode, CreateRuntime, RunSample
     public virtual void CreateTokenFilters(LanguageData language, TokenFilterList filters) {
     }
 
@@ -189,6 +215,12 @@ namespace Irony.Parsing {
       return node.Term.Name; 
     }
 
+    //Gives a chance of custom AST node creation at Grammar level
+    // by default calls Term's method
+    public virtual void CreateAstNode(ParsingContext context, ParseTreeNode parseTreeNode) {
+      parseTreeNode.Term.CreateAstNode(context, parseTreeNode);
+    }
+
     /// <summary>
     /// Override this method to help scanner select a terminal to create token when there are more than one candidates
     /// for an input char. context.CurrentTerminals contains candidate terminals; leave a single terminal in this list
@@ -196,40 +228,13 @@ namespace Irony.Parsing {
     /// </summary>
     public virtual void OnScannerSelectTerminal(ParsingContext context) { }
 
-    /// <summary>Skips whitespace characters in the input stream. </summary>
-    /// <remarks>Override this method if your language has non-standard whitespace characters.</remarks>
-    /// <param name="source">Source stream.</param>
-    public virtual void SkipWhitespace(ISourceStream source) {
-      while (!source.EOF()) {
-        switch (source.PreviewChar) {
-          case ' ':  case '\t':
-            break;
-          case '\r':   case '\n':  case '\v':
-            if (UsesNewLine) return; //do not treat as whitespace if language is line-based
-            break;
-          default:
-            return;
-        }//switch
-        source.PreviewPosition++; 
-      }//while
-    }//method
-
-    /// <summary>Returns true if a character is whitespace or delimiter. Used in quick-scanning versions of some terminals. </summary>
-    /// <param name="ch">The character to check.</param>
-    /// <returns>True if a character is whitespace or delimiter; otherwise, false.</returns>
-    /// <remarks>Does not have to be completely accurate, should recognize most common characters that are special chars by themselves
-    /// and may never be part of other multi-character tokens. </remarks>
-    public virtual bool IsWhitespaceOrDelimiter(char ch) {
-      switch (ch) {
-        case ' ':   case '\t': case '\r': case '\n': case '\v': //whitespaces
-        case '(': case ')': case ',': case ';': case '[': case ']': case '{': case '}':
-        case (char)0: //EOF
-          return true;
-        default:
-          return false;
-      }//switch
-    }//method
-
+    /// <summary>
+    /// Override this method to provide custom conflict resolution; for example, custom code may decide proper shift or reduce
+    /// action based on preview of tokens ahead. 
+    /// </summary>
+    public virtual void OnResolvingConflict(ConflictResolutionArgs args) {
+      //args.Result is Shift by default
+    }
 
     //The method is called after GrammarData is constructed 
     public virtual void OnGrammarDataConstructed(LanguageData language) {
@@ -242,10 +247,7 @@ namespace Irony.Parsing {
     //Constructs the error message in situation when parser has no available action for current input.
     // override this method if you want to change this message
     public virtual string ConstructParserErrorMessage(ParsingContext context, StringSet expectedTerms) {
-      if(expectedTerms.Count > 0)
-        return string.Format(Resources.ErrSyntaxErrorExpected, expectedTerms.ToString(", "));
-      else 
-        return Resources.ErrParserUnexpectedInput;
+      return string.Format(Resources.ErrParserUnexpInput, expectedTerms.ToString(", "));
     }
 
     // Override this method to perform custom error processing
@@ -256,93 +258,106 @@ namespace Irony.Parsing {
         else if (context.CurrentParserInput.Term == this.Indent)
             error = Resources.ErrUnexpIndent;
         else if (context.CurrentParserInput.Term == this.Eof && context.OpenBraces.Count > 0) {
-          if (context.OpenBraces.Count > 0) {
             //report unclosed braces/parenthesis
             var openBrace = context.OpenBraces.Peek();
             error = string.Format(Resources.ErrNoClosingBrace, openBrace.Text);
-          } else 
-              error = Resources.ErrUnexpEof;
-        }else {
+        } else {
             var expectedTerms = context.GetExpectedTermSet(); 
-            error = ConstructParserErrorMessage(context, expectedTerms); 
+            if (expectedTerms.Count > 0) 
+              error = ConstructParserErrorMessage(context, expectedTerms); 
+              //error = string.Format(Resources.ErrParserUnexpInput, expectedTerms.ToString(" ")
+            else 
+              error = Resources.ErrUnexpEof;
         }
         context.AddParserError(error);
     }//method
     #endregion
 
+
+
     #region MakePlusRule, MakeStarRule methods
-    public BnfExpression MakePlusRule(NonTerminal listNonTerminal, BnfTerm listMember) {
-      return MakeListRule(listNonTerminal, null, listMember);
+    public static BnfExpression MakePlusRule(NonTerminal listNonTerminal, BnfTerm listMember) {
+      return MakePlusRule(listNonTerminal, null, listMember);
     }
-    public BnfExpression MakePlusRule(NonTerminal listNonTerminal, BnfTerm delimiter, BnfTerm listMember) {
-      return MakeListRule(listNonTerminal, delimiter, listMember);
+    
+    public static BnfExpression MakePlusRule(NonTerminal listNonTerminal, BnfTerm delimiter, BnfTerm listMember, TermListOptions options) {
+       bool allowTrailingDelimiter = (options & TermListOptions.AllowTrailingDelimiter) != 0;
+      if (delimiter == null || !allowTrailingDelimiter)
+        return MakePlusRule(listNonTerminal, delimiter, listMember); 
+      //create plus list
+      var plusList = new NonTerminal(listMember.Name + "+"); 
+      plusList.Rule = MakePlusRule(listNonTerminal, delimiter, listMember);
+      listNonTerminal.Rule = plusList | plusList + delimiter; 
+      listNonTerminal.SetFlag(TermFlags.IsListContainer); 
+      return listNonTerminal.Rule; 
     }
-    public BnfExpression MakeStarRule(NonTerminal listNonTerminal, BnfTerm listMember) {
-      return MakeListRule(listNonTerminal, null, listMember, TermListOptions.StarList);
-    }
-    public BnfExpression MakeStarRule(NonTerminal listNonTerminal, BnfTerm delimiter, BnfTerm listMember) {
-      return MakeListRule(listNonTerminal, delimiter, listMember, TermListOptions.StarList);
+    
+    public static BnfExpression MakePlusRule(NonTerminal listNonTerminal, BnfTerm delimiter, BnfTerm listMember) {
+      if (delimiter == null)
+        listNonTerminal.Rule = listMember | listNonTerminal + listMember;
+      else 
+        listNonTerminal.Rule = listMember | listNonTerminal + delimiter + listMember;
+      listNonTerminal.SetFlag(TermFlags.IsList);
+      return listNonTerminal.Rule;
     }
 
-    protected BnfExpression MakeListRule(NonTerminal list, BnfTerm delimiter, BnfTerm listMember, TermListOptions options = TermListOptions.PlusList) {
-      //If it is a star-list (allows empty), then we first build plus-list
-      var isPlusList = !options.IsSet(TermListOptions.AllowEmpty);
-      var allowTrailingDelim = options.IsSet(TermListOptions.AllowTrailingDelimiter) && delimiter != null;
-      //"plusList" is the list for which we will construct expression - it is either extra plus-list or original list. 
-      // In the former case (extra plus-list) we will use it later to construct expression for list
-      NonTerminal plusList = isPlusList ? list : new NonTerminal(listMember.Name + "+");
-      plusList.SetFlag(TermFlags.IsList);
-      plusList.Rule = plusList;  // rule => list
-      if (delimiter != null)
-        plusList.Rule += delimiter;  // rule => list + delim
-      if (options.IsSet(TermListOptions.AddPreferShiftHint))
-        plusList.Rule += PreferShiftHere(); // rule => list + delim + PreferShiftHere()
-      plusList.Rule += listMember;          // rule => list + delim + PreferShiftHere() + elem
-      plusList.Rule |= listMember;        // rule => list + delim + PreferShiftHere() + elem | elem
-      if (isPlusList) {
-        // if we build plus list - we're almost done; plusList == list
-        // add trailing delimiter if necessary; for star list we'll add it to final expression
-        if (allowTrailingDelim)
-          plusList.Rule |= list + delimiter; // rule => list + delim + PreferShiftHere() + elem | elem | list + delim
-      } else {
-        // Setup list.Rule using plus-list we just created
-        list.Rule = Empty | plusList;
-        if (allowTrailingDelim)
-          list.Rule |= plusList + delimiter | delimiter;
-        plusList.SetFlag(TermFlags.NoAstNode);
-        list.SetFlag(TermFlags.IsListContainer); //indicates that real list is one level lower
-      } 
-      return list.Rule; 
-    }//method
+    public static BnfExpression MakeStarRule(NonTerminal listNonTerminal, BnfTerm listMember) {
+      return MakeStarRule(listNonTerminal, null, listMember, TermListOptions.None);
+    }
+    
+    public static BnfExpression MakeStarRule(NonTerminal listNonTerminal, BnfTerm delimiter, BnfTerm listMember) {
+      return MakeStarRule(listNonTerminal, delimiter, listMember, TermListOptions.None); 
+    }
+
+    public static BnfExpression MakeStarRule(NonTerminal listNonTerminal, BnfTerm delimiter, BnfTerm listMember, TermListOptions options) {
+       bool allowTrailingDelimiter = (options & TermListOptions.AllowTrailingDelimiter) != 0;
+      if (delimiter == null) {
+        //it is much simpler case
+        listNonTerminal.SetFlag(TermFlags.IsList);
+        listNonTerminal.Rule = _currentGrammar.Empty | listNonTerminal + listMember;
+        return listNonTerminal.Rule;
+      }
+      //Note that deceptively simple version of the star-rule 
+      //       Elem* -> Empty | Elem | Elem* + delim + Elem
+      //  does not work when you have delimiters. This simple version allows lists starting with delimiters -
+      // which is wrong. The correct formula is to first define "Elem+"-list, and then define "Elem*" list 
+      // as "Elem* -> Empty|Elem+" 
+      NonTerminal plusList = new NonTerminal(listMember.Name + "+");
+      plusList.Rule = MakePlusRule(plusList, delimiter, listMember);
+      plusList.SetFlag(TermFlags.NoAstNode); //to allow it to have AstNodeType not assigned
+      if (allowTrailingDelimiter)
+        listNonTerminal.Rule = _currentGrammar.Empty | plusList | plusList + delimiter;
+      else 
+        listNonTerminal.Rule = _currentGrammar.Empty | plusList;
+      listNonTerminal.SetFlag(TermFlags.IsListContainer); 
+      return listNonTerminal.Rule;
+    }
     #endregion
 
     #region Hint utilities
     protected GrammarHint PreferShiftHere() {
-      return new PreferredActionHint(PreferredActionType.Shift); 
+      return new GrammarHint(HintType.ResolveToShift, null); 
     }
     protected GrammarHint ReduceHere() {
-      return new PreferredActionHint(PreferredActionType.Reduce); 
+      return new GrammarHint(HintType.ResolveToReduce, null);
     }
-    protected TokenPreviewHint ReduceIf(string thisSymbol, params string[] comesBefore) {
-      return new TokenPreviewHint(PreferredActionType.Reduce, thisSymbol, comesBefore);
+    protected GrammarHint ResolveInCode() {
+      return new GrammarHint(HintType.ResolveInCode, null); 
     }
-    protected TokenPreviewHint ReduceIf(Terminal thisSymbol, params Terminal[] comesBefore) {
-      return new TokenPreviewHint(PreferredActionType.Reduce, thisSymbol, comesBefore);
+    protected TokenPreviewHint ReduceIf(string symbol) {
+      return new TokenPreviewHint(ParserActionType.Reduce, symbol);
     }
-    protected TokenPreviewHint ShiftIf(string thisSymbol, params string[] comesBefore) {
-      return new TokenPreviewHint(PreferredActionType.Shift, thisSymbol, comesBefore);
-    }
-    protected TokenPreviewHint ShiftIf(Terminal thisSymbol, params Terminal[] comesBefore) {
-      return new TokenPreviewHint(PreferredActionType.Shift, thisSymbol, comesBefore);
+    protected TokenPreviewHint ShiftIf(string symbol) {
+      return new TokenPreviewHint(ParserActionType.Shift, symbol);
     }
     protected GrammarHint ImplyPrecedenceHere(int precedence) {
       return ImplyPrecedenceHere(precedence, Associativity.Left); 
     }
     protected GrammarHint ImplyPrecedenceHere(int precedence, Associativity associativity) {
-      return new ImpliedPrecedenceHint(precedence, associativity);
-    }
-    protected CustomActionHint CustomActionHere(ExecuteActionMethod executeMethod, PreviewActionMethod previewMethod = null) {
-      return new CustomActionHint(executeMethod, previewMethod);
+      var hint = new GrammarHint(HintType.Precedence, null);
+      hint.Precedence = precedence;
+      hint.Associativity = associativity;
+      return hint; 
     }
 
     #endregion
@@ -400,11 +415,9 @@ namespace Irony.Parsing {
     // Empty object is used to identify optional element: 
     //    term.Rule = term1 | Empty;
     public readonly Terminal Empty = new Terminal("EMPTY");
-    public readonly NewLineTerminal NewLine = new NewLineTerminal("LF");
-    //set to true automatically by NewLine terminal; prevents treating new-line characters as whitespaces
-    public bool UsesNewLine; 
     // The following terminals are used in indent-sensitive languages like Python;
     // they are not produced by scanner but are produced by CodeOutlineFilter after scanning
+    public readonly NewLineTerminal NewLine = new NewLineTerminal("LF");
     public readonly Terminal Indent = new Terminal("INDENT", TokenCategory.Outline, TermFlags.IsNonScanner);
     public readonly Terminal Dedent = new Terminal("DEDENT", TokenCategory.Outline, TermFlags.IsNonScanner);
     //End-of-Statement terminal - used in indentation-sensitive language to signal end-of-statement;
@@ -416,10 +429,7 @@ namespace Irony.Parsing {
     // as a lookahead to Root non-terminal
     public readonly Terminal Eof = new Terminal("EOF", TokenCategory.Outline);
 
-    //Artificial terminal to use for injected/replaced tokens that must be ignored by parser. 
-    public readonly Terminal Skip = new Terminal("(SKIP)", TokenCategory.Outline, TermFlags.IsNonGrammar);
-
-    //Used as a "line-start" indicator
+    //Used for error tokens
     public readonly Terminal LineStartTerminal = new Terminal("LINE_START", TokenCategory.Outline);
 
     //Used for error tokens
@@ -429,11 +439,8 @@ namespace Irony.Parsing {
       get {
         if(_newLinePlus == null) {
           _newLinePlus = new NonTerminal("LF+");
-          //We do no use MakePlusRule method; we specify the rule explicitly to add PrefereShiftHere call - this solves some unintended shift-reduce conflicts
-          // when using NewLinePlus 
-          _newLinePlus.Rule = NewLine | _newLinePlus + PreferShiftHere() + NewLine;
           MarkPunctuation(_newLinePlus);
-          _newLinePlus.SetFlag(TermFlags.IsList);
+          _newLinePlus.Rule = MakePlusRule(_newLinePlus, NewLine);
         }
         return _newLinePlus;
       }
@@ -491,15 +498,6 @@ namespace Irony.Parsing {
     }
     #endregion
 
-    #region AST construction
-    public virtual void BuildAst(LanguageData language, ParseTree parseTree) {
-      if (!LanguageFlags.IsSet(LanguageFlags.CreateAst))
-        return;
-      var astContext = new AstContext(language);
-      var astBuilder = new AstBuilder(astContext);
-      astBuilder.BuildAst(parseTree);
-    }
-    #endregion
   }//class
 
 }//namespace

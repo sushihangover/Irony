@@ -54,7 +54,7 @@ namespace Irony.Tests {
     }
 
     [TestMethod]
-    public void TestIntegration_VsScanningComment() {
+    public void TestVsScanningComment() {
       Init(new IntegrationTestGrammar());
       SetSource(" /*  ");
       Token token = Read();
@@ -76,7 +76,7 @@ namespace Irony.Tests {
     }
 
     [TestMethod]
-    public void TestIntegration_VsScanningString() {
+    public void TestVsScanningString() {
       Init(new IntegrationTestGrammar());
       SetSource(" 'abc");
       Token token = Read();

@@ -13,8 +13,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-
-using Irony.Ast;
+using Irony.Interpreter;
 using Irony.Parsing;
 
 namespace Irony.Interpreter.Ast {
@@ -23,13 +22,14 @@ namespace Irony.Interpreter.Ast {
     public AstNode IfTrue;
     public AstNode IfFalse;
 
-    public override void Init(AstContext context, ParseTreeNode treeNode) {
+    public IfNode() { }
+
+    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
-      var nodes = treeNode.GetMappedChildNodes();
-      Test = AddChild("Test", nodes[0]);
-      IfTrue = AddChild("IfTrue", nodes[1]);
-      if (nodes.Count > 2)
-        IfFalse = AddChild("IfFalse", nodes[2]);
+      Test = AddChild("Test", treeNode.MappedChildNodes[0]);
+      IfTrue = AddChild("IfTrue", treeNode.MappedChildNodes[1]);
+      if (treeNode.MappedChildNodes.Count > 2)
+        IfFalse = AddChild("IfFalse", treeNode.MappedChildNodes[2]);
     }
 
     protected override object DoEvaluate(ScriptThread thread) {

@@ -31,33 +31,23 @@ namespace Refal.Runtime
 			Function = fun;
 		}
 
-		public object Call(ScriptThread thread, object[] parameters)
+		public void Call(ScriptAppInfo context)
 		{
-			var astNode = new AstNode(); // TODO: figure it out
-			var newScopeInfo = new ScopeInfo(astNode, thread.App.Language.Grammar.CaseSensitive);
-			thread.PushScope(newScopeInfo, parameters);
+			context.PushFrame(Name, null, context.CurrentFrame);
 
-			try
-			{
-				var expression =
-					parameters != null && parameters.Length > 0 ?
-						parameters[0] as PassiveExpression : null;
+			var ex = Function(context.Data.Pop() as PassiveExpression);
+			if (ex != null)
+				context.Data.Push(ex);
 
-				return Function(expression);
-			}
-			finally
-			{
-				thread.PopScope();
-			}
+			context.PopFrame();
 		}
 
-		public static LibraryFunction[] ExtractLibraryFunctions(ScriptThread thread, object instance)
+		public static LibraryFunction[] ExtractLibraryFunctions(ScriptAppInfo context, object instance)
 		{
 			if (instance == null)
 				return new LibraryFunction[0];
 
 			var list = new List<LibraryFunction>();
-			var languageCaseSensitive = thread.App.Language.Grammar.CaseSensitive;
 
 			MethodInfo[] methods = instance.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
 			foreach (MethodInfo method in methods)
@@ -69,7 +59,7 @@ namespace Refal.Runtime
 					var names = (fname == null) ? new string[] { method.Name } : fname.Names;
 					foreach (var strName in names)
 					{
-						string name = languageCaseSensitive ? strName : strName.ToLowerInvariant();
+						string name = context.LanguageCaseSensitive ? strName : strName.ToLowerInvariant();
 						list.Add(new LibraryFunction(name, fun));
 					}
 				}

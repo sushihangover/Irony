@@ -1,18 +1,15 @@
-// Refal5.NET interpreter
-// Written by Alexey Yakovlev <yallie@yandex.ru>
-// http://refal.codeplex.com
-
-using System.Collections.Generic;
+using System;
 using System.Linq;
-using Irony.Interpreter;
+using System.Collections.Generic;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
-using Irony.Ast;
+using Irony.Interpreter;
+using Refal.Runtime;
 
 namespace Refal
 {
 	/// <summary>
-	/// Block is a sequence of sentences.
+	/// Block is a sequence of sentences
 	/// </summary>
 	public class Block : AstNode
 	{
@@ -20,14 +17,12 @@ namespace Refal
 
 		public Runtime.Pattern BlockPattern { get; set; }
 
-		public Runtime.PassiveExpression InputExpression { get; set; }
-
 		public Block()
 		{
 			Sentences = new List<Sentence>();
 		}
 
-    public override void Init(AstContext context, ParseTreeNode parseNode)
+		public override void Init(ParsingContext context, ParseTreeNode parseNode)
 		{
 			base.Init(context, parseNode);
 
@@ -37,16 +32,11 @@ namespace Refal
 				if (node.AstNode is AuxiliaryNode)
 				{
 					var auxNode = node.AstNode as AuxiliaryNode;
-
+					
 					foreach (var s in auxNode.ChildNodes.OfType<Sentence>())
-					{
-						s.Parent = this;
 						Sentences.Add(s);
-					}
 				}
 			}
-
-			AsString = "block";
 		}
 
 		public override System.Collections.IEnumerable GetChildNodes()
@@ -55,28 +45,25 @@ namespace Refal
 				yield return s;
 		}
 
-		protected override object DoEvaluate(ScriptThread thread)
+		public override void EvaluateNode(ScriptAppInfo context, AstMode mode)
 		{
-			// standard prolog
-			thread.CurrentNode = this;
-
-			foreach (var sentence in Sentences)
+			foreach (Sentence sentence in Sentences)
 			{
-				sentence.InputExpression = InputExpression;
 				sentence.BlockPattern = BlockPattern;
+				sentence.Evaluate(context, mode);
 
-				var result = sentence.Evaluate(thread);
-				if (result != null)
-				{
-					// standard epilog
-					thread.CurrentNode = Parent;
-					return result;
-				}
+				// if some sentence is evaluated to true, then stop
+				var result = context.Data.Pop();
+				if (Convert.ToBoolean(result) == true)
+					return;
 			}
 
-			// standard Refal exception: input expression doesn't match any pattern
-			thread.ThrowScriptError("Recognition impossible");
-			return null;
+			context.ThrowError("Recognition impossible");
+		}
+
+		public override string ToString()
+		{
+			return "block";
 		}
 	}
 }

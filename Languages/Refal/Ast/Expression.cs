@@ -1,18 +1,14 @@
-// Refal5.NET interpreter
-// Written by Alexey Yakovlev <yallie@yandex.ru>
-// http://refal.codeplex.com
-
+using System;
 using System.Collections.Generic;
-using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
+using Irony.Interpreter;
 using Refal.Runtime;
-using Irony.Ast;
 
 namespace Refal
 {
 	/// <summary>
-	/// Expression is a sequence of symbols, macrodigits, bound variables and function calls.
+	/// Expression is a sequence of symbols, macrodigits, bound variables and function calls
 	/// </summary>
 	public class Expression : AstNode
 	{
@@ -23,21 +19,15 @@ namespace Refal
 			Terms = new List<AstNode>();
 		}
 
-    public override void Init(AstContext context, ParseTreeNode parseNode)
+		public override void Init(ParsingContext context, ParseTreeNode parseNode)
 		{
 			base.Init(context, parseNode);
 
 			foreach (var node in parseNode.ChildNodes)
 			{
 				if (node.AstNode is AstNode)
-				{
-					var astNode = node.AstNode as AstNode;
-					astNode.Parent = this;
-					Terms.Add(astNode);
-				}
+					Terms.Add(node.AstNode as AstNode);
 			}
-
-			AsString = "expression";
 		}
 
 		public override System.Collections.IEnumerable GetChildNodes()
@@ -51,28 +41,26 @@ namespace Refal
 			get { return Terms.Count == 0; }
 		}
 
-		protected override object DoEvaluate(ScriptThread thread)
+		public override void EvaluateNode(ScriptAppInfo context, AstMode mode)
 		{
-			return EvaluateExpression(thread);
+			// evaluate terms
+			var initialCount = context.Data.Count;
+			foreach (var term in Terms)
+				term.Evaluate(context, mode);
+
+			// build passive expression from terms
+			var args = new List<object>();
+			while (context.Data.Count > initialCount)
+				args.Add(context.Data.Pop());
+
+			// build expression and push onto stack
+			args.Reverse();
+			context.Data.Push(PassiveExpression.Build(args.ToArray()));
 		}
 
-		internal Runtime.PassiveExpression EvaluateExpression(ScriptThread thread)
+		public override string ToString()
 		{
-			// standard prolog
-			thread.CurrentNode = this;
-
-			var terms = new List<object>();
-
-			foreach (var term in Terms)
-			{
-				var result = term.Evaluate(thread);
-				terms.Add(result);
-			}
-
-			// standard epilog
-			thread.CurrentNode = Parent;
-
-			return PassiveExpression.Build(terms.ToArray());
+			return "expression";
 		}
 	}
 }

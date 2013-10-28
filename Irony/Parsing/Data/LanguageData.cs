@@ -17,7 +17,7 @@ using System.Text;
 using Irony.Parsing.Construction;
 
 namespace Irony.Parsing { 
-  public partial class LanguageData {
+  public class LanguageData {
     public readonly Grammar Grammar;
     public readonly GrammarData GrammarData; 
     public readonly ParserData ParserData;
@@ -25,7 +25,6 @@ namespace Irony.Parsing {
     public readonly GrammarErrorList Errors = new GrammarErrorList(); 
     public GrammarErrorLevel ErrorLevel = GrammarErrorLevel.NoError;
     public long ConstructionTime;
-    public bool AstDataVerified;
 
     public LanguageData(Grammar grammar) {
       Grammar = grammar;

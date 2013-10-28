@@ -1,11 +1,14 @@
-// Refal5.NET interpreter
-// Written by Alexey Yakovlev <yallie@yandex.ru>
-// http://refal.codeplex.com
+using System;
+using System.Collections.Generic;
+using Irony.Interpreter.Ast;
+using Irony.Parsing;
+using Irony.Interpreter;
+using Refal.Runtime;
 
 namespace Refal
 {
 	/// <summary>
-	/// Variable of form e.X that can be bound to any expression.
+	/// Variable of form e.X that can be bound to any expression
 	/// </summary>
 	public class ExpressionVariable : Variable
 	{

@@ -35,24 +35,7 @@ namespace Irony {
 
   public class StringDictionary : Dictionary<string, string> { }
   public class CharList : List<char> { }
-
-  // CharHashSet: adding Hash to the name to avoid confusion with System.Runtime.Interoperability.CharSet
-  // Adding case sensitivity
-  public class CharHashSet : HashSet<char> {
-    bool _caseSensitive;
-    public CharHashSet(bool caseSensitive = true) {
-      _caseSensitive = caseSensitive; 
-    }
-    public new void Add(char ch) {
-      if (_caseSensitive)
-        base.Add(ch);
-      else {
-        base.Add(char.ToLowerInvariant(ch));
-        base.Add(char.ToUpperInvariant(ch));
-      }
-
-    }
-  } 
+  public class CharHashSet : HashSet<char> { } //adding Hash to the name to avoid confusion with System.Runtime.Interoperability.CharSet
 
   public class TypeList : List<Type> {
     public TypeList() { }

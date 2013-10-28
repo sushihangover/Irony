@@ -1,18 +1,15 @@
-// Refal5.NET interpreter
-// Written by Alexey Yakovlev <yallie@yandex.ru>
-// http://refal.codeplex.com
-
 using System;
 using System.Linq;
-using Irony.Interpreter;
+using System.Collections.Generic;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
-using Irony.Ast;
+using Irony.Interpreter;
+using Refal.Runtime;
 
 namespace Refal
 {
 	/// <summary>
-	/// Function call.
+	/// Function call
 	/// </summary>
 	public class FunctionCall : AstNode
 	{
@@ -22,7 +19,7 @@ namespace Refal
 
 		private SourceSpan? NameSpan { get; set; }
 
-    public override void Init(AstContext context, ParseTreeNode parseNode)
+		public override void Init(ParsingContext context, ParseTreeNode parseNode)
 		{
 			base.Init(context, parseNode);
 
@@ -54,15 +51,9 @@ namespace Refal
 				}
 				else if (node.AstNode is Expression)
 				{
-					var astNode = node.AstNode as Expression;
-					astNode.Parent = this;
-					Expression = astNode;
+					Expression = (node.AstNode as Expression);
 				}
 			}
-
-			// error anchor points to the exact error location in the source code
-			ErrorAnchor = (NameSpan != null ? NameSpan.Value : Span).Location;
-			AsString = "call " + FunctionName;
 		}
 
 		public override System.Collections.IEnumerable GetChildNodes()
@@ -70,46 +61,32 @@ namespace Refal
 			return Expression.GetChildNodes();
 		}
 
-		private ICallTarget CallTarget { get; set; }
-
-		protected override object DoEvaluate(ScriptThread thread)
+		public override void EvaluateNode(ScriptAppInfo context, AstMode mode)
 		{
-			// standard prolog
-			thread.CurrentNode = this;
+			Expression.Evaluate(context, mode);
 
-			var binding = thread.Bind(FunctionName, BindingRequestFlags.Read);
-			var result = binding.GetValueRef(thread);
-			if (result == null)
+			object value;
+			if (context.TryGetValue(FunctionName, out value))
 			{
-				thread.ThrowScriptError("Unknown identifier: {0}", FunctionName);
-				return null;
+				ICallTarget function = value as ICallTarget;
+				if (function == null)
+					context.ThrowError("This identifier cannot be called: {0}", FunctionName);
+
+				function.Call(context);
+				return;
 			}
 
-			CallTarget = result as ICallTarget;
-			if (CallTarget == null)
-			{
-				thread.ThrowScriptError("This identifier cannot be called: {0}", FunctionName);
-				return null;
-			}
-
-			// set Evaluate pointer
-			Evaluate = DoCall;
-
-			// standard epilog is done by DoCall
-			return DoCall(thread);
+			context.ThrowError("Unknown identifier: {0}", FunctionName);
 		}
 
-		private object DoCall(ScriptThread thread)
+		public override SourceLocation GetErrorAnchor()
 		{
-			// standard prolog
-			thread.CurrentNode = this;
+			return (NameSpan != null ? NameSpan.Value : Span).Location;
+		}
 
-			var parameter = Expression.Evaluate(thread);
-			var result = CallTarget.Call(thread, new object[] { parameter });
-
-			// standard epilog
-			thread.CurrentNode = Parent;
-			return result;
+		public override string ToString()
+		{
+			return "call " + FunctionName;
 		}
 	}
 }

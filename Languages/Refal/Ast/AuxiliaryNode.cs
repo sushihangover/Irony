@@ -1,18 +1,15 @@
-﻿// Refal5.NET interpreter
-// Written by Alexey Yakovlev <yallie@yandex.ru>
-// http://refal.codeplex.com
-
-using System;
+﻿using System;
+using System.Text;
+using System.Linq;
 using System.Collections.Generic;
-using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
-using Irony.Ast;
+using Irony.Interpreter;
 
 namespace Refal
 {
 	/// <summary>
-	/// Temporary AST nodes used internally while building AST.
+	/// Temporary AST nodes used internally while building AST
 	/// </summary>
 	public class AuxiliaryNode : AstNode
 	{
@@ -23,7 +20,7 @@ namespace Refal
 			ChildParseNodes = new List<ParseTreeNode>();
 		}
 
-    public override void Init(AstContext context, ParseTreeNode treeNode)
+		public override void Init(ParsingContext context, ParseTreeNode treeNode)
 		{
 			base.Init(context, treeNode);
 			
@@ -60,7 +57,7 @@ namespace Refal
 			throw new NotImplementedException("Auxiliary nodes should not appear in the final AST");
 		}
 
-		protected override object DoEvaluate(ScriptThread thread)
+		public override void EvaluateNode(ScriptAppInfo context, AstMode mode)
 		{
 			throw new NotImplementedException("Auxiliary node cannot be interpreted");
 		}

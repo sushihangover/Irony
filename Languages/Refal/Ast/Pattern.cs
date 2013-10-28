@@ -1,17 +1,14 @@
-// Refal5.NET interpreter
-// Written by Alexey Yakovlev <yallie@yandex.ru>
-// http://refal.codeplex.com
-
+using System;
 using System.Collections.Generic;
-using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
-using Irony.Ast;
+using Irony.Interpreter;
+using Refal.Runtime;
 
 namespace Refal
 {
 	/// <summary>
-	/// Pattern is a passive expression that may contain free variables.
+	/// Pattern is a passive expression that may contain free variables
 	/// </summary>
 	public class Pattern : AstNode
 	{
@@ -27,22 +24,15 @@ namespace Refal
 			Terms = new List<AstNode>();
 		}
 
-    public override void Init(AstContext context, ParseTreeNode parseNode)
+		public override void Init(ParsingContext context, ParseTreeNode parseNode)
 		{
 			base.Init(context, parseNode);
 			
 			foreach (var node in parseNode.ChildNodes)
 			{
 				if (node.AstNode is AstNode)
-				{
-					var astNode = node.AstNode as AstNode;
-					astNode.Parent = this;
-					astNode.UseType = NodeUseType.Name; // do not evaluate pattern variables
-					Terms.Add(astNode);
-				}
+					Terms.Add(node.AstNode as AstNode);
 			}
-
-			AsString = "pattern";
 		}
 
 		public override System.Collections.IEnumerable GetChildNodes()
@@ -51,35 +41,41 @@ namespace Refal
 				yield return term;
 		}
 
-		protected override object DoEvaluate(ScriptThread thread)
+		public override void EvaluateNode(ScriptAppInfo context, AstMode mode)
 		{
-			return Instantiate(thread);
-		}
-
-		private object[] EvaluateTerms(ScriptThread thread)
-		{
-			// standard prolog
-			thread.CurrentNode = this;
-
-			var terms = new List<object>();
-
 			foreach (var term in Terms)
 			{
 				// in pattern, variables are never read
-				var result = term.Evaluate(thread);
-				terms.Add(result);
+				mode = term is Variable ? AstMode.None : AstMode.Read;
+				term.Evaluate(context, mode);
 			}
+		}
 
-			// standard epilog
-			thread.CurrentNode = Parent;
+		private object[] EvaluateTerms(ScriptAppInfo context, AstMode mode)
+		{
+			// save initial stack position
+			var initialCount = context.Data.Count;
+			Evaluate(context, mode);
 
-			return terms.ToArray();
+			// get terms from evaluation stack
+			var args = new List<object>();
+			while (context.Data.Count > initialCount)
+				args.Add(context.Data.Pop());
+
+			// restore original order
+			args.Reverse();
+			return args.ToArray();
 		}
 		
-		public Runtime.Pattern Instantiate(ScriptThread thread)
+		public Runtime.Pattern Instantiate(ScriptAppInfo context, AstMode mode)
 		{
 			// evaluate pattern and instantiate Runtime.Pattern
-			return new Runtime.Pattern(EvaluateTerms(thread));
+			return new Runtime.Pattern(EvaluateTerms(context, mode));
+		}
+
+		public override string ToString()
+		{
+			return "pattern";
 		}
 	}
 }

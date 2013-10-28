@@ -45,7 +45,7 @@ namespace Irony.Interpreter {
 
     public readonly ScriptApp App;
     Thread _workerThread;
-    public bool IsEvaluating { get; private set; }
+    public bool IsEvaluating_ { get; private set; }
 
     #endregion 
 
@@ -100,7 +100,6 @@ namespace Irony.Interpreter {
         //Execute
         App.ClearOutputBuffer(); 
         EvaluateAsync(input);
-        //Evaluate(input);
         WaitForScriptComplete(); 
        
         switch (App.Status) {
@@ -115,7 +114,6 @@ namespace Irony.Interpreter {
               _console.WriteLine(err.Message); //print message
             }
             break;
-          case AppStatus.Crash:
           case AppStatus.RuntimeError:
             ReportException(); 
             break;
@@ -129,7 +127,7 @@ namespace Irony.Interpreter {
       _console.Canceled = false; 
       while(true) {
         Thread.Sleep(50);
-        if(!IsEvaluating) return;
+        if(!IsEvaluating_) return;
         if(_console.Canceled) {
           _console.Canceled = false; 
           if (Confirm(Resources.MsgAbortScriptYN))
@@ -138,17 +136,8 @@ namespace Irony.Interpreter {
       }
     }
 
-    private void Evaluate(string script) {
-      try {
-        IsEvaluating = true;
-        App.Evaluate(script);
-      } finally {
-        IsEvaluating = false; 
-      }
-    }
-
     private void EvaluateAsync(string script) {
-      IsEvaluating = true; 
+      IsEvaluating_ = true; 
       _workerThread = new Thread(WorkerThreadStart);
       _workerThread.Start(script);
     }
@@ -158,7 +147,7 @@ namespace Irony.Interpreter {
         var script = data as string;
         App.Evaluate(script);
       } finally {
-        IsEvaluating = false; 
+        IsEvaluating_ = false; 
       }
     }
     private void WorkerThreadAbort() {
@@ -166,7 +155,7 @@ namespace Irony.Interpreter {
         _workerThread.Abort();
         _workerThread.Join(50);
       } finally {
-        IsEvaluating = false;
+        IsEvaluating_ = false;
       }
     }
 
@@ -182,15 +171,10 @@ namespace Irony.Interpreter {
       var ex = App.LastException;
       var scriptEx = ex as ScriptException;
       if (scriptEx != null)
-        _console.WriteLine(scriptEx.Message + " " + Resources.LabelLocation + " " + scriptEx.Location.ToUiString());
-      else {
-        if (App.Status == AppStatus.Crash)
-          _console.WriteLine(ex.ToString());   //Unexpected interpreter crash:  the full stack when debugging your language  
-        else
-        _console.WriteLine(ex.Message);
-
-      }
-      //
+          _console.WriteLine(scriptEx.Message + " " + Resources.LabelLocation + " " + scriptEx.Location.ToUiString());
+      else
+          _console.WriteLine(ex.Message);
+      //_console.WriteLine(ex.ToString());   //Uncomment to see the full stack when debugging your language  
     }
 
   }//class

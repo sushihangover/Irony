@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
-using Irony;
 using Irony.Parsing;
 
 namespace Refal.UnitTests
@@ -18,9 +17,7 @@ namespace Refal.UnitTests
 	#endregion
 
 	/// <summary>
-	/// Refal regression tests.
-	/// Written by Alexey Yakovlev, yallie@yandex.ru.
-	/// http://refal.codeplex.com
+	/// Refal regression tests
 	/// </summary>
 	[TestClass]
 	public class RefalRegressionTests
@@ -85,12 +82,6 @@ namespace Refal.UnitTests
 		}
 
 		[TestMethod]
-		public void RefalTest_PrettyPrintExpressions()
-		{
-			RunSampleAndCompareResults("pretty.ref", "pretty.txt");
-		}
-
-		[TestMethod]
 		public void RefalTest_QuinePlain()
 		{
 			RunSampleAndCompareResults("quine-plain.ref");
@@ -132,12 +123,6 @@ namespace Refal.UnitTests
 			RunSampleAndCompareResults("99-bottles-v2.ref", "99-bottles-v2.txt");
 		}
 
-		[TestMethod]
-		public void RefalTest_BrainfuckInterpreter()
-		{
-			RunSampleAndCompareResults("brainfuck.ref", "brainfuck.txt");
-		}
-
 		/// <summary>
 		/// Load sample program from resources, run it and check its output
 		/// </summary>
@@ -150,9 +135,9 @@ namespace Refal.UnitTests
 			Assert.IsNotNull(parseTree);
 			Assert.IsFalse(parseTree.HasErrors());
 
-			string result = grammar.RunSample(new RunSampleArgs(parser.Language, null, parseTree));
+			string result = grammar.RunSample(parseTree);
 			Assert.IsNotNull(result);
-			Assert.AreEqual(LoadResourceText(outputResourceName), result);
+			Assert.AreEqual(result, LoadResourceText(outputResourceName));
 		}
 
 		/// <summary>

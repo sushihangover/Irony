@@ -14,8 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
-
-using Irony.Ast;
+using Irony.Interpreter;
 using Irony.Parsing;
 
 namespace Irony.Interpreter.Ast {
@@ -26,27 +25,27 @@ namespace Irony.Interpreter.Ast {
     public ExpressionType BinaryExpressionType; 
     public AstNode Expression;
     private OperatorImplementation _lastUsed;
-    private int _failureCount;
+    private int _failureCount; 
 
-    public override void Init(AstContext context, ParseTreeNode treeNode) {
+    public AssignmentNode() {}
+
+    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
-      var nodes = treeNode.GetMappedChildNodes();
-      Target = AddChild(NodeUseType.ValueWrite, "To", nodes[0]);
+      Target = AddChild(NodeUseType.ValueWrite, "To", treeNode.MappedChildNodes[0]);
       //Get Op and baseOp if it is combined assignment
-      AssignmentOp = nodes[1].FindTokenAndGetText();
+      AssignmentOp = treeNode.MappedChildNodes[1].FindTokenAndGetText();
       if (string.IsNullOrEmpty(AssignmentOp))
         AssignmentOp = "=";
       BinaryExpressionType = CustomExpressionTypes.NotAnExpression;
       //There maybe an "=" sign in the middle, or not - if it is marked as punctuation; so we just take the last node in child list
-      Expression = AddChild(NodeUseType.ValueRead, "Expr", nodes[nodes.Count - 1]);
+      Expression = AddChild(NodeUseType.ValueRead, "Expr", treeNode.LastChild);
       AsString = AssignmentOp + " (assignment)";
       // TODO: this is not always correct: in Pascal the assignment operator is :=.
       IsAugmented = AssignmentOp.Length > 1;
       if (IsAugmented) {
-
-        var ictxt = context as InterpreterAstContext;
-        base.ExpressionType = ictxt.OperatorHandler.GetOperatorExpressionType(AssignmentOp);
-        BinaryExpressionType = ictxt.OperatorHandler.GetBinaryOperatorForAugmented(this.ExpressionType);
+        //it is combined op
+        base.ExpressionType = context.GetOperatorExpressionType(AssignmentOp);
+        BinaryExpressionType = OperatorUtility.GetBinaryOperatorForAugmented(this.ExpressionType);
         Target.UseType = NodeUseType.ValueReadWrite;
       }
     }

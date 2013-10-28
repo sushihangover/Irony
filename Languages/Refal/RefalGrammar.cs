@@ -3,17 +3,15 @@ using System.Text;
 using System.Collections.Generic;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
-using Irony.Interpreter;
 
 namespace Refal
 {
 	/// <summary>
-	/// Refal-5 Grammar.
-	/// Written by Alexey Yakovlev, yallie@yandex.ru.
-	/// http://refal.codeplex.com
+	/// Refal-5 Grammar
+	/// Written by Alexey Yakovlev, yallie@yandex.ru
 	/// </summary>
-	[Language("Refal5", "0.2 alpha", "Refal-5.NET language interpreter")]
-	public class RefalGrammar : InterpretedLanguageGrammar
+	[Language("Refal5", "0.1 alpha", "Refal-5.NET language interpreter")]
+	public class RefalGrammar : Grammar
 	{
 		public RefalGrammar() : base(true) // case sensitive
 		{
@@ -115,7 +113,7 @@ namespace Refal
 			RegisterBracePair("{", "}");
 
 			MarkTransient(Definition, PatternItem, ExpressionItem, SemicolonOpt, EntryOpt, Extern, CommaOrAmpersand, VarPrefix, VarIndex, RExpressionOrWhereOrWithClause);
-			LanguageFlags = LanguageFlags.CreateAst | LanguageFlags.SupportsBigInt | LanguageFlags.TailRecursive;
+			LanguageFlags = LanguageFlags.CreateAst | LanguageFlags.CanRunSample | LanguageFlags.TailRecursive;
 		}
 
 		void LineComment_ValidateToken(object sender, ParsingEventArgs args)
