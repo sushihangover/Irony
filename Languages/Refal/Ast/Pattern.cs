@@ -60,19 +60,24 @@ namespace Refal
 			// standard prolog
 			thread.CurrentNode = this;
 
-			var terms = new List<object>();
-
-			foreach (var term in Terms)
+			try
 			{
-				// in pattern, variables are never read
-				var result = term.Evaluate(thread);
-				terms.Add(result);
+				var terms = new List<object>();
+
+				foreach (var term in Terms)
+				{
+					// in pattern, variables are never read
+					var result = term.Evaluate(thread);
+					terms.Add(result);
+				}
+
+				return terms.ToArray();
 			}
-
-			// standard epilog
-			thread.CurrentNode = Parent;
-
-			return terms.ToArray();
+			finally
+			{
+				// standard epilog
+				thread.CurrentNode = Parent;
+			}
 		}
 		
 		public Runtime.Pattern Instantiate(ScriptThread thread)

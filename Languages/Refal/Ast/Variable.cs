@@ -70,16 +70,15 @@ namespace Refal
 		{
 			// standard prolog
 			thread.CurrentNode = this;
-			object result = null;
 
-			// is this variable a part of a pattern?
-			if (UseType == NodeUseType.Name)
+			try
 			{
-				// don't evaluate it
-				result = CreateVariable();
-			}
-			else
-			{
+				// is it pattern variable? then don't evaluate it.
+				if (UseType == NodeUseType.Name)
+				{
+					return CreateVariable();
+				}
+
 				// get last recognized pattern
 				var pattern = thread.GetLastPattern();
 				if (pattern == null)
@@ -89,12 +88,13 @@ namespace Refal
 				}
 
 				// read variable from the last recognized pattern
-				result = pattern.GetVariable(Index);
+				return pattern.GetVariable(Index);
 			}
-
-			// standard epilog
-			thread.CurrentNode = Parent;
-			return result;
+			finally
+			{
+				// standard epilog
+				thread.CurrentNode = Parent;
+			}
 		}
 
 		/// <summary>

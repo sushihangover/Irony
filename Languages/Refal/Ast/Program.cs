@@ -79,32 +79,37 @@ namespace Refal
 			// standard prolog
 			thread.CurrentNode = this;
 
-			if (EntryPoint == null)
+			try
 			{
-				thread.ThrowScriptError("No entry point defined (entry point is a function named «Go»)");
+				if (EntryPoint == null)
+				{
+					thread.ThrowScriptError("No entry point defined (entry point is a function named «Go»)");
+					return null;
+				}
+
+				// define built-in runtime library functions
+				var libraryFunctions = LibraryFunction.ExtractLibraryFunctions(thread, new RefalLibrary(thread));
+				foreach (var libFun in libraryFunctions)
+				{
+					var binding = thread.Bind(libFun.Name, BindingRequestFlags.Write | BindingRequestFlags.ExistingOrNew);
+					binding.SetValueRef(thread, libFun);
+				}
+
+				// define functions declared in the compiled program
+				foreach (var fun in FunctionList)
+				{
+					fun.Evaluate(thread);
+				}
+
+				// call entry point with an empty expression
+				EntryPoint.Call(thread, new object[] { PassiveExpression.Build() });
 				return null;
 			}
-
-			// define built-in runtime library functions
-			var libraryFunctions = LibraryFunction.ExtractLibraryFunctions(thread, new RefalLibrary(thread));
-			foreach (var libFun in libraryFunctions)
+			finally
 			{
-				var binding = thread.Bind(libFun.Name, BindingRequestFlags.Write | BindingRequestFlags.ExistingOrNew);
-				binding.SetValueRef(thread, libFun);
+				// standard epilog
+				thread.CurrentNode = Parent;
 			}
-
-			// define functions declared in the compiled program
-			foreach (var fun in FunctionList)
-			{
-				fun.Evaluate(thread);
-			}
-
-			// call entry point with an empty expression
-			EntryPoint.Call(thread, new object[] { PassiveExpression.Build() });
-
-			// standard epilog
-			thread.CurrentNode = Parent;
-			return null;
 		}
 	}
 }

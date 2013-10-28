@@ -69,46 +69,36 @@ namespace Refal
 			return Expression.GetChildNodes();
 		}
 
-		private ICallTarget CallTarget { get; set; }
-
 		protected override object DoEvaluate(ScriptThread thread)
 		{
 			// standard prolog
 			thread.CurrentNode = this;
 
-			var binding = thread.Bind(FunctionName, BindingRequestFlags.Read);
-			var result = binding.GetValueRef(thread);
-			if (result == null)
+			try
 			{
-				thread.ThrowScriptError("Unknown identifier: {0}", FunctionName);
-				return null;
-			}
+				var parameter = Expression.Evaluate(thread);
+				var binding = thread.Bind(FunctionName, BindingRequestFlags.Read);
+				var result = binding.GetValueRef(thread);
+				if (result == null)
+				{
+					thread.ThrowScriptError("Unknown identifier: {0}", FunctionName);
+					return null;
+				}
 
-			CallTarget = result as ICallTarget;
-			if (CallTarget == null)
+				var function = result as ICallTarget;
+				if (function == null)
+				{
+					thread.ThrowScriptError("This identifier cannot be called: {0}", FunctionName);
+					return null;
+				}
+
+				return function.Call(thread, new object[] { parameter });
+			}
+			finally
 			{
-				thread.ThrowScriptError("This identifier cannot be called: {0}", FunctionName);
-				return null;
+				// standard epilog
+				thread.CurrentNode = Parent;
 			}
-
-			// set Evaluate pointer
-			Evaluate = DoCall;
-
-			// standard epilog is done by DoCall
-			return DoCall(thread);
-		}
-
-		private object DoCall(ScriptThread thread)
-		{
-			// standard prolog
-			thread.CurrentNode = this;
-
-			var parameter = Expression.Evaluate(thread);
-			var result = CallTarget.Call(thread, new object[] { parameter });
-
-			// standard epilog
-			thread.CurrentNode = Parent;
-			return result;
 		}
 	}
 }
