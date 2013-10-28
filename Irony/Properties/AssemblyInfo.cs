@@ -33,11 +33,10 @@ using System.Security;
 #endif
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Irony")]
-[assembly: AssemblyCopyright("Copyright © 2011 Roman Ivantsov")]
+[assembly: AssemblyCopyright("Copyright © 2010 Roman Ivantsov")]
 [assembly: AssemblyTrademark("Irony")]
 [assembly: AssemblyCulture("")]
 [assembly: CLSCompliant(true)]
-
 //Make the code security-transparent. more info here: http://msdn.microsoft.com/en-us/library/bb397858.aspx
 [assembly: SecurityTransparent()]
 

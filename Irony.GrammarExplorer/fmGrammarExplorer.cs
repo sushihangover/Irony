@@ -41,6 +41,7 @@ namespace Irony.GrammarExplorer {
     ScriptException _runtimeError;
     GrammarLoader _grammarLoader = new GrammarLoader();
     bool _loaded;
+    object _dataForRunSample; //custom data object optionally used by RunSample method
 
     #region Form load/unload events
     private void fmExploreGrammar_Load(object sender, EventArgs e) {
@@ -310,7 +311,7 @@ namespace Irony.GrammarExplorer {
       txtOutput.Text = string.Empty;
       _parseTree = null;
 
-      btnRun.Enabled = _grammar is ICanRunSample; 
+      btnRun.Enabled = _grammar.LanguageFlags.HasFlag(LanguageFlags.CanRunSample); 
       _language = new LanguageData(_grammar); 
       _parser = new Parser (_language);
       ShowParserConstructionResults();
@@ -321,6 +322,7 @@ namespace Irony.GrammarExplorer {
       ClearParserOutput();
       if (_parser == null || !_parser.Language.CanParse()) return; 
       _parseTree = null;
+      _dataForRunSample = null;
       GC.Collect(); //to avoid disruption of perf times with occasional collections
       _parser.Context.SetOption(ParseOptions.TraceParser, chkParserTrace.Checked);
       try {
@@ -344,7 +346,6 @@ namespace Irony.GrammarExplorer {
     private void RunSample() {
       ClearRuntimeInfo();
       Stopwatch sw = new Stopwatch();
-      int oldGcCount;
       txtOutput.Text = "";
       try {
         if (_parseTree == null)
@@ -352,17 +353,12 @@ namespace Irony.GrammarExplorer {
         if (_parseTree.ParserMessages.Count > 0) return;
 
         GC.Collect(); //to avoid disruption of perf times with occasional collections
-        oldGcCount = GC.CollectionCount(0); 
         System.Threading.Thread.Sleep(100);
-
-        sw.Start(); 
-        var iRunner = _grammar as ICanRunSample;
-        var args = new RunSampleArgs(_language, txtSource.Text, _parseTree); 
-        string output = iRunner.RunSample(args); 
+        
+        sw.Start();
+        string output = _grammar.RunSample(_language, _parseTree, ref _dataForRunSample); 
         sw.Stop();
         lblRunTime.Text = sw.ElapsedMilliseconds.ToString();
-        var gcCount = GC.CollectionCount(0) - oldGcCount;
-        lblGCCount.Text = gcCount.ToString(); 
         WriteOutput(output);
         tabBottom.SelectedTab = pageOutput;
       } catch (ScriptException ex) {
