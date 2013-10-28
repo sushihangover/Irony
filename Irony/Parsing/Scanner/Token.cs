@@ -33,7 +33,7 @@ namespace Irony.Parsing {
   public class TokenStack : Stack<Token> { }
 
   //Tokens are produced by scanner and fed to parser, optionally passing through Token filters in between. 
-  public class Token  {
+  public partial class Token {
     public Terminal Terminal {get; private set;} 
     public KeyTerm KeyTerm;
     public readonly SourceLocation Location; 
@@ -76,14 +76,8 @@ namespace Irony.Parsing {
       get { return Text == null ? 0 : Text.Length; }
     }
 
-    public Token OtherBrace {  //matching opening/closing brace
-      get { return _otherBrace; }
-    } Token _otherBrace;
-
-    public static void LinkMatchingBraces(Token openingBrace, Token closingBrace) {
-      openingBrace._otherBrace = closingBrace;
-      closingBrace._otherBrace = openingBrace;
-    }
+    //matching opening/closing brace
+    public Token OtherBrace;
 
     public short ScannerState; //Scanner state after producing token 
 
@@ -97,6 +91,10 @@ namespace Irony.Parsing {
   //Some terminals may need to return a bunch of tokens in one call to TryMatch; MultiToken is a container for these tokens
   public class MultiToken : Token {
     public TokenList ChildTokens;
+
+    public MultiToken(params Token[] tokens) : this(tokens[0].Terminal, tokens[0].Location, new TokenList()) {
+        ChildTokens.AddRange(tokens);
+    }
     public MultiToken(Terminal term, SourceLocation location, TokenList childTokens) : base(term, location, string.Empty, null) {
       ChildTokens = childTokens;
     }

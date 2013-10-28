@@ -15,13 +15,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Irony.Parsing; 
+using System.Linq.Expressions;
 
 namespace Irony.Interpreter.Ast{ 
 
   //This interface is expected by Irony's Gramamr Explorer. 
   public interface ICallTarget {
-    object Call(ScriptThread thread, Object[] parameters); 
+    object Call(ScriptThread thread, object[] parameters); 
   }
 
   //Simple visitor interface
@@ -34,4 +34,9 @@ namespace Irony.Interpreter.Ast{
     void AcceptVisitor(IAstVisitor visitor);
   }
 
+  public interface IOperatorHelper {
+    ExpressionType GetOperatorExpressionType(string symbol);
+    ExpressionType GetUnaryOperatorExpressionType(string symbol);
+
+  }
 }

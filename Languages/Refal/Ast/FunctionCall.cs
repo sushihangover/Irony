@@ -7,6 +7,7 @@ using System.Linq;
 using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
+using Irony.Ast;
 
 namespace Refal
 {
@@ -21,7 +22,7 @@ namespace Refal
 
 		private SourceSpan? NameSpan { get; set; }
 
-		public override void Init(ParsingContext context, ParseTreeNode parseNode)
+    public override void Init(AstContext context, ParseTreeNode parseNode)
 		{
 			base.Init(context, parseNode);
 
@@ -69,36 +70,46 @@ namespace Refal
 			return Expression.GetChildNodes();
 		}
 
+		private ICallTarget CallTarget { get; set; }
+
 		protected override object DoEvaluate(ScriptThread thread)
 		{
 			// standard prolog
 			thread.CurrentNode = this;
 
-			try
+			var binding = thread.Bind(FunctionName, BindingRequestFlags.Read);
+			var result = binding.GetValueRef(thread);
+			if (result == null)
 			{
-				var parameter = Expression.Evaluate(thread);
-				var binding = thread.Bind(FunctionName, BindingOptions.Read);
-				var result = binding.GetValueRef(thread);
-				if (result == null)
-				{
-					thread.ThrowScriptError("Unknown identifier: {0}", FunctionName);
-					return null;
-				}
-
-				var function = result as ICallTarget;
-				if (function == null)
-				{
-					thread.ThrowScriptError("This identifier cannot be called: {0}", FunctionName);
-					return null;
-				}
-
-				return function.Call(thread, new object[] { parameter });
+				thread.ThrowScriptError("Unknown identifier: {0}", FunctionName);
+				return null;
 			}
-			finally
+
+			CallTarget = result as ICallTarget;
+			if (CallTarget == null)
 			{
-				// standard epilog
-				thread.CurrentNode = Parent;
+				thread.ThrowScriptError("This identifier cannot be called: {0}", FunctionName);
+				return null;
 			}
+
+			// set Evaluate pointer
+			Evaluate = DoCall;
+
+			// standard epilog is done by DoCall
+			return DoCall(thread);
+		}
+
+		private object DoCall(ScriptThread thread)
+		{
+			// standard prolog
+			thread.CurrentNode = this;
+
+			var parameter = Expression.Evaluate(thread);
+			var result = CallTarget.Call(thread, new object[] { parameter });
+
+			// standard epilog
+			thread.CurrentNode = Parent;
+			return result;
 		}
 	}
 }

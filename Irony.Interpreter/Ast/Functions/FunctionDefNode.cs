@@ -14,64 +14,43 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Irony.Interpreter;
+
+using Irony.Ast;
 using Irony.Parsing;
 
 namespace Irony.Interpreter.Ast {
 
-  //A node representing function definition
+  //A node representing function definition (named lambda)
   public class FunctionDefNode : AstNode {
     public AstNode NameNode;
-    public AstNode Parameters;
-    public AstNode Body;
-    bool _languageCaseSensitive; 
+    public LambdaNode Lambda; 
 
-     
-    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
+    public override void Init(AstContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
-      _languageCaseSensitive = context.Language.Grammar.CaseSensitive;
       //child #0 is usually a keyword like "def"
-      NameNode = AddChild("Name", treeNode.ChildNodes[1]);
-      Parameters = AddChild("Parameters", treeNode.ChildNodes[2]);
-      Body = AddChild("Body", treeNode.ChildNodes[3]);
+      var nodes = treeNode.GetMappedChildNodes();
+      NameNode = AddChild("Name", nodes[1]);
+      Lambda = new LambdaNode(context, treeNode, nodes[2], nodes[3]); //node, params, body
+      Lambda.Parent = this; 
       AsString = "<Function " + NameNode.AsString + ">";
-      Body.SetIsTail(); //this will be propagated to the last statement
+      //Lamda will set treeNode.AstNode to itself, we need to set it back to "this" here
+      treeNode.AstNode = this; //
     }
 
     public override void Reset() {
-      DependentScopeInfo = null; 
+      DependentScopeInfo = null;
+      Lambda.Reset(); 
       base.Reset();
     }
 
     protected override object DoEvaluate(ScriptThread thread) {
       thread.CurrentNode = this;  //standard prolog
-      lock (LockObject) {
-        if (DependentScopeInfo == null)
-          base.DependentScopeInfo = new ScopeInfo(this, _languageCaseSensitive);
-        // In the first evaluation the parameter list will add parameter's SlotInfo objects to Scope.ScopeInfo
-        thread.PushScope(DependentScopeInfo, null);
-        Parameters.Evaluate(thread);
-        thread.PopScope();
-        //Set Evaluate method and invoke it later
-        this.Evaluate = EvaluateAfter;
-      }
-      var result = Evaluate(thread);
-      thread.CurrentNode = Parent; //standard epilog
-      return result;
-    }
-
-    private object EvaluateAfter(ScriptThread thread) {
-      thread.CurrentNode = this;  //standard prolog
-      var closure = new Closure(thread.CurrentScope, this);
-      if (NameNode != null)
-        NameNode.SetValue(thread, closure); 
+      var closure = Lambda.Evaluate(thread); //returns closure
+      NameNode.SetValue(thread, closure); 
       thread.CurrentNode = Parent; //standard epilog
       return closure;
     }
 
-    public override void SetIsTail() {
-      //ignore this call, do not mark this node as tail, it is meaningless
-    }
   }//class
 
 }//namespace

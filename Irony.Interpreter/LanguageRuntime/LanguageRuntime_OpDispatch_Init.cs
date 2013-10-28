@@ -23,6 +23,10 @@ namespace Irony.Interpreter {
 
   //Initialization of Runtime
   public partial class LanguageRuntime {
+    private static ExpressionType[] _overflowOperators = new ExpressionType[] { 
+       ExpressionType.Add, ExpressionType.AddChecked, ExpressionType.Subtract, ExpressionType.SubtractChecked, 
+       ExpressionType.Multiply, ExpressionType.MultiplyChecked, ExpressionType.Power};
+    
     // Smart boxing: boxes for a bunch of integers are preallocated
     private object[] _boxes = new object[4096];
     private const int _boxesMiddle = 2048;
@@ -35,9 +39,9 @@ namespace Irony.Interpreter {
 
 
     protected virtual void InitOperatorImplementations() {
-      _supportsComplex = this.Language.Grammar.LanguageFlags.HasFlag(LanguageFlags.SupportsComplex);
-      _supportsBigInt = this.Language.Grammar.LanguageFlags.HasFlag(LanguageFlags.SupportsBigInt);
-      _supportsRational = this.Language.Grammar.LanguageFlags.HasFlag(LanguageFlags.SupportsRational);
+      _supportsComplex = this.Language.Grammar.LanguageFlags.IsSet(LanguageFlags.SupportsComplex);
+      _supportsBigInt = this.Language.Grammar.LanguageFlags.IsSet(LanguageFlags.SupportsBigInt);
+      _supportsRational = this.Language.Grammar.LanguageFlags.IsSet(LanguageFlags.SupportsRational);
       // TODO: add support for Rational
       if (SmartBoxingEnabled)
         InitBoxes();
@@ -97,9 +101,11 @@ namespace Irony.Interpreter {
 
     #region Initializing type converters
     public virtual void InitTypeConverters() {
+      Type targetType; 
 
       //->string
-      Type targetType = typeof(string);
+      targetType = typeof(string);
+      AddConverter(typeof(char), targetType, ConvertAnyToString);
       AddConverter(typeof(sbyte), targetType, ConvertAnyToString);
       AddConverter(typeof(byte), targetType, ConvertAnyToString);
       AddConverter(typeof(Int16), targetType, ConvertAnyToString);
@@ -266,6 +272,7 @@ namespace Irony.Interpreter {
       if (_supportsComplex)
         AddBinary(op, typeof(Complex), (x, y) => (Complex)x + (Complex)y);
       AddBinary(op, typeof(string), (x, y) => (string)x + (string)y);
+      AddBinary(op, typeof(char), (x, y) => ((char)x).ToString() + (char)y); //force to concatenate as strings
 
       op = ExpressionType.SubtractChecked;
       AddBinaryBoxed(op, typeof(Int32), (x, y) => _boxes[checked((Int32)x - (Int32)y) + _boxesMiddle],
@@ -557,7 +564,7 @@ namespace Irony.Interpreter {
     #region Utilities
 
     private static bool CanOverflow(OperatorImplementation impl) {
-      if (!OperatorUtility.CanOverflow(impl.Key.Op))
+      if (!CanOverflow(impl.Key.Op))
         return false;
       if (impl.CommonType == typeof(Int32) && IsSmallInt(impl.Key.Arg1Type) && IsSmallInt(impl.Key.Arg2Type))
         return false;
@@ -566,6 +573,10 @@ namespace Irony.Interpreter {
       if (impl.CommonType == typeof(BigInteger))
         return false;
       return true;
+    }
+
+    private static bool CanOverflow(ExpressionType expression) {
+      return _overflowOperators.Contains(expression);
     }
 
 
@@ -584,7 +595,12 @@ namespace Irony.Interpreter {
     protected virtual Type GetCommonTypeForOperator(ExpressionType op, Type argType1, Type argType2) {
       if (argType1 == argType2)
         return argType1;
-      //First check for unsigned types and convert to signed versions
+
+      //TODO: see how to handle properly null/NoneValue in expressions
+      // var noneType = typeof(NoneClass);
+      // if (argType1 == noneType || argType2 == noneType) return noneType; 
+      
+      // Check for unsigned types and convert to signed versions
       var t1 = GetSignedTypeForUnsigned(argType1);
       var t2 = GetSignedTypeForUnsigned(argType2);
       // The type with higher index in _typesSequence is the commont type 
@@ -631,7 +647,7 @@ namespace Irony.Interpreter {
     static TypeList _typesSequence = new TypeList(
         typeof(sbyte), typeof(Int16), typeof(Int32), typeof(Int64), typeof(BigInteger), // typeof(Rational)
         typeof(Single), typeof(Double), typeof(Complex),
-        typeof(bool), typeof(string)
+        typeof(bool), typeof(char), typeof(string)
     );
     static TypeList _unsignedTypes = new TypeList(
       typeof(byte), typeof(UInt16), typeof(UInt32), typeof(UInt64)

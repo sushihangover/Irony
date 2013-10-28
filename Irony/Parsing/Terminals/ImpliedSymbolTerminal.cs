@@ -18,13 +18,13 @@ namespace Irony.Parsing {
   // See SearchGrammar as an example of use of this terminal. 
   public class ImpliedSymbolTerminal : Terminal {
     public ImpliedSymbolTerminal(string name)  : base(name) { 
-      this.Priority = Terminal.LowestPriority; //This terminal should be tried after all candidate terminals failed. 
+      this.Priority = TerminalPriority.Low; //This terminal should be tried after all candidate terminals failed. 
     }
 
     public override void Init(Irony.Parsing.GrammarData grammarData) {
       base.Init(grammarData);
       //Check that Parser-scanner link is enabled - this terminal can be used only if this link is enabled
-      if (Grammar.LanguageFlags.HasFlag(LanguageFlags.DisableScannerParserLink))
+      if (Grammar.LanguageFlags.IsSet(LanguageFlags.DisableScannerParserLink))
         grammarData.Language.Errors.Add(GrammarErrorLevel.Error, null, Resources.ErrImpliedOpUseParserLink, this.Name); 
            //"ImpliedSymbolTerminal cannot be used in grammar with DisableScannerParserLink flag set"
     }

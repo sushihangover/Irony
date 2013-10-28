@@ -18,7 +18,7 @@ using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 
 namespace Irony.Interpreter.Evaluator {
-  // An ready-to-use evaluator implementation.
+  // A ready-to-use evaluator implementation.
 
   // This grammar describes programs that consist of simple expressions and assignments
   // for ex:
@@ -27,13 +27,16 @@ namespace Irony.Interpreter.Evaluator {
   //  the result of calculation is the result of last expression or assignment.
   //  Irony's default  runtime provides expression evaluation. 
   //  supports inc/dec operators (++,--), both prefix and postfix, and combined assignment operators like +=, -=, etc.
+  //  supports bool operators &, |, and short-circuit versions &&, ||
+  //  supports ternary ?: operator
 
   [Language("ExpressionEvaluator", "1.0", "Multi-line expression evaluator")]
   public class ExpressionEvaluatorGrammar : InterpretedLanguageGrammar {
     public ExpressionEvaluatorGrammar() : base(caseSensitive: false) { 
       this.GrammarComments = 
 @"Irony expression evaluator. Case-insensitive. Supports big integers, float data types, variables, assignments,
-arithmetic operations, augmented assignments (+=, -=), inc/dec (++,--), strings with embedded expressions." ;
+arithmetic operations, augmented assignments (+=, -=), inc/dec (++,--), strings with embedded expressions; 
+bool operations &,&&, |, ||; ternary '?:' operator." ;
       // 1. Terminals
       var number = new NumberLiteral("number");
       //Let's allow big integers (with unlimited number of digits):
@@ -47,12 +50,13 @@ arithmetic operations, augmented assignments (+=, -=), inc/dec (++,--), strings 
 
       //String literal with embedded expressions  ------------------------------------------------------------------
       var stringLit = new StringLiteral("string", "\"", StringOptions.AllowsAllEscapes | StringOptions.IsTemplate);
-      stringLit.AstNodeType = typeof(StringTemplateNode);
+      stringLit.AddStartEnd("'", StringOptions.AllowsAllEscapes | StringOptions.IsTemplate); 
+      stringLit.AstConfig.NodeType = typeof(StringTemplateNode);
       var Expr = new NonTerminal("Expr"); //declare it here to use in template definition 
       var templateSettings = new StringTemplateSettings(); //by default set to Ruby-style settings 
       templateSettings.ExpressionRoot = Expr; //this defines how to evaluate expressions inside template
       this.SnippetRoots.Add(Expr);
-      stringLit.AstNodeConfig = templateSettings;
+      stringLit.AstConfig.Data = templateSettings;
       //--------------------------------------------------------------------------------------------------------
 
       // 2. Non-terminals
@@ -63,6 +67,9 @@ arithmetic operations, augmented assignments (+=, -=), inc/dec (++,--), strings 
       var TernaryIfExpr = new NonTerminal("TernaryIf", typeof(IfNode));
       var ArgList = new NonTerminal("ArgList", typeof(ExpressionListNode));
       var FunctionCall = new NonTerminal("FunctionCall", typeof(FunctionCallNode));
+      var MemberAccess = new NonTerminal("MemberAccess", typeof(MemberAccessNode));
+      var IndexedAccess = new NonTerminal("IndexedAccess", typeof(IndexedAccessNode));
+      var ObjectRef = new NonTerminal("ObjectRef"); // foo, foo.bar or f['bar']
       var UnOp = new NonTerminal("UnOp");
       var BinOp = new NonTerminal("BinOp", "operator");
       var PrefixIncDec = new NonTerminal("PrefixIncDec", typeof(IncDecNode));
@@ -75,22 +82,25 @@ arithmetic operations, augmented assignments (+=, -=), inc/dec (++,--), strings 
 
       // 3. BNF rules
       Expr.Rule = Term | UnExpr | BinExpr | PrefixIncDec | PostfixIncDec | TernaryIfExpr;
-      Term.Rule = number | ParExpr | identifier | stringLit | FunctionCall;
+      Term.Rule = number | ParExpr | stringLit | FunctionCall | identifier | MemberAccess | IndexedAccess;
       ParExpr.Rule = "(" + Expr + ")";
-      UnExpr.Rule = UnOp + Term;
-      UnOp.Rule = ToTerm("+") | "-"; 
+      UnExpr.Rule = UnOp + Term + ReduceHere();
+      UnOp.Rule = ToTerm("+") | "-" | "!"; 
       BinExpr.Rule = Expr + BinOp + Expr;
-      BinOp.Rule = ToTerm("+") | "-" | "*" | "/" | "**" | "==" | "<" | "<=" | ">" | ">=" | "!=";
+      BinOp.Rule = ToTerm("+") | "-" | "*" | "/" | "**" | "==" | "<" | "<=" | ">" | ">=" | "!=" | "&&" | "||" | "&" | "|";
       PrefixIncDec.Rule = IncDecOp + identifier;
-      PostfixIncDec.Rule = identifier + IncDecOp;
+      PostfixIncDec.Rule = identifier + PreferShiftHere() + IncDecOp;
       IncDecOp.Rule = ToTerm("++") | "--";
       TernaryIfExpr.Rule = Expr + "?" + Expr + ":" + Expr;
-      AssignmentStmt.Rule = identifier + AssignmentOp + Expr;
+      MemberAccess.Rule = Expr + PreferShiftHere() + "." + identifier; 
+      AssignmentStmt.Rule = ObjectRef + AssignmentOp + Expr;
       AssignmentOp.Rule = ToTerm("=") | "+=" | "-=" | "*=" | "/=";
       Statement.Rule = AssignmentStmt | Expr | Empty;
       ArgList.Rule = MakeStarRule(ArgList, comma, Expr);
-      FunctionCall.Rule = identifier + "(" + ArgList + ")";
+      FunctionCall.Rule = Expr + PreferShiftHere() + "(" + ArgList + ")";
       FunctionCall.NodeCaptionTemplate = "call #{0}(...)";
+      ObjectRef.Rule = identifier | MemberAccess | IndexedAccess;
+      IndexedAccess.Rule = Expr + PreferShiftHere() + "[" + Expr + "]";
 
       Program.Rule = MakePlusRule(Program, NewLine, Statement);
 
@@ -98,15 +108,22 @@ arithmetic operations, augmented assignments (+=, -=), inc/dec (++,--), strings 
 
       // 4. Operators precedence
       RegisterOperators(10, "?");
+      RegisterOperators(15, "&", "&&", "|", "||");
       RegisterOperators(20, "==", "<", "<=", ">", ">=", "!=");
       RegisterOperators(30, "+", "-");
       RegisterOperators(40, "*", "/");
       RegisterOperators(50, Associativity.Right, "**");
+      RegisterOperators(60, "!");
+      // For precedence to work, we need to take care of one more thing: BinOp. 
+      //For BinOp which is or-combination of binary operators, we need to either 
+      // 1) mark it transient or 2) set flag TermFlags.InheritPrecedence
+      // We use first option, making it Transient.  
 
       // 5. Punctuation and transient terms
-      MarkPunctuation("(", ")", "?", ":");
+      MarkPunctuation("(", ")", "?", ":", "[", "]");
       RegisterBracePair("(", ")");
-      MarkTransient(Term, Expr, Statement, BinOp, UnOp, IncDecOp, AssignmentOp, ParExpr);
+      RegisterBracePair("[", "]");
+      MarkTransient(Term, Expr, Statement, BinOp, UnOp, IncDecOp, AssignmentOp, ParExpr, ObjectRef);
 
       // 7. Syntax error reporting
       MarkNotReported("++", "--");
@@ -134,6 +151,28 @@ Press Ctrl-C to exit the program at any time.
       // Automatically add NewLine before EOF so that our BNF rules work correctly when there's no final line break in source
       this.LanguageFlags = LanguageFlags.NewLineBeforeEOF | LanguageFlags.CreateAst | LanguageFlags.SupportsBigInt;
     }
+
+    public override LanguageRuntime CreateRuntime(LanguageData language) {
+      return new ExpressionEvaluatorRuntime(language); 
+    }
+
+    #region Running in Grammar Explorer
+    private static ExpressionEvaluator _evaluator;
+    public override string RunSample(RunSampleArgs args) {
+      if (_evaluator == null) {
+        _evaluator = new ExpressionEvaluator(this);
+        _evaluator.Globals.Add("null", _evaluator.Runtime.NoneValue);
+        _evaluator.Globals.Add("true", true);
+        _evaluator.Globals.Add("false", false);
+
+      }
+      _evaluator.ClearOutput();
+      //for (int i = 0; i < 1000; i++)  //for perf measurements, to execute 1000 times
+      _evaluator.Evaluate(args.ParsedSample);
+      return _evaluator.GetOutput();
+    }
+    #endregion
+
 
 
 

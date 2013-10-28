@@ -85,6 +85,12 @@ namespace Refal.UnitTests
 		}
 
 		[TestMethod]
+		public void RefalTest_PrettyPrintExpressions()
+		{
+			RunSampleAndCompareResults("pretty.ref", "pretty.txt");
+		}
+
+		[TestMethod]
 		public void RefalTest_QuinePlain()
 		{
 			RunSampleAndCompareResults("quine-plain.ref");
@@ -124,6 +130,12 @@ namespace Refal.UnitTests
 		public void RefalTest_99BottlesV2()
 		{
 			RunSampleAndCompareResults("99-bottles-v2.ref", "99-bottles-v2.txt");
+		}
+
+		[TestMethod]
+		public void RefalTest_BrainfuckInterpreter()
+		{
+			RunSampleAndCompareResults("brainfuck.ref", "brainfuck.txt");
 		}
 
 		/// <summary>

@@ -6,6 +6,7 @@ using System;
 using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
+using Irony.Ast;
 
 namespace Refal
 {
@@ -18,7 +19,7 @@ namespace Refal
 	{
 		public virtual string Index { get; protected set; }
 
-		public static void CreateVariableNode(ParsingContext context, ParseTreeNode parseNode)
+    public static void CreateVariableNode(AstContext context, ParseTreeNode parseNode)
 		{
 			Variable varNode = null;
 
@@ -70,15 +71,16 @@ namespace Refal
 		{
 			// standard prolog
 			thread.CurrentNode = this;
+			object result = null;
 
-			try
+			// is this variable a part of a pattern?
+			if (UseType == NodeUseType.Name)
 			{
-				// is it pattern variable? then don't evaluate it.
-				if (UseType == NodeUseType.Name)
-				{
-					return CreateVariable();
-				}
-
+				// don't evaluate it
+				result = CreateVariable();
+			}
+			else
+			{
 				// get last recognized pattern
 				var pattern = thread.GetLastPattern();
 				if (pattern == null)
@@ -88,13 +90,12 @@ namespace Refal
 				}
 
 				// read variable from the last recognized pattern
-				return pattern.GetVariable(Index);
+				result = pattern.GetVariable(Index);
 			}
-			finally
-			{
-				// standard epilog
-				thread.CurrentNode = Parent;
-			}
+
+			// standard epilog
+			thread.CurrentNode = Parent;
+			return result;
 		}
 
 		/// <summary>

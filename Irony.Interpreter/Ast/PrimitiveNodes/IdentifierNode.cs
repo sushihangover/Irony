@@ -15,8 +15,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Xml;
+
 using Irony.Parsing;
-using Irony.Interpreter;
+using Irony.Ast;
 
 namespace Irony.Interpreter.Ast {
 
@@ -26,7 +27,7 @@ namespace Irony.Interpreter.Ast {
 
     public IdentifierNode() { }
 
-    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
+    public override void Init(AstContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
       Symbol = treeNode.Token.ValueString;
       AsString = Symbol; 
@@ -35,17 +36,17 @@ namespace Irony.Interpreter.Ast {
     //Executed only once, on the first call
     protected override object DoEvaluate(ScriptThread thread) {
       thread.CurrentNode = this;  //standard prolog
-      _accessor = thread.Bind(Symbol, BindingOptions.Read);
+      _accessor = thread.Bind(Symbol, BindingRequestFlags.Read);
       this.Evaluate = _accessor.GetValueRef; // Optimization - directly set method ref to accessor's method. EvaluateReader;
       var result = this.Evaluate(thread);
       thread.CurrentNode = Parent; //standard epilog
       return result; 
     }
 
-    public override void SetValue(ScriptThread thread, object value) {
+    public override void DoSetValue(ScriptThread thread, object value) {
       thread.CurrentNode = this;  //standard prolog
       if (_accessor == null) {
-        _accessor = thread.Bind(Symbol, BindingOptions.Write | BindingOptions.ExistingOrNew);
+        _accessor = thread.Bind(Symbol, BindingRequestFlags.Write | BindingRequestFlags.ExistingOrNew);
       }
       _accessor.SetValueRef(thread, value);
       thread.CurrentNode = Parent;  //standard epilog

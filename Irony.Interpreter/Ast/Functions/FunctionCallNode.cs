@@ -14,44 +14,67 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Irony.Interpreter;
+
+using Irony.Ast;
 using Irony.Parsing;
 
 namespace Irony.Interpreter.Ast {
 
-  //A node representing function call
+  //A node representing function call. Also handles Special Forms
   public class FunctionCallNode : AstNode {
     AstNode TargetRef;
     AstNode Arguments;
     string _targetName;
-     
-    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
+    SpecialForm _specialForm;
+    AstNode[] _specialFormArgs;
+
+    public override void Init(AstContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
-      TargetRef = AddChild("Target", treeNode.ChildNodes[0]);
+      var nodes = treeNode.GetMappedChildNodes();
+      TargetRef = AddChild("Target", nodes[0]);
       TargetRef.UseType = NodeUseType.CallTarget;
-      _targetName = treeNode.ChildNodes[0].FindTokenAndGetText(); 
-      Arguments = AddChild("Args", treeNode.ChildNodes[1]);
+      _targetName = nodes[0].FindTokenAndGetText();
+      Arguments = AddChild("Args", nodes[1]);
       AsString = "Call " + _targetName;
     }
 
     protected override object DoEvaluate(ScriptThread thread) {
       thread.CurrentNode = this;  //standard prolog
-      var languageTailRecursive = thread.Runtime.Language.Grammar.LanguageFlags.HasFlag(LanguageFlags.TailRecursive);
-      lock (this.LockObject) {
-        if (languageTailRecursive) {
-          var isTail = Flags.HasFlag(AstNodeFlags.IsTail);
-          if (isTail)
-            this.Evaluate = EvaluateTail;
-          else 
-           this.Evaluate = EvaluateWithTailCheck;
-        } else 
-          this.Evaluate = EvaluateNoTail; 
-      }//lock
-      //Actually evaluate
+      SetupEvaluateMethod(thread); 
       var result = Evaluate(thread);
       thread.CurrentNode = Parent; //standard epilog
       return result;
     }
+
+    private void SetupEvaluateMethod(ScriptThread thread) {
+      var languageTailRecursive = thread.Runtime.Language.Grammar.LanguageFlags.IsSet(LanguageFlags.TailRecursive);
+      lock (this.LockObject) { 
+        var target = TargetRef.Evaluate(thread);
+        if (target is SpecialForm) {
+          _specialForm = target as SpecialForm;
+          _specialFormArgs = Arguments.ChildNodes.ToArray();
+          this.Evaluate = EvaluateSpecialForm;
+        } else {
+          if (languageTailRecursive) {
+            var isTail = Flags.IsSet(AstNodeFlags.IsTail);
+            if (isTail)
+              this.Evaluate = EvaluateTail;
+            else
+              this.Evaluate = EvaluateWithTailCheck;
+          } else
+            this.Evaluate = EvaluateNoTail;
+        } 
+      }//lock 
+    }
+
+    // Evaluation for special forms
+    private object EvaluateSpecialForm(ScriptThread thread) {
+      thread.CurrentNode = this;  //standard prolog
+      var result = _specialForm(thread, _specialFormArgs); 
+      thread.CurrentNode = Parent; //standard epilog
+      return result;
+    }
+
 
     // Evaluation for non-tail languages
     private object EvaluateNoTail(ScriptThread thread) {

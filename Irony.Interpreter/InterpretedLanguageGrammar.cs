@@ -14,18 +14,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
+using Irony.Ast; 
 using Irony.Parsing;
 using Irony.Interpreter.Ast;
 
 namespace Irony.Interpreter {
   /// <summary> Base class for languages that use Irony Interpreter to execute scripts. </summary>
-  public class InterpretedLanguageGrammar : Grammar, ICanRunSample {
-    public InterpretedLanguageGrammar(bool caseSensitive)  : base(caseSensitive) {
-      this.DefaultLiteralNodeType = typeof(LiteralValueNode);  //default node type for literals
-      this.DefaultIdentifierNodeType = typeof(IdentifierNode); 
+  public abstract class InterpretedLanguageGrammar : Grammar, ICanRunSample {
+       // making the class abstract so it won't load into Grammar Explorer
+    public InterpretedLanguageGrammar(bool caseSensitive)
+      : base(caseSensitive) {
       this.LanguageFlags = LanguageFlags.CreateAst;
     }
-
 
     // This method allows custom implementation of running a sample in Grammar Explorer
     // By default it evaluates a parse tree using default interpreter.
@@ -42,14 +43,22 @@ namespace Irony.Interpreter {
         _app = new ScriptApp(args.Language); 
       _prevSample = args.ParsedSample;
 
-      // for (int i = 0; i < 10000; i++)  //for perf measurements, to execute 1000 times
+      //for (int i = 0; i < 1000; i++)  //for perf measurements, to execute 1000 times
         _app.Evaluate(args.ParsedSample);
       return _app.OutputBuffer.ToString();
     }
 
     public virtual LanguageRuntime CreateRuntime(LanguageData language) {
       return new LanguageRuntime(language); 
-    }  
+    }
+
+    public override void BuildAst(LanguageData language, ParseTree parseTree) {
+      var opHandler = new OperatorHandler(language.Grammar.CaseSensitive);
+      Util.Check(!parseTree.HasErrors(), "ParseTree has errors, cannot build AST.");
+      var astContext = new InterpreterAstContext(language, opHandler);
+      var astBuilder = new AstBuilder(astContext);
+      astBuilder.BuildAst(parseTree);
+    }
   } //grammar class
 
 }

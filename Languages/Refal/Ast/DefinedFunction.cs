@@ -6,6 +6,7 @@ using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
 using Refal.Runtime;
+using Irony.Ast;
 
 namespace Refal
 {
@@ -18,7 +19,9 @@ namespace Refal
 
 		public bool IsPublic { get; private set; }
 
-		public override void Init(ParsingContext context, ParseTreeNode parseNode)
+		private ScopeInfo ScopeInfo { get; set; }
+
+    public override void Init(AstContext context, ParseTreeNode parseNode)
 		{
 			base.Init(context, parseNode);
 
@@ -39,6 +42,7 @@ namespace Refal
 				}
 			}
 
+			ScopeInfo = new ScopeInfo(this, context.Language.Grammar.CaseSensitive);
 			AsString = (IsPublic ? "public " : "private ") + Name;
 		}
 
@@ -49,8 +53,7 @@ namespace Refal
 
 		public override object Call(ScriptThread thread, object[] parameters)
 		{
-			var newScopeInfo = new ScopeInfo(this, thread.App.Parser.Language.Grammar.CaseSensitive);
-			thread.PushScope(newScopeInfo, parameters);
+			thread.PushScope(ScopeInfo, parameters);
 
 			try
 			{
@@ -60,6 +63,7 @@ namespace Refal
 
 				Block.InputExpression = expression;
 				Block.BlockPattern = null;
+
 				return Block.Evaluate(thread);
 			}
 			finally

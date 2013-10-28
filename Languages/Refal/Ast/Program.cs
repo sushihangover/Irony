@@ -8,6 +8,7 @@ using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
 using Refal.Runtime;
+using Irony.Ast;
 
 namespace Refal
 {
@@ -29,7 +30,7 @@ namespace Refal
 			EntryPoint = null;
 		}
 
-		public override void Init(ParsingContext context, ParseTreeNode parseNode)
+    public override void Init(AstContext context, ParseTreeNode parseNode)
 		{
 			base.Init(context, parseNode);
 
@@ -79,36 +80,32 @@ namespace Refal
 			// standard prolog
 			thread.CurrentNode = this;
 
-			try
+			if (EntryPoint == null)
 			{
-				if (EntryPoint == null)
-				{
-					thread.ThrowScriptError("No entry point defined (entry point is a function named «Go»)");
-					return null;
-				}
-
-				// define built-in runtime library functions
-				var libraryFunctions = LibraryFunction.ExtractLibraryFunctions(thread, new RefalLibrary(thread));
-				foreach (var libFun in libraryFunctions)
-				{
-					var binding = thread.Bind(libFun.Name, BindingOptions.Write | BindingOptions.NewOnly);
-					binding.SetValueRef(thread, libFun);
-				}
-
-				// define functions declared in the compiled program
-				foreach (var fun in FunctionList)
-				{
-					fun.Evaluate(thread);
-				}
-
-				// call entry point with an empty expression
-				return EntryPoint.Call(thread, new object[] { PassiveExpression.Build() });
+				thread.ThrowScriptError("No entry point defined (entry point is a function named «Go»)");
+				return null;
 			}
-			finally
+
+			// define built-in runtime library functions
+			var libraryFunctions = LibraryFunction.ExtractLibraryFunctions(thread, new RefalLibrary(thread));
+			foreach (var libFun in libraryFunctions)
 			{
-				// standard epilog
-				thread.CurrentNode = Parent;
+				var binding = thread.Bind(libFun.Name, BindingRequestFlags.Write | BindingRequestFlags.ExistingOrNew);
+				binding.SetValueRef(thread, libFun);
 			}
+
+			// define functions declared in the compiled program
+			foreach (var fun in FunctionList)
+			{
+				fun.Evaluate(thread);
+			}
+
+			// call entry point with an empty expression
+			EntryPoint.Call(thread, new object[] { PassiveExpression.Build() });
+
+			// standard epilog
+			thread.CurrentNode = Parent;
+			return null;
 		}
 	}
 }

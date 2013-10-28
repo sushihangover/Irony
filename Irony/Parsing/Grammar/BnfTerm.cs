@@ -16,6 +16,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
 
+using Irony.Ast;
+
 namespace Irony.Parsing { 
   [Flags]
   public enum TermFlags {
@@ -30,7 +32,9 @@ namespace Irony.Parsing {
     IsPunctuation =      0x20,
     IsDelimiter =        0x40,
     IsReservedWord =    0x080,
-    IsMemberSelect =    0x100,    
+    IsMemberSelect =    0x100,
+    InheritPrecedence = 0x200, // Signals that non-terminal must inherit precedence and assoc values from its children. 
+                               // Typically set for BinOp nonterminal (where BinOp.Rule = '+' | '-' | ...) 
 
     IsNonScanner =    0x01000,  // indicates that tokens for this terminal are NOT produced by scanner 
     IsNonGrammar =    0x02000,  // if set, parser would eliminate the token from the input stream; terms in Grammar.NonGrammarTerminals have this flag set
@@ -47,27 +51,32 @@ namespace Irony.Parsing {
     IsListContainer     = 0x400000,
     //Indicates not to create AST node; mainly to suppress warning message on some special nodes that AST node type is not specified
     //Automatically set by MarkTransient method
-    NoAstNode           = 0x800000,  
+    NoAstNode           = 0x800000,
+    //A flag to suppress automatic AST creation for child nodes in global AST construction. Will be used to supress full 
+    // "compile" of method bodies in modules. The module might be large, but the running code might 
+    // be actually using only a few methods or global members; so in this case it makes sense to "compile" only global/public
+    // declarations, including method headers but not full bodies. The body will be compiled on the first call. 
+    // This makes even more sense when processing module imports. 
+    AstDelayChildren    = 0x1000000,
+  
   }
-
-  public delegate void AstNodeCreator(ParsingContext context, ParseTreeNode parseNode);
 
   //Basic Backus-Naur Form element. Base class for Terminal, NonTerminal, BnfExpression, GrammarHint
   public abstract class BnfTerm {
     #region consructors
     public BnfTerm(string name) : this(name, name) { }
+    public BnfTerm(string name, string errorAlias, Type nodeType) : this(name, errorAlias) {
+      AstConfig.NodeType = nodeType;
+    }
+    public BnfTerm(string name, string errorAlias, AstNodeCreator nodeCreator) : this(name, errorAlias) {
+      AstConfig.NodeCreator = nodeCreator;  
+    }
     public BnfTerm(string name, string errorAlias) {
       Name = name;
       ErrorAlias = errorAlias;
-    }
-    public BnfTerm(string name, string errorAlias, Type nodeType) : this(name, errorAlias) {
-      AstNodeType = nodeType;
-    }
-    public BnfTerm(string name, string errorAlias, AstNodeCreator nodeCreator) : this(name, errorAlias) {
-      AstNodeCreator = nodeCreator;  
+      _hashCode = (_hashCounter++).GetHashCode(); 
     }
     #endregion
-
 
     #region virtuals and overrides
     public virtual void Init(GrammarData grammarData) {
@@ -85,9 +94,11 @@ namespace Irony.Parsing {
       return Name;
     }
 
+    //Hash code - we use static counter to generate hash codes
+    private static int _hashCounter;
+    private int _hashCode;
     public override int GetHashCode() {
-      if (Name == null) return 0;
-      return Name.GetHashCode();
+      return _hashCode; 
     }
     #endregion 
 
@@ -118,33 +129,13 @@ namespace Irony.Parsing {
 
     #endregion
 
-    #region AST node creations: AstNodeType, AstNodeCreator, AstNodeCreated
-    public Type AstNodeType;
-    public object AstNodeConfig; //config data passed to AstNode
-    public AstNodeCreator AstNodeCreator;
-    public event EventHandler<AstNodeEventArgs> AstNodeCreated;
+    #region events: Shifting
+    public event EventHandler<ParsingEventArgs> Shifting;
+    public event EventHandler<AstNodeEventArgs> AstNodeCreated; //an event fired after AST node is created. 
 
-    public virtual void CreateAstNode(ParsingContext context, ParseTreeNode nodeInfo) {
-      if (AstNodeCreator != null) {
-        AstNodeCreator(context, nodeInfo);
-        //We assume that Node creator method creates node and initializes it, so parser does not need to call 
-        // IAstNodeInit.InitNode() method on node object.
-        return;
-      }
-      Type nodeType = GetAstNodeType(context, nodeInfo);
-      if (nodeType == null) 
-        return; //we give a warning on grammar validation about this situation
-      nodeInfo.AstNode =  Activator.CreateInstance(nodeType);
-      //Initialize node
-      var iInit = nodeInfo.AstNode as IAstNodeInit;
-      if (iInit != null)
-        iInit.Init(context, nodeInfo); 
-    }
-
-    //method may be overriden to provide node type different from this.AstNodeType. StringLiteral is overriding this method
-    // to use different node type for template strings
-    protected virtual Type GetAstNodeType(ParsingContext context, ParseTreeNode nodeInfo) {
-      return AstNodeType ?? Grammar.DefaultNodeType;
+    protected internal void OnShifting(ParsingEventArgs args) {
+      if (Shifting != null)
+        Shifting(this, args);
     }
 
     protected internal void OnAstNodeCreated(ParseTreeNode parseNode) {
@@ -152,11 +143,29 @@ namespace Irony.Parsing {
       AstNodeEventArgs args = new AstNodeEventArgs(parseNode);
       AstNodeCreated(this, args);
     }
+
+    #endregion
+
+    #region AST node creations: AstNodeType, AstNodeCreator, AstNodeCreated
+    //We autocreate AST config on first GET;
+    public AstNodeConfig AstConfig {
+      get {
+       if (_astConfig == null) 
+         _astConfig = new Ast.AstNodeConfig(); 
+        return _astConfig; 
+      }
+      set {_astConfig = value; }
+    } AstNodeConfig _astConfig;
+
+    public bool HasAstConfig() {
+      return _astConfig != null; 
+    }
+    
     #endregion
 
 
-    #region Kleene operators: Q(), Plus(), Star()
-    NonTerminal _q, _plus, _star; //cash them
+    #region Kleene operator Q()
+    NonTerminal _q; 
     public BnfExpression Q()
     {
       if (_q != null)
@@ -164,24 +173,6 @@ namespace Irony.Parsing {
       _q = new NonTerminal(this.Name + "?");
       _q.Rule = this | Grammar.CurrentGrammar.Empty;
       return _q; 
-    }
-    
-    [Obsolete("This method is obsolete, use Grammar.MakePlusRule or MakeStarRule instead.")]
-    public NonTerminal Plus() {
-      if (_plus != null) 
-        return _plus;
-      _plus = new NonTerminal(this.Name + "+");
-      _plus.Rule = Grammar.MakePlusRule(_plus, this); 
-      return _plus;
-    }
-
-    [Obsolete("This method is obsolete, use Grammar.MakePlusRule or MakeStarRule instead.")]
-    public NonTerminal Star()
-    {
-      if (_star != null) return _star;
-      _star = new NonTerminal(this.Name + "*");
-      _star.Rule = Grammar.MakeStarRule(_star, this);  
-      return _star;
     }
     #endregion
 
@@ -234,20 +225,11 @@ namespace Irony.Parsing {
 
     #endregion
 
+
   }//class
 
   public class BnfTermList : List<BnfTerm> { }
   public class BnfTermSet : HashSet<BnfTerm> {  }
-
-  public class AstNodeEventArgs : EventArgs {
-    public AstNodeEventArgs(ParseTreeNode parseTreeNode) {
-      ParseTreeNode = parseTreeNode;
-    }
-    public readonly ParseTreeNode ParseTreeNode;
-    public object AstNode {
-      get { return ParseTreeNode.AstNode; }
-    }
-  }
 
 
 

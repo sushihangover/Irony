@@ -7,6 +7,7 @@ using System.Linq;
 using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
+using Irony.Ast;
 
 namespace Refal
 {
@@ -25,7 +26,7 @@ namespace Refal
 
 		public Block Block { get; private set; }
 
-		public override void Init(ParsingContext context, ParseTreeNode parseNode)
+    public override void Init(AstContext context, ParseTreeNode parseNode)
 		{
 			base.Init(context, parseNode);
 
@@ -76,42 +77,45 @@ namespace Refal
 			// standard prolog
 			thread.CurrentNode = this;
 
-			try
+			// evaluate expression
+			var expression = Expression.EvaluateExpression(thread);
+			object result = null;
+
+			// extract last recognized pattern (it contains bound variables)
+			var lastPattern = thread.GetLastPattern();
+			if (lastPattern == null)
 			{
-				// evaluate expression
-				var expression = Expression.EvaluateExpression(thread);
-
-				// extract last recognized pattern (it contains bound variables)
-				var lastPattern = thread.GetLastPattern();
-				if (lastPattern == null)
-				{
-					thread.ThrowScriptError("Internal error: last recognized pattern is lost.");
-				}
-
-				// with-clause
-				if (Block != null)
-				{
-					Block.InputExpression = expression;
-					Block.BlockPattern = lastPattern;
-					return Block.Evaluate(thread);
-				}
-
-				// where-clause
-				if (Pattern != null)
-				{
-					return EvaluateWhereClause(expression, lastPattern, thread);
-				}
-
-				return false;
+				thread.ThrowScriptError("Internal error: last recognized pattern is lost.");
+				return null; // never gets here
 			}
-			finally
+
+			// with-clause
+			if (Block != null)
 			{
-				// standard epilog
-				thread.CurrentNode = Parent;
+				Block.InputExpression = expression;
+				Block.BlockPattern = lastPattern;
+				result = Block.Evaluate(thread);
 			}
+
+			// where-clause
+			else if (Pattern != null)
+			{
+				result = EvaluateWhereClause(expression, lastPattern, thread);
+			}
+
+			// internal compiler error
+			else
+			{
+				thread.ThrowScriptError("Internal error: AST node doen't represent neither where- nor when-clause.");
+				return null; // never get here
+			}
+
+			// standard epilog
+			thread.CurrentNode = Parent;
+			return result;
 		}
 
-		bool EvaluateWhereClause(Runtime.PassiveExpression expr, Runtime.Pattern lastPattern, ScriptThread thread)
+		object EvaluateWhereClause(Runtime.PassiveExpression expr, Runtime.Pattern lastPattern, ScriptThread thread)
 		{
 			// instantiate where-clause pattern
 			var patt = Pattern.Instantiate(thread);
@@ -124,22 +128,21 @@ namespace Refal
 				// store last recognized pattern as a local variable
 				thread.SetLastPattern(patt);
 
-				// match succeeded, return true
+				// match succeeded, return result expression
 				if (ResultExpression != null)
 				{
-					return Convert.ToBoolean(ResultExpression.Evaluate(thread));
+					return ResultExpression.Evaluate(thread);
 				}
 
-				// match succeeded? depends on more conditions
+				// match succeeded, evaluate more conditions
 				if (MoreConditions != null)
 				{
-					// return true or false
-					return Convert.ToBoolean(MoreConditions.Evaluate(thread));
+					return MoreConditions.Evaluate(thread);
 				}
 			}
 
-			// matching failed, return false
-			return false;
+			// matching failed, return nothing
+			return null;
 		}
 	}
 }

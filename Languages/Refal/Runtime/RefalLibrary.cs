@@ -57,7 +57,7 @@ namespace Refal.Runtime
 				return null;
 
 			//Console.WriteLine("{0}", expression.ToStringBuilder(0));
-			ScriptThread.App.Write(expression.ToStringBuilder(0).ToString());
+			ScriptThread.App.WriteLine(expression.ToStringBuilder(0).ToString());
 
 			return expression;
 		}
@@ -68,7 +68,7 @@ namespace Refal.Runtime
 				return null;
 
 			//Console.WriteLine("{0}", expression.ToStringBuilder(0));
-			ScriptThread.App.Write(expression.ToStringBuilder(0).ToString());
+			ScriptThread.App.WriteLine(expression.ToStringBuilder(0).ToString());
 
 			return null;
 		}
@@ -194,12 +194,14 @@ namespace Refal.Runtime
 			Pattern pattern = new Pattern(new ExpressionVariable("Key"), '=', new ExpressionVariable("Value"));
 			if (pattern.Match(expression))
 			{
-				PassiveExpression key = (PassiveExpression)pattern.GetVariable("Key");
-				PassiveExpression value = (PassiveExpression)pattern.GetVariable("Value");
-				string strKey = key.ToString();
+				var key = (PassiveExpression)pattern.GetVariable("Key");
+				var value = (PassiveExpression)pattern.GetVariable("Value");
+				var strKey = key.ToString();
 
 				BuriedKeys[strKey] = key;
 				BuriedValues[strKey] = value;
+
+				return PassiveExpression.Build();
 			}
 
 			throw new RecognitionImpossibleException("<Br e.N '=' e.Expr>: unexpected arguments");

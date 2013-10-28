@@ -15,7 +15,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions; 
 using System.Text;
-using Irony.Interpreter;
+using System.Reflection;
+
+using Irony.Ast;
 using Irony.Parsing;
 
 namespace Irony.Interpreter.Ast {
@@ -25,35 +27,60 @@ namespace Irony.Interpreter.Ast {
     public ExpressionType Op;
     private OperatorImplementation _lastUsed;
     private object _constValue;
-    private int _failureCount; 
+    private int _failureCount;
 
     public BinaryOperationNode() { }
 
-    public override void Init(ParsingContext context, ParseTreeNode treeNode) {
+    public override void Init(AstContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
-      Left = AddChild("Arg", treeNode.ChildNodes[0]);
-      Right = AddChild("Arg", treeNode.ChildNodes[2]);
-      var opToken = treeNode.ChildNodes[1].FindToken();
+      var nodes = treeNode.GetMappedChildNodes();
+      Left = AddChild("Arg", nodes[0]);
+      Right = AddChild("Arg", nodes[2]);
+      var opToken = nodes[1].FindToken();
       OpSymbol = opToken.Text;
-      Op = context.GetOperatorExpressionType(OpSymbol);
+      var ictxt = context as InterpreterAstContext;
+      Op = ictxt.OperatorHandler.GetOperatorExpressionType(OpSymbol);
       // Set error anchor to operator, so on error (Division by zero) the explorer will point to 
       // operator node as location, not to the very beginning of the first operand.
       ErrorAnchor = opToken.Location;
-      AsString = Op + "(operator)";
+      AsString = Op + "(operator)"; 
     }
 
     protected override object DoEvaluate(ScriptThread thread) {
       thread.CurrentNode = this;  //standard prolog
-      var result = EvaluateNormally(thread); // first time evaluate normally
-      // If constant, save the value and switch to method that directly returns the result.
+      //assign implementation method
+      switch (Op) {
+        case ExpressionType.AndAlso:
+          this.Evaluate = EvaluateAndAlso;
+          break; 
+        case ExpressionType.OrElse:
+          this.Evaluate = EvaluateOrElse;
+          break;
+        default:
+          this.Evaluate = DefaultEvaluateImplementation;
+          break; 
+      }
+      // actually evaluate and get the result.
+      var result = Evaluate(thread); 
+      // Check if result is constant - if yes, save the value and switch to method that directly returns the result.
       if (IsConstant()) {
         _constValue = result;
         AsString = Op + "(operator) Const=" + _constValue;
         this.Evaluate = EvaluateConst;
-      } else
-        this.Evaluate = EvaluateFast; //set for fast evaluation in the future
+      }
       thread.CurrentNode = Parent; //standard epilog
       return result;
+    }
+
+    private object EvaluateAndAlso(ScriptThread thread) {
+      var leftValue = Left.Evaluate(thread); 
+      if (!thread.Runtime.IsTrue(leftValue)) return leftValue; //if false return immediately
+      return Right.Evaluate(thread); 
+    }
+    private object EvaluateOrElse(ScriptThread thread) {
+      var leftValue = Left.Evaluate(thread);
+      if (thread.Runtime.IsTrue(leftValue)) return leftValue;
+      return Right.Evaluate(thread);
     }
 
     protected object EvaluateFast(ScriptThread thread) {
@@ -71,7 +98,7 @@ namespace Irony.Interpreter.Ast {
           _failureCount++;
           // if failed 3 times, change to method without direct try
           if (_failureCount > 3)
-            Evaluate = EvaluateNormally;
+            Evaluate = DefaultEvaluateImplementation;
         } //catch
       }// if _lastUsed
       // go for normal evaluation
@@ -80,7 +107,7 @@ namespace Irony.Interpreter.Ast {
       return result;
     }//method
 
-    protected object EvaluateNormally(ScriptThread thread) {
+    protected object DefaultEvaluateImplementation(ScriptThread thread) {
       thread.CurrentNode = this;  //standard prolog
       var arg1 = Left.Evaluate(thread);
       var arg2 = Right.Evaluate(thread);
@@ -94,7 +121,9 @@ namespace Irony.Interpreter.Ast {
     }
 
     public override bool IsConstant() {
-      return Left.IsConstant() && Right.IsConstant(); 
-    }
+      if (_isConstant) return true; 
+      _isConstant = Left.IsConstant() && Right.IsConstant();
+      return _isConstant;
+    } bool _isConstant; 
   }//class
 }//namespace

@@ -35,7 +35,7 @@ namespace Irony.Parsing {
     Default = CreateRegExObject | UniqueSwitches,
   }
 
-  public class RegExLiteral : Terminal {
+  public class RegexLiteral : Terminal {
     public class RegexSwitchTable : Dictionary<char, RegexOptions> { }
     
     public Char StartSymbol = '/';
@@ -47,14 +47,14 @@ namespace Irony.Parsing {
 
     private char[] _stopChars; 
 
-    public RegExLiteral(string name) : base(name) {
+    public RegexLiteral(string name) : base(name) {
       Switches.Add('i', RegexOptions.IgnoreCase);
       Switches.Add('g', RegexOptions.None); //not sure what to do with this flag? anybody, any advice?
       Switches.Add('m', RegexOptions.Multiline);
       base.SetFlag(TermFlags.IsLiteral);
     }
 
-    public RegExLiteral(string name, char startEndSymbol, char escapeSymbol) : base(name) {
+    public RegexLiteral(string name, char startEndSymbol, char escapeSymbol) : base(name) {
       StartSymbol = startEndSymbol;
       EndSymbol = startEndSymbol;
       EscapeSymbol = escapeSymbol;
@@ -76,11 +76,11 @@ namespace Irony.Parsing {
         var newPos = source.Text.IndexOfAny(_stopChars, source.PreviewPosition + 1);
         //we either didn't find it
         if (newPos == -1)
-          return source.CreateErrorToken(Resources.ErrNoEndForRegex);// "No end symbol for regex literal." 
+          return context.CreateErrorToken(Resources.ErrNoEndForRegex);// "No end symbol for regex literal." 
         source.PreviewPosition = newPos;
         if (source.PreviewChar != EndSymbol)
           //we hit CR or LF, this is an error
-          return source.CreateErrorToken(Resources.ErrNoEndForRegex); 
+          return context.CreateErrorToken(Resources.ErrNoEndForRegex); 
         if (!CheckEscaped(source)) 
           break;
       }
@@ -92,7 +92,7 @@ namespace Irony.Parsing {
       var switches = string.Empty;
       while(ReadSwitch(source, ref options)) {
         if (IsSet(RegexTermOptions.UniqueSwitches) && switches.Contains(source.PreviewChar))
-          return source.CreateErrorToken(Resources.ErrDupRegexSwitch, source.PreviewChar); // "Duplicate switch '{0}' for regular expression" 
+          return context.CreateErrorToken(Resources.ErrDupRegexSwitch, source.PreviewChar); // "Duplicate switch '{0}' for regular expression" 
         switches += source.PreviewChar.ToString();
         source.PreviewPosition++; 
       }
@@ -100,7 +100,7 @@ namespace Irony.Parsing {
       if (!IsSet(RegexTermOptions.AllowLetterAfter)) {
         var currChar = source.PreviewChar;
         if (char.IsLetter(currChar) || currChar == '_')
-          return source.CreateErrorToken(Resources.ErrInvRegexSwitch, currChar); // "Invalid switch '{0}' for regular expression"  
+          return context.CreateErrorToken(Resources.ErrInvRegexSwitch, currChar); // "Invalid switch '{0}' for regular expression"  
       }
       var token = source.CreateToken(this.OutputTerminal);
       //we have token, now what's left is to set its Value field. It is either pattern itself, or Regex instance

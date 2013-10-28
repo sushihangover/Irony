@@ -13,13 +13,14 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Reflection; 
+using System.Reflection;
+using Irony.Ast; 
 
 namespace Irony.Parsing {
 
   internal class IntList : List<int> { }
 
-  public class NonTerminal : BnfTerm {
+  public partial class NonTerminal : BnfTerm {
 
     #region constructors
     public NonTerminal(string name)  : base(name, null) { }  //by default display name is null
@@ -48,6 +49,18 @@ namespace Irony.Parsing {
     //Converted template with index list
     private string _convertedTemplate;
     private IntList _captionParameters;
+
+    // Productions are used internally by Parser builder
+    internal ProductionList Productions = new ProductionList();
+    #endregion
+
+    #region Events: Reduced
+    //Note that Reduced event may be called more than once for a List node 
+    public event EventHandler<ReducedEventArgs> Reduced;
+    internal void OnReduced(ParsingContext context, Production reducedProduction, ParseTreeNode resultNode) {
+      if (Reduced != null)
+        Reduced(this, new ReducedEventArgs(context, reducedProduction, resultNode));
+    }
     #endregion
 
     #region overrides: ToString, Init
@@ -58,48 +71,20 @@ namespace Irony.Parsing {
       base.Init(grammarData);
       if (!string.IsNullOrEmpty(NodeCaptionTemplate))
         ConvertNodeCaptionTemplate();
-      if (TokenPreviewHint != null)
-        TokenPreviewHint.Init(grammarData);
     }
     #endregion
 
-    #region data used by Parser builder
-    public readonly ProductionList Productions = new ProductionList();
-    #endregion
+    // Contributed by Alexey Yakovlev (yallie)
+    #region Grammar hints
+    // Adds a hint at the end of all productions
+    public void AddHintToAll(GrammarHint hint) {
+      if (this.Rule == null)
+        throw new Exception("Rule property must be set on non-terminal before calling AddHintToAll.");
+      foreach (var plusList in this.Rule.Data)
+        plusList.Add(hint);
+    }
 
-    #region custom grammar hints
-    TokenPreviewHint TokenPreviewHint { get; set; }
-    internal void InsertCustomHints() {
-      if (TokenPreviewHint != null && Productions.Count > 0) {
-        foreach (var production in Productions) {
-          foreach (var lr0item in production.LR0Items) {
-            lr0item.Hints.Add(TokenPreviewHint);
-          }
-        }
-      }
-    }
-    public TokenPreviewHint ReduceIf(string first) {
-      return TokenPreviewHint = new TokenPreviewHint(ParserActionType.Reduce, first);
-    }
-    public TokenPreviewHint ReduceIf(Terminal first) {
-      return TokenPreviewHint = new TokenPreviewHint(ParserActionType.Reduce, first);
-    }
-    public TokenPreviewHint ShiftIf(string first) {
-      return TokenPreviewHint = new TokenPreviewHint(ParserActionType.Shift, first);
-    }
-    public TokenPreviewHint ShiftIf(Terminal first) {
-      return TokenPreviewHint = new TokenPreviewHint(ParserActionType.Shift, first);
-    }
     #endregion
-
-    public static string NonTerminalsToString(IEnumerable<NonTerminal> terms, string separator) {
-      var sb = new StringBuilder();
-      foreach (var term in terms) {
-        sb.Append(term.ToString());
-        sb.Append(separator);
-      }
-      return sb.ToString().Trim();
-    }
 
     #region NodeCaptionTemplate utilities
     //We replace original tag '#{i}'  (where i is the index of the child node to put here)
@@ -140,13 +125,13 @@ namespace Irony.Parsing {
 
   public class NonTerminalList : List<NonTerminal> {
     public override string ToString() {
-      return NonTerminal.NonTerminalsToString(this, " "); 
+      return string.Join(" ", this); 
     }
   }
 
   public class NonTerminalSet : HashSet<NonTerminal> {
     public override string ToString() {
-      return NonTerminal.NonTerminalsToString(this, " "); 
+      return string.Join(" ", this);
     }
   }
 

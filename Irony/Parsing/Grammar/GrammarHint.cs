@@ -15,136 +15,35 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Irony.Parsing.Construction;
+
 namespace Irony.Parsing {
 
-  public enum HintType {
-    /// <summary>
-    /// Instruction to resolve conflict to shift
-    /// </summary>
-    ResolveToShift,
-    /// <summary>
-    /// Instruction to resolve conflict to reduce
-    /// </summary>
-    ResolveToReduce,
-    /// <summary>
-    /// Instruction to resolve the conflict using special code in grammar in OnResolvingConflict method.
-    /// </summary>
-    ResolveInCode,
-    /// <summary>
-    /// Currently ignored by Parser, may be used in the future to set specific precedence value of the following terminal operator.
-    /// One example where it can be used is setting higher precedence value for unary + or - operators. This hint would override 
-    /// precedence set for these operators for cases when they are used as unary operators. (YACC has this feature).
-    /// </summary>
-    Precedence,
-    /// <summary>
-    /// Provided for all custom hints that derived solutions may introduce 
-    /// </summary>
-    Custom
-  }
-
-
-  public class GrammarHintList : List<GrammarHint> {
-#if SILVERLIGHT
-    public delegate bool HintPredicate(GrammarHint hint);
-    public GrammarHint Find(HintPredicate match) {
-      foreach(var hint in this)
-        if (match(hint)) return hint; 
-      return null; 
-    }
-#endif 
-  }
+  public class GrammarHintList : List<GrammarHint> { }
 
   //Hints are additional instructions for parser added inside BNF expressions.
   // Hint refers to specific position inside the expression (production), so hints are associated with LR0Item object 
-  // One example is a conflict-resolution hint produced by the Grammar.PreferShiftHere() method. It tells parser to perform
+  // One example is a PreferredActionHint produced by the Grammar.PreferShiftHere() method. It tells parser to perform
   // shift in case of a shift/reduce conflict. It is in fact the default action of LALR parser, so the hint simply suppresses the error 
   // message about the shift/reduce conflict in the grammar.
-  public class GrammarHint : BnfTerm {
-    public readonly HintType HintType;
-    public readonly object Data;
+  public abstract class GrammarHint : BnfTerm {
+    public GrammarHint() : base("hint") { }
 
-    public GrammarHint(HintType hintType, object data) : base("HINT") {
-      HintType = hintType;
-      Data = data; 
+    /// <summary> Gives a chance to a custom code in hint to interfere in parser automaton construction.</summary>
+    /// <param name="language">The LanguageData instance.</param>
+    /// <param name="owner">The LRItem that "owns" the hint. </param>
+    /// <remarks>
+    /// The most common purpose of this method (it's overrides) is to resolve the conflicts
+    /// by adding specific actions into State.Actions dictionary. 
+    /// The owner parameter represents the position in the grammar expression where the hint
+    /// is found. The parser state is available through owner.State property. 
+    /// </remarks>
+    public virtual void Apply(LanguageData language, LRItem owner) {
+      // owner.State  -- the parser state
+      // owner.State.BuilderData.Conflicts -- as set of conflict terminals
+      // owner.State.Actions -- a dictionary of actions in the current state.
     }
   } //class
 
-  // Base class for custom grammar hints
-  public abstract class CustomGrammarHint : GrammarHint {
-    public ParserActionType Action { get; private set; }
-    public CustomGrammarHint(ParserActionType action) : base(HintType.Custom, null) {
-      Action = action;
-    }
-    public abstract bool Match(ConflictResolutionArgs args);
-  }
 
-  // Semi-automatic conflict resolution hint
-  public class TokenPreviewHint : CustomGrammarHint {
-    public int MaxPreviewTokens { get; set; } // preview limit
-    private string FirstString { get; set; }
-    private StringSet OtherStrings { get; set; }
-    private Terminal FirstTerminal { get; set; }
-    private HashSet<Terminal> OtherTerminals { get; set; }
-
-    private TokenPreviewHint(ParserActionType action) : base(action) {
-      FirstString = String.Empty;
-      OtherStrings = new StringSet();
-      FirstTerminal = null;
-      OtherTerminals = new HashSet<Terminal>();
-      MaxPreviewTokens = 0;
-    }
-
-    public TokenPreviewHint(ParserActionType action, string first) : this(action) {
-      FirstString = first;
-    }
-
-    public TokenPreviewHint(ParserActionType action, Terminal first) : this(action) {
-      FirstTerminal = first;
-    }
-
-    public TokenPreviewHint ComesBefore(params string[] others) {
-      OtherStrings.AddRange(others); 
-      return this;
-    }
-
-    public TokenPreviewHint ComesBefore(params Terminal[] others) {
-      OtherTerminals.UnionWith(others); 
-      return this;
-    }
-
-    public TokenPreviewHint SetMaxPreview(int max) {
-      MaxPreviewTokens = max;
-      return this;
-    }
-
-    public override void Init(GrammarData grammarData) {
-      base.Init(grammarData);
-      // convert strings to terminals, if needed
-      FirstTerminal = FirstTerminal ?? Grammar.ToTerm(FirstString);
-      if (OtherTerminals.Count == 0 && OtherStrings.Count > 0)
-        Array.ForEach(OtherStrings.Select(s => Grammar.ToTerm(s)).ToArray(), term => OtherTerminals.Add(term));
-    }
-
-    public override bool Match(ConflictResolutionArgs args) {
-      try {
-        args.Scanner.BeginPreview();
-
-        var count = 0;
-        var token = args.Scanner.GetToken();
-        while (token != null && token.Terminal != args.Context.Language.Grammar.Eof) {
-          if (token.Terminal == FirstTerminal)
-            return true;
-          if (OtherTerminals.Contains(token.Terminal))
-            return false;
-          if (++count > MaxPreviewTokens && MaxPreviewTokens > 0)
-            return false;
-          token = args.Scanner.GetToken();
-        }
-        return false;
-      }
-      finally {
-        args.Scanner.EndPreview(true);
-      }
-    }
-  }
 }

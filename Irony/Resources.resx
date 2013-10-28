@@ -211,11 +211,8 @@
   <data name="ErrConflictMsgTemplate" xml:space="preserve">
     <value>{0} State {1} on inputs: {2}</value>
   </data>
-  <data name="ErrNLALRhang" xml:space="preserve">
-    <value>NLALR process is in indefinite loop, number of states exceeded 3000.</value>
-  </data>
   <data name="ErrNodeTypeNotSetOn" xml:space="preserve">
-    <value>Warning: AstNodeType or AstNodeCreator is not set on non-terminals: {0}.</value>
+    <value>AstNodeType or AstNodeCreator is not set on non-terminals: {0}. Either set Term.AstConfig.NodeType, or provide default values in AstContext.</value>
   </data>
   <data name="ErrNoLkhds" xml:space="preserve">
     <value>ParserDataBuilder error: inadequate state {0}, reduce item '{1}' has no lookaheads.</value>
@@ -238,7 +235,7 @@
   <data name="MsgNLALRAdvice" xml:space="preserve">
     <value>NLALR transform: Add WrapTail() in '.' position to [{0}].</value>
   </data>
-  <data name="ErrParserUnexpInput" xml:space="preserve">
+  <data name="ErrSyntaxErrorExpected" xml:space="preserve">
     <value>Syntax error, expected: {0}</value>
   </data>
   <data name="LabelEosLabel" xml:space="preserve">
@@ -395,7 +392,7 @@
     <value>Invalid arguments for IncDecNode AST node: either first or second argument should be '--' or '++'.</value>
   </data>
   <data name="ErrAssignLiteralValue" xml:space="preserve">
-    <value>Invalide operation, attempt to assign constant or literal value.</value>
+    <value>Invalid operation, attempt to assign to a constant or literal value.</value>
   </data>
   <data name="ErrTemplNoSettings" xml:space="preserve">
     <value>Error in string literal [{0}]: IsTemplate flag is set, but TemplateSettings is not provided in AstNodeConfig property.</value>
@@ -438,5 +435,23 @@
   </data>
   <data name="ErrOpNotDefinedForType" xml:space="preserve">
     <value>Operator '{0}' is not defined for types {1}.</value>
+  </data>
+  <data name="ErrFreeTextNoEndTag" xml:space="preserve">
+    <value>Failed to find the ending tag '{0}' for a text literal. </value>
+  </data>
+  <data name="ErrNewLineExpected" xml:space="preserve">
+    <value>Expected new line symbol.</value>
+  </data>
+  <data name="MsgErrorCustomActionDidNotAdvance" xml:space="preserve">
+    <value>Custom action did not execute: parser state or input did not change.</value>
+  </data>
+  <data name="MsgTraceExecCustomAction" xml:space="preserve">
+    <value>Executing custom action</value>
+  </data>
+  <data name="ErrCannotMoveBackInSource" xml:space="preserve">
+    <value>Fatal error in parser: attempt to move back in the source.</value>
+  </data>
+  <data name="ErrParserUnexpectedInput" xml:space="preserve">
+    <value>Syntax error, unexpected input.</value>
   </data>
 </root>

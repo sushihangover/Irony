@@ -7,6 +7,7 @@ using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 using Irony.Parsing;
 using Refal.Runtime;
+using Irony.Ast;
 
 namespace Refal
 {
@@ -22,7 +23,7 @@ namespace Refal
 			Terms = new List<AstNode>();
 		}
 
-		public override void Init(ParsingContext context, ParseTreeNode parseNode)
+    public override void Init(AstContext context, ParseTreeNode parseNode)
 		{
 			base.Init(context, parseNode);
 
@@ -60,23 +61,18 @@ namespace Refal
 			// standard prolog
 			thread.CurrentNode = this;
 
-			try
-			{
-				var terms = new List<object>();
+			var terms = new List<object>();
 
-				foreach (var term in Terms)
-				{
-					var result = term.Evaluate(thread);
-					terms.Add(result);
-				}
-
-				return PassiveExpression.Build(terms.ToArray());
-			}
-			finally
+			foreach (var term in Terms)
 			{
-				// standard epilog
-				thread.CurrentNode = Parent;
+				var result = term.Evaluate(thread);
+				terms.Add(result);
 			}
+
+			// standard epilog
+			thread.CurrentNode = Parent;
+
+			return PassiveExpression.Build(terms.ToArray());
 		}
 	}
 }
