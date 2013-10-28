@@ -170,7 +170,7 @@ namespace Irony.Parsing {
     //constructor
     internal ConflictResolutionArgs(ParsingContext context, ParserAction conflictAction) {
       Context = context;
-      Scanner = context.Parser.Scanner;
+      Scanner = Context.Parser.Scanner;
       NewShiftState = conflictAction.NewState;
       ReduceProduction = conflictAction.ReduceProduction;
       Result = ParserActionType.Shift; //make shift by default

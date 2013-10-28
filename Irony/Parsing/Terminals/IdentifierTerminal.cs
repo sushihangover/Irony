@@ -105,8 +105,7 @@ namespace Irony.Parsing {
         Grammar.FallbackTerminals.Add(this);
       if (this.EditorInfo == null) 
         this.EditorInfo = new TokenEditorInfo(TokenType.Identifier, TokenColor.Identifier, TokenTriggers.None);
-      if (this.AstNodeType == null && this.AstNodeCreator == null &&
-           grammarData.Grammar.LanguageFlags.HasFlag(LanguageFlags.CreateAst))
+      if (this.AstNodeType == null && this.AstNodeCreator == null && grammarData.Grammar.FlagIsSet(LanguageFlags.CreateAst))
         this.AstNodeType = typeof(Irony.Interpreter.Ast.IdentifierNode);
     }
 
@@ -163,7 +162,7 @@ namespace Irony.Parsing {
       if (Grammar.KeyTerms.TryGetValue(token.Text, out keyTerm)) {
         token.KeyTerm = keyTerm;
         //if it is reserved word, then overwrite terminal
-        if (keyTerm.Flags.HasFlag(TermFlags.IsReservedWord))
+        if (keyTerm.FlagIsSet(TermFlags.IsReservedWord))
           token.SetTerminal(keyTerm); 
       }
     }

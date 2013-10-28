@@ -16,10 +16,8 @@ namespace Irony.Interpreter.Ast {
       AsString = Name + " (not supported)";
     }
 
-    protected override object DoEvaluate(ScriptThread thread) {
-      thread.CurrentNode = this;  //standard prolog
-      thread.ThrowScriptError(Resources.ErrConstructNotSupported, Name);
-      return null; //never happens
+    public override void EvaluateNode(EvaluationContext context, AstMode mode) {
+      context.ThrowError(Resources.ErrConstructNotSupported, Name); 
     }
 
   }//class

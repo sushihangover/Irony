@@ -22,8 +22,6 @@ namespace Irony.Interpreter.Ast {
 
   public class IdentifierNode : AstNode {
     public string Symbol;
-    private ValueAccessorBase _reader;
-    private ValueAccessorBase _writer; 
 
     public IdentifierNode() { }
 
@@ -33,31 +31,20 @@ namespace Irony.Interpreter.Ast {
       AsString = Symbol; 
     }
 
-    //Executed only once, on the first call
-    protected override object DoEvaluate(ScriptThread thread) {
-      thread.CurrentNode = this;  //standard prolog
-      _reader = new SlotReader(Symbol);
-      this.SetEvaluate(EvaluateReader);
-      var result = this.Evaluate(thread);
-      thread.CurrentNode = Parent; //standard epilog
-      return result; 
-    }
 
-    private object EvaluateReader(ScriptThread thread) {
-      thread.CurrentNode = this;  //standard prolog
-      var result = _reader.GetValue(thread);
-      if (result == null)
-        thread.ThrowScriptError("Use of unassigned value ({0}).", Symbol);
-      thread.CurrentNode = Parent;  //standard epilog
-      return result;
-    }
-
-    protected internal override void SetValue(ScriptThread thread, object value) {
-      thread.CurrentNode = this;  //standard prolog
-      if (_writer == null)
-        _writer = new SlotWriter(Symbol);
-      _writer.SetValue(thread, value);
-      thread.CurrentNode = Parent;  //standard epilog
+    public override void EvaluateNode(EvaluationContext context, AstMode mode) {
+      switch (mode) {
+        case AstMode.Read:
+          object value;
+          if (context.TryGetValue(Symbol, out value))
+            context.Data.Push(value); 
+          else 
+            context.ThrowError(Resources.ErrVarNotDefined, Symbol);
+          break; 
+        case AstMode.Write:
+          context.SetValue(Symbol, context.Data.Pop()); 
+          break; 
+      }
     }
 
   }//class

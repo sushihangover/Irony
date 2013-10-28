@@ -14,7 +14,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Irony.Parsing;
-using Irony.Interpreter;
 using Irony.Interpreter.Ast;
 
 namespace Irony.Samples {
@@ -25,12 +24,14 @@ namespace Irony.Samples {
   //  the result of calculation is the result of last expression or assignment.
   //  Irony's default  runtime provides expression evaluation. 
   //  supports inc/dec operators (++,--), both prefix and postfix, and combined assignment operators like +=, -=, etc.
+  //  Supports string operations and Ruby-like active strings with embedded expressions - added temporarily 
+  //  to test this functionality.
 
   [Language("ExpressionEvaluator", "1.0", "Multi-line expression evaluator")]
   public class ExpressionEvaluatorGrammar : Irony.Parsing.Grammar {
     public ExpressionEvaluatorGrammar() : base(false) { //false means case insensitive
-      this.GrammarComments = 
-@"Simple expression evaluator. Case-insensitive. Supports big integers and float data types, variables, assignments,
+      this.GrammarComments =@"
+Simple expression evaluator. Case-insensitive. Supports big integers and float data types, variables, assignments,
 arithmetic operations, augmented assignments (+=, -=), inc/dec (++,--).
 Strings with embedded expressions - temporarily added to test this functionality." ;
       // 1. Terminals
@@ -58,7 +59,6 @@ Strings with embedded expressions - temporarily added to test this functionality
       var BinExpr = new NonTerminal("BinExpr", typeof(BinaryOperationNode));
       var ParExpr = new NonTerminal("ParExpr");
       var UnExpr = new NonTerminal("UnExpr", typeof(UnaryOperationNode));
-      var TernaryIfExpr = new NonTerminal("TernaryIf", typeof(IfNode));
       var UnOp = new NonTerminal("UnOp");
       var BinOp = new NonTerminal("BinOp", "operator");
       var PrefixIncDec = new NonTerminal("PrefixIncDec", typeof(IncDecNode));
@@ -70,17 +70,16 @@ Strings with embedded expressions - temporarily added to test this functionality
       var Program = new NonTerminal("Program", typeof(StatementListNode));
 
       // 3. BNF rules
-      Expr.Rule = Term | UnExpr | BinExpr | PrefixIncDec | PostfixIncDec | TernaryIfExpr;
+      Expr.Rule = Term | UnExpr | BinExpr | PrefixIncDec | PostfixIncDec;
       Term.Rule = number | ParExpr | identifier | stringLit;
       ParExpr.Rule = "(" + Expr + ")";
       UnExpr.Rule = UnOp + Term;
       UnOp.Rule = ToTerm("+") | "-"; 
       BinExpr.Rule = Expr + BinOp + Expr;
-      BinOp.Rule = ToTerm("+") | "-" | "*" | "/" | "**" | "==" | "<" | "<=" | ">" | ">=" | "!=";
+      BinOp.Rule = ToTerm("+") | "-" | "*" | "/" | "**";
       PrefixIncDec.Rule = IncDecOp + identifier;
       PostfixIncDec.Rule = identifier + IncDecOp;
       IncDecOp.Rule = ToTerm("++") | "--";
-      TernaryIfExpr.Rule = Expr + "?" + Expr + ":" + Expr;
       AssignmentStmt.Rule = identifier + AssignmentOp + Expr;
       AssignmentOp.Rule = ToTerm("=") | "+=" | "-=" | "*=" | "/=";
       Statement.Rule = AssignmentStmt | Expr | Empty;
@@ -89,25 +88,24 @@ Strings with embedded expressions - temporarily added to test this functionality
       this.Root = Program;       // Set grammar root
 
       // 4. Operators precedence
-      RegisterOperators(10, "?");
-      RegisterOperators(20, "==", "<", "<=", ">", ">=", "!=");
-      RegisterOperators(30, "+", "-");
-      RegisterOperators(40, "*", "/");
-      RegisterOperators(50, Associativity.Right, "**");
+      RegisterOperators(1, "+", "-");
+      RegisterOperators(2, "*", "/");
+      // 3 is reserved for unary operators
+      RegisterOperators(4, Associativity.Right, "**");
 
       // 5. Punctuation and transient terms
-      MarkPunctuation("(", ")", "?", ":");
+      MarkPunctuation("(", ")");
       RegisterBracePair("(", ")");
       MarkTransient(Term, Expr, Statement, BinOp, UnOp, IncDecOp, AssignmentOp, ParExpr);
+      // The following makes error messages a little cleaner (try evaluating expr 'x y' with and without this line to see the difference)
+      MarkNotReported("++", "--"); 
 
-      // 7. Syntax error reporting
-      MarkNotReported("++", "--");
-      AddToNoReportGroup("(", "++", "--");
-      AddToNoReportGroup(NewLine);
-      AddOperatorReportGroup("operator");
-      AddTermsReportGroup("assignment operator", "=", "+=", "-=", "*=", "/=");
+      //7. Language flags. 
+      // Automatically add NewLine before EOF so that our BNF rules work correctly when there's no final line break in source
+      //this.LanguageFlags = LanguageFlags.CreateAst | LanguageFlags.NewLineBeforeEOF | LanguageFlags.CanRunSample; 
+      this.LanguageFlags = LanguageFlags.CreateAst | LanguageFlags.CanRunSample; 
 
-      //8. Console
+      //6. Console
       ConsoleTitle = "Irony Expression Evaluator";
       ConsoleGreeting =
 @"Irony Sample Console for Expression Evaluator 
@@ -120,13 +118,16 @@ Strings with embedded expressions - temporarily added to test this functionality
 Press Ctrl-C to exit the program at any time.
 ";
       ConsolePrompt = "?";
-      ConsolePromptMoreInput = "?";
-
-      //9. Language flags. 
-      // Automatically add NewLine before EOF so that our BNF rules work correctly when there's no final line break in source
-      this.LanguageFlags = LanguageFlags.NewLineBeforeEOF | LanguageFlags.CreateAst | LanguageFlags.CanRunSample | LanguageFlags.SupportsBigInt;
+      ConsolePromptMoreInput = "?"; 
     }
 
+
+    public override string RunSample(ParseTree parsedSample) {
+      var interpreter = new Irony.Interpreter.ScriptInterpreter(this);
+      interpreter.Globals["pi"] = Math.PI;
+      interpreter.Evaluate(parsedSample);
+      return interpreter.GetOutput(); 
+    }
   }//class
 
 }//namespace

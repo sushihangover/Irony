@@ -25,19 +25,19 @@ namespace Irony.Interpreter.Ast {
     public override void Init(ParsingContext context, ParseTreeNode treeNode) {
       base.Init(context, treeNode);
       foreach (var child in treeNode.ChildNodes) {
-          AddChild(NodeUseType.Parameter, "expr", child); 
+          AddChild("expr", child); 
       }
       AsString = "Expression list";
     }
 
-    protected override object DoEvaluate(ScriptThread thread) {
-      thread.CurrentNode = this;  //standard prolog
-      var values = new object[ChildNodes.Count];
-      for (int i = 0; i < values.Length; i++) {
-        values[i] = ChildNodes[i].Evaluate(thread);
+    public override void EvaluateNode(EvaluationContext context, AstMode mode) {
+      var result = new ValuesList();
+      foreach (var expr in ChildNodes) {
+        expr.Evaluate(context, AstMode.Read);
+        result.Add(context.Data.Pop());
       }
-      thread.CurrentNode = Parent; //standard epilog
-      return values; 
+      //Push list on the stack
+      context.Data.Push(result); 
     }
 
   }//class

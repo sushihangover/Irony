@@ -126,8 +126,7 @@ namespace Irony.Parsing {
     public readonly TokenList OpenBraces = new TokenList(); 
     public ParseTreeNode Root;
     public readonly ParserMessageList ParserMessages = new ParserMessageList();
-    public long ParseTimeMilliseconds;
-    public object Tag; //custom data object, use it anyway you want
+    public int ParseTime;
 
     public ParseTree(string sourceText, string fileName) {
       SourceText = sourceText;

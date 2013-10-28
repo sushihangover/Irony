@@ -18,25 +18,6 @@ using Irony.Parsing;
 using Irony.Interpreter;
 
 namespace Irony.Interpreter.Ast {
-
-  //  Implements Ruby-like active strings with embedded expressions
-
-  /* Example of use:
- 
-        //String literal with embedded expressions  ------------------------------------------------------------------
-        var stringLit = new StringLiteral("string", "\"", StringOptions.AllowsAllEscapes | StringOptions.IsTemplate);
-        stringLit.AstNodeType = typeof(StringTemplateNode);
-        var Expr = new NonTerminal("Expr"); 
-        var templateSettings = new StringTemplateSettings(); //by default set to Ruby-style settings 
-        templateSettings.ExpressionRoot = Expr; //this defines how to evaluate expressions inside template
-        this.SnippetRoots.Add(Expr);
-        stringLit.AstNodeConfig = templateSettings;
-        
-        //define Expr as an expression non-terminal in your grammar
-  
-   */
-
-
   public class StringTemplateNode : AstNode {
     #region embedded classes
     enum SegmentType {
@@ -72,11 +53,16 @@ namespace Irony.Interpreter.Ast {
       AsString = "\"" + _template + "\" (templated string)"; 
     }
 
-    protected override object DoEvaluate(ScriptThread thread) {
-      thread.CurrentNode = this;  //standard prolog
-      var value = BuildString(thread);
-      thread.CurrentNode = Parent; //standard epilog
-      return value; 
+    public override void EvaluateNode(EvaluationContext context, AstMode mode) {
+      switch (mode) {
+        case AstMode.Read: 
+          var value = BuildString(context); 
+          context.Data.Push(value); 
+          break;
+        case AstMode.Write: 
+          context.ThrowError(Resources.ErrAssignLiteralValue);  
+          break;  
+      }
     }
 
     private void ParseSegments(ParsingContext context) {
@@ -103,7 +89,7 @@ namespace Irony.Interpreter.Ast {
         var exprText = _template.Substring(currentPos, endTagPos - currentPos);
         if(!string.IsNullOrEmpty(exprText)) {
           //parse the expression
-          //_expressionParser.context.Reset(); 
+          //_expressionParser.Context.Reset(); 
 
           var exprTree = exprParser.Parse(exprText);
           if(exprTree.HasErrors()) {
@@ -123,7 +109,8 @@ namespace Irony.Interpreter.Ast {
       }//while
     }
 
-    private object BuildString(ScriptThread thread) {
+    private object BuildString(EvaluationContext context) {
+      var initialStackCount = context.Data.Count; 
       string[] values = new string[_segments.Count];
       for(int i = 0; i < _segments.Count; i++) {
         var segment = _segments[i];
@@ -132,7 +119,8 @@ namespace Irony.Interpreter.Ast {
             values[i] = segment.Text; 
             break; 
           case SegmentType.Expression: 
-            values[i] = EvaluateExpression(thread, segment);
+            values[i] = EvaluateExpression(context, segment);
+            context.Data.PopUntil(initialStackCount);
             break; 
         }//else
       }//for i
@@ -140,12 +128,12 @@ namespace Irony.Interpreter.Ast {
       return result; 
     }//method
 
-    private string EvaluateExpression(ScriptThread thread, TemplateSegment segment) {
+    private string EvaluateExpression(EvaluationContext context, TemplateSegment segment) {
       try {
-        var value = segment.ExpressionNode.Evaluate(thread);
+        segment.ExpressionNode.Evaluate(context, AstMode.Read);
+        var value = context.LastResult;
         return value == null ? string.Empty : value.ToString();
-      } catch(ScriptException ex) {
-        //TODO: fix this
+      } catch(RuntimeException ex) {
         this.ErrorAnchor = this.Location + segment.Position + ex.Location;
         throw ex.InnerException;
       }

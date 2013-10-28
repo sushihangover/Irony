@@ -12,7 +12,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -51,23 +50,24 @@ namespace Irony.Parsing {
     }
 
 
+    [Obsolete("This method overload is deprecated. Use another overload without context parameter and access ParsingContext through Parser.Context property.")]
+    public ParseTree Parse(ParsingContext context, string sourceText, string fileName) {
+      return Parse(sourceText, fileName);
+    }
+
     public ParseTree Parse(string sourceText) {
-      return Parse(sourceText, "Source");
+      return Parse(sourceText, "<Source>");
     }
 
     public ParseTree Parse(string sourceText, string fileName) {
       if (Context.Status != ParserStatus.AcceptedPartial)
-        Reset();
-      var createAst = Language.Grammar.LanguageFlags.HasFlag(LanguageFlags.CreateAst);
-      var keepLineNumbering = Context.Status == ParserStatus.AcceptedPartial;
-      Context.SourceStream.SetText(sourceText, 0, keepLineNumbering);
+        Reset(); 
+      Context.SourceStream.SetText(sourceText, 0, Context.Status == ParserStatus.AcceptedPartial);
       Context.CurrentParseTree = new ParseTree(sourceText, fileName);
       Context.Status = ParserStatus.Parsing;
-      var sw = new Stopwatch();
-      sw.Start(); 
+      int start = Environment.TickCount;
       CoreParser.Parse();
-      sw.Stop();
-      Context.CurrentParseTree.ParseTimeMilliseconds = sw.ElapsedMilliseconds;
+      Context.CurrentParseTree.ParseTime = Environment.TickCount - start;
       UpdateParseTreeStatus(); 
       return Context.CurrentParseTree;
     }
