@@ -1,6 +1,6 @@
 #region License
 /* **********************************************************************************
- * Copyright (c) Robert Nees 
+ * Copyright (c) Robert Nees (https://github.com/sushihangover/Irony)
  * This source code is subject to terms and conditions of the MIT License
  * for Irony. A copy of the license can be found in the License.txt file
  * at the root of this distribution.
@@ -37,21 +37,13 @@ namespace Irony.GrammerExplorer
 		{
 		}
 
-		public void ShowMe () {
-			this.Build ();
-			this.Hide ();
-			this.Run ();
-
-			SetupModel_LstGrammars ();
-		}
-
-		void grammarToggled(object sender, ToggledArgs args) {
+		private void OnGrammarToggled(object sender, ToggledArgs args) {
 			TreeIter iter;
 			ListStore listStore = lstGrammars.Model as ListStore;
 			if (listStore.GetIter (out iter, new TreePath(args.Path))) 
 			{
 				bool old = (bool) listStore.GetValue(iter,0);
-				listStore.SetValue(iter,1,!old);
+				listStore.SetValue(iter, 0, !old);
 			}
 		}
 
@@ -62,12 +54,13 @@ namespace Irony.GrammerExplorer
 			lstGrammars.HeadersVisible = false;
 			CellRendererToggle toggleGrammar = new CellRendererToggle();
 			toggleGrammar.Activatable = true;
-			toggleGrammar.Toggled += grammarToggled;
+			toggleGrammar.Toggled += OnGrammarToggled;
 			lstGrammars.AppendColumn ("CheckBox", toggleGrammar, "active", 0);
 			lstGrammars.AppendColumn ("Grammar Caption", new CellRendererText (), "text", 1);
 		}
 
-		private  bool ContainsGrammar(GrammarItemList items, GrammarItem item) {
+		private  bool ContainsGrammar(GrammarItemList items, GrammarItem item)
+		{
 			foreach (var listItem in items)
 				if (listItem.TypeName == item.TypeName && listItem.Location == item.Location)
 					return true;
@@ -76,36 +69,28 @@ namespace Irony.GrammerExplorer
 
 		public delegate void ProcessGrammars(GrammarItemList grammerlist);
 		ProcessGrammars _GrammarItemListConsume;
-		public GrammarItemList ShowGrammars(string assemblyPath, GrammarItemList loadedGrammars, ProcessGrammars callbackparent) {
+		public void ShowGrammars(string assemblyPath, GrammarItemList loadedGrammars, ProcessGrammars callbackparent, Gtk.Window parent = null) 
+		{
 			_GrammarItemListConsume = callbackparent;
 			var fromGrammars = LoadGrammars(assemblyPath);
-			if (fromGrammars == null)
-				return null;
-			//fill the listbox and show the form
-			this.Visible = false;
-			this.Build ();
-			SetupModel_LstGrammars ();
-			(lstGrammars.Model as ListStore).Clear ();
-			foreach(GrammarItem item in fromGrammars) {
-				(lstGrammars.Model as ListStore).AppendValues (true, item.Caption, item);
-				if (!ContainsGrammar (loadedGrammars, item))
-					Console.WriteLine ("Toggle Grammar to true?");
-//					lstGrammars.SetItemChecked(listbox.Items.Count - 1, true);
+			if (fromGrammars != null) {
+				this.Build ();
+				// Begin: hack; due to 'Build' always calling Run() in the autogen'd code in MonoDevelop & w/ no parent
+				this.Visible = false;
+				this.Parent = parent;
+				this.SetPosition (WindowPosition.CenterOnParent);
+				this.Visible = true;
+				// End: hack
+				SetupModel_LstGrammars ();
+				(lstGrammars.Model as ListStore).Clear ();
+				foreach(GrammarItem item in fromGrammars) {
+					(lstGrammars.Model as ListStore).AppendValues (true, item.Caption, item);
+				}
 			}
-//			this.Run ();
-//			if (form.ShowDialog() != DialogResult.OK) return null;
-			GrammarItemList result = new GrammarItemList();
-//			for (int i = 0; i < listbox.Items.Count; i++) {
-//				if (listbox.GetItemChecked(i)) {
-//					var item = listbox.Items[i] as GrammarItem;
-//					item._loading = false;
-//					result.Add(item);
-//				}
-//			}
-			return result;
 		}
 
-		private GrammarItemList LoadGrammars(string assemblyPath) {
+		private GrammarItemList LoadGrammars(string assemblyPath) 
+		{
 			Assembly asm = null;
 			try {
 				asm = GrammarLoader.LoadAssembly(assemblyPath);
@@ -152,12 +137,10 @@ namespace Irony.GrammerExplorer
 		{
 			ListStore listStore = lstGrammars.Model as ListStore;
 			listStore.Foreach(new TreeModelForeachFunc(ForEachSelectedGrammar));
-			//Let calling window know the grammaritemlist is ready to consume
-//			Gtk.Application.Invoke (delegate {
+			Gtk.Application.Invoke (delegate {
 				_GrammarItemListConsume(_result);
-//			});
+			});
 			this.Hide ();
-//			this.Destroy ();
 		}
 
 		protected void OnButtonCancelClicked (object sender, EventArgs e)

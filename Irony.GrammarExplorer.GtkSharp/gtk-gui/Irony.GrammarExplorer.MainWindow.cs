@@ -10,7 +10,6 @@ namespace Irony.GrammarExplorer
 		private global::Gtk.Label lblGrammer;
 		private global::Gtk.ComboBox cboGrammars;
 		private global::Gtk.ComboBox btnManageGrammars;
-		private global::Gtk.Button btnManageGrammars99;
 		private global::Gtk.Button btnRefresh;
 		private global::Gtk.CheckButton chkAutoRefresh;
 		private global::Gtk.FileChooserButton filechooserbutton1;
@@ -103,8 +102,21 @@ namespace Irony.GrammarExplorer
 		private global::Gtk.Label label14;
 		private global::Gtk.Frame frame2;
 		private global::Gtk.Alignment GtkAlignment;
+		private global::Gtk.HBox hbox5;
 		private global::Gtk.ScrolledWindow GtkScrolledWindow;
 		private global::Gtk.TextView txtOutput;
+		private global::Gtk.Frame frame3;
+		private global::Gtk.Alignment GtkAlignment2;
+		private global::Gtk.VBox vbox3;
+		private global::Gtk.Table table2;
+		private global::Gtk.Label label1;
+		private global::Gtk.Label label2;
+		private global::Gtk.Label label4;
+		private global::Gtk.Label lblGCCount;
+		private global::Gtk.Label lblRunTime;
+		private global::Gtk.Button lnkShowErrLocation;
+		private global::Gtk.Button lnkShowErrStack;
+		private global::Gtk.Label GtkLabel14;
 		private global::Gtk.Label GtkLabel15;
 		private global::Gtk.Label label15;
 
@@ -166,27 +178,16 @@ namespace Irony.GrammarExplorer
 			w4.Expand = false;
 			w4.Fill = false;
 			// Container child hbox1.Gtk.Box+BoxChild
-			this.btnManageGrammars99 = new global::Gtk.Button ();
-			this.btnManageGrammars99.CanFocus = true;
-			this.btnManageGrammars99.Name = "btnManageGrammars99";
-			this.btnManageGrammars99.UseUnderline = true;
-			this.btnManageGrammars99.Label = global::Mono.Unix.Catalog.GetString (" ... ");
-			this.hbox1.Add (this.btnManageGrammars99);
-			global::Gtk.Box.BoxChild w5 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.btnManageGrammars99]));
-			w5.Position = 4;
-			w5.Expand = false;
-			w5.Fill = false;
-			// Container child hbox1.Gtk.Box+BoxChild
 			this.btnRefresh = new global::Gtk.Button ();
 			this.btnRefresh.CanFocus = true;
 			this.btnRefresh.Name = "btnRefresh";
 			this.btnRefresh.UseUnderline = true;
 			this.btnRefresh.Label = global::Mono.Unix.Catalog.GetString ("Refresh");
 			this.hbox1.Add (this.btnRefresh);
-			global::Gtk.Box.BoxChild w6 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.btnRefresh]));
-			w6.Position = 5;
-			w6.Expand = false;
-			w6.Fill = false;
+			global::Gtk.Box.BoxChild w5 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.btnRefresh]));
+			w5.Position = 5;
+			w5.Expand = false;
+			w5.Fill = false;
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.chkAutoRefresh = new global::Gtk.CheckButton ();
 			this.chkAutoRefresh.CanFocus = true;
@@ -196,14 +197,14 @@ namespace Irony.GrammarExplorer
 			this.chkAutoRefresh.DrawIndicator = true;
 			this.chkAutoRefresh.UseUnderline = true;
 			this.hbox1.Add (this.chkAutoRefresh);
-			global::Gtk.Box.BoxChild w7 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.chkAutoRefresh]));
-			w7.Position = 6;
+			global::Gtk.Box.BoxChild w6 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.chkAutoRefresh]));
+			w6.Position = 6;
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.filechooserbutton1 = new global::Gtk.FileChooserButton (global::Mono.Unix.Catalog.GetString ("Select a File"), ((global::Gtk.FileChooserAction)(0)));
 			this.filechooserbutton1.Name = "filechooserbutton1";
 			this.hbox1.Add (this.filechooserbutton1);
-			global::Gtk.Box.BoxChild w8 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.filechooserbutton1]));
-			w8.Position = 7;
+			global::Gtk.Box.BoxChild w7 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.filechooserbutton1]));
+			w7.Position = 7;
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.txtSearch = new global::Gtk.Entry ();
 			this.txtSearch.CanFocus = true;
@@ -211,8 +212,8 @@ namespace Irony.GrammarExplorer
 			this.txtSearch.IsEditable = true;
 			this.txtSearch.InvisibleChar = '●';
 			this.hbox1.Add (this.txtSearch);
-			global::Gtk.Box.BoxChild w9 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.txtSearch]));
-			w9.Position = 8;
+			global::Gtk.Box.BoxChild w8 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.txtSearch]));
+			w8.Position = 8;
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.btnSearch = new global::Gtk.Button ();
 			this.btnSearch.CanFocus = true;
@@ -220,41 +221,41 @@ namespace Irony.GrammarExplorer
 			this.btnSearch.UseUnderline = true;
 			this.btnSearch.Label = global::Mono.Unix.Catalog.GetString ("Find");
 			this.hbox1.Add (this.btnSearch);
-			global::Gtk.Box.BoxChild w10 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.btnSearch]));
-			w10.Position = 9;
-			w10.Expand = false;
-			w10.Fill = false;
-			w10.Padding = ((uint)(2));
+			global::Gtk.Box.BoxChild w9 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.btnSearch]));
+			w9.Position = 9;
+			w9.Expand = false;
+			w9.Fill = false;
+			w9.Padding = ((uint)(2));
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.lblSearchError = new global::Gtk.Label ();
 			this.lblSearchError.Name = "lblSearchError";
 			this.lblSearchError.LabelProp = global::Mono.Unix.Catalog.GetString ("<span foreground=\"red\">Not Found</span>");
 			this.lblSearchError.UseMarkup = true;
 			this.hbox1.Add (this.lblSearchError);
-			global::Gtk.Box.BoxChild w11 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.lblSearchError]));
-			w11.Position = 10;
-			w11.Expand = false;
-			w11.Fill = false;
+			global::Gtk.Box.BoxChild w10 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.lblSearchError]));
+			w10.Position = 10;
+			w10.Expand = false;
+			w10.Fill = false;
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.label3 = new global::Gtk.Label ();
 			this.label3.Name = "label3";
 			this.label3.LabelProp = global::Mono.Unix.Catalog.GetString ("  ");
 			this.hbox1.Add (this.label3);
-			global::Gtk.Box.BoxChild w12 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.label3]));
-			w12.Position = 11;
+			global::Gtk.Box.BoxChild w11 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.label3]));
+			w11.Position = 11;
+			w11.Expand = false;
+			w11.Fill = false;
+			this.vbox1.Add (this.hbox1);
+			global::Gtk.Box.BoxChild w12 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.hbox1]));
+			w12.Position = 1;
 			w12.Expand = false;
 			w12.Fill = false;
-			this.vbox1.Add (this.hbox1);
-			global::Gtk.Box.BoxChild w13 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.hbox1]));
-			w13.Position = 1;
-			w13.Expand = false;
-			w13.Fill = false;
 			// Container child vbox1.Gtk.Box+BoxChild
 			this.tabGrammar = new global::Gtk.Notebook ();
 			this.tabGrammar.HeightRequest = 400;
 			this.tabGrammar.CanFocus = true;
 			this.tabGrammar.Name = "tabGrammar";
-			this.tabGrammar.CurrentPage = 0;
+			this.tabGrammar.CurrentPage = 3;
 			this.tabGrammar.BorderWidth = ((uint)(5));
 			// Container child tabGrammar.Gtk.Notebook+NotebookChild
 			this.sWinTerminals = new global::Gtk.ScrolledWindow ();
@@ -287,8 +288,8 @@ namespace Irony.GrammarExplorer
 			this.txtNonTerms.LeftMargin = 10;
 			this.sWinNonTerminals.Add (this.txtNonTerms);
 			this.tabGrammar.Add (this.sWinNonTerminals);
-			global::Gtk.Notebook.NotebookChild w17 = ((global::Gtk.Notebook.NotebookChild)(this.tabGrammar [this.sWinNonTerminals]));
-			w17.Position = 1;
+			global::Gtk.Notebook.NotebookChild w16 = ((global::Gtk.Notebook.NotebookChild)(this.tabGrammar [this.sWinNonTerminals]));
+			w16.Position = 1;
 			// Notebook tab
 			this.label5 = new global::Gtk.Label ();
 			this.label5.Name = "label5";
@@ -307,8 +308,8 @@ namespace Irony.GrammarExplorer
 			this.txtParserStates.LeftMargin = 10;
 			this.sWinParserStates.Add (this.txtParserStates);
 			this.tabGrammar.Add (this.sWinParserStates);
-			global::Gtk.Notebook.NotebookChild w19 = ((global::Gtk.Notebook.NotebookChild)(this.tabGrammar [this.sWinParserStates]));
-			w19.Position = 2;
+			global::Gtk.Notebook.NotebookChild w18 = ((global::Gtk.Notebook.NotebookChild)(this.tabGrammar [this.sWinParserStates]));
+			w18.Position = 2;
 			// Notebook tab
 			this.label9 = new global::Gtk.Label ();
 			this.label9.Name = "label9";
@@ -336,16 +337,16 @@ namespace Irony.GrammarExplorer
 			this.chkDisableHili.DrawIndicator = true;
 			this.chkDisableHili.UseUnderline = true;
 			this.hbTestOptions.Add (this.chkDisableHili);
-			global::Gtk.Box.BoxChild w20 = ((global::Gtk.Box.BoxChild)(this.hbTestOptions [this.chkDisableHili]));
-			w20.Position = 0;
+			global::Gtk.Box.BoxChild w19 = ((global::Gtk.Box.BoxChild)(this.hbTestOptions [this.chkDisableHili]));
+			w19.Position = 0;
 			// Container child hbTestOptions.Gtk.Box+BoxChild
 			this.fcbtnFileOpen = new global::Gtk.FileChooserButton (global::Mono.Unix.Catalog.GetString ("Load file to parse:"), ((global::Gtk.FileChooserAction)(0)));
 			this.fcbtnFileOpen.WidthRequest = 0;
 			this.fcbtnFileOpen.Name = "fcbtnFileOpen";
 			this.fcbtnFileOpen.WidthChars = 0;
 			this.hbTestOptions.Add (this.fcbtnFileOpen);
-			global::Gtk.Box.BoxChild w21 = ((global::Gtk.Box.BoxChild)(this.hbTestOptions [this.fcbtnFileOpen]));
-			w21.Position = 2;
+			global::Gtk.Box.BoxChild w20 = ((global::Gtk.Box.BoxChild)(this.hbTestOptions [this.fcbtnFileOpen]));
+			w20.Position = 2;
 			// Container child hbTestOptions.Gtk.Box+BoxChild
 			this.btnParse = new global::Gtk.Button ();
 			this.btnParse.CanFocus = true;
@@ -353,10 +354,10 @@ namespace Irony.GrammarExplorer
 			this.btnParse.UseUnderline = true;
 			this.btnParse.Label = global::Mono.Unix.Catalog.GetString ("Parse");
 			this.hbTestOptions.Add (this.btnParse);
-			global::Gtk.Box.BoxChild w22 = ((global::Gtk.Box.BoxChild)(this.hbTestOptions [this.btnParse]));
-			w22.Position = 3;
-			w22.Expand = false;
-			w22.Fill = false;
+			global::Gtk.Box.BoxChild w21 = ((global::Gtk.Box.BoxChild)(this.hbTestOptions [this.btnParse]));
+			w21.Position = 3;
+			w21.Expand = false;
+			w21.Fill = false;
 			// Container child hbTestOptions.Gtk.Box+BoxChild
 			this.btnRun = new global::Gtk.Button ();
 			this.btnRun.CanFocus = true;
@@ -364,10 +365,10 @@ namespace Irony.GrammarExplorer
 			this.btnRun.UseUnderline = true;
 			this.btnRun.Label = global::Mono.Unix.Catalog.GetString ("Run");
 			this.hbTestOptions.Add (this.btnRun);
-			global::Gtk.Box.BoxChild w23 = ((global::Gtk.Box.BoxChild)(this.hbTestOptions [this.btnRun]));
-			w23.Position = 4;
-			w23.Expand = false;
-			w23.Fill = false;
+			global::Gtk.Box.BoxChild w22 = ((global::Gtk.Box.BoxChild)(this.hbTestOptions [this.btnRun]));
+			w22.Position = 4;
+			w22.Expand = false;
+			w22.Fill = false;
 			// Container child hbTestOptions.Gtk.Box+BoxChild
 			this.btnLocate = new global::Gtk.Button ();
 			this.btnLocate.CanFocus = true;
@@ -375,15 +376,15 @@ namespace Irony.GrammarExplorer
 			this.btnLocate.UseUnderline = true;
 			this.btnLocate.Label = global::Mono.Unix.Catalog.GetString ("Locate >>");
 			this.hbTestOptions.Add (this.btnLocate);
-			global::Gtk.Box.BoxChild w24 = ((global::Gtk.Box.BoxChild)(this.hbTestOptions [this.btnLocate]));
-			w24.Position = 5;
+			global::Gtk.Box.BoxChild w23 = ((global::Gtk.Box.BoxChild)(this.hbTestOptions [this.btnLocate]));
+			w23.Position = 5;
+			w23.Expand = false;
+			w23.Fill = false;
+			this.vbTextInput.Add (this.hbTestOptions);
+			global::Gtk.Box.BoxChild w24 = ((global::Gtk.Box.BoxChild)(this.vbTextInput [this.hbTestOptions]));
+			w24.Position = 0;
 			w24.Expand = false;
 			w24.Fill = false;
-			this.vbTextInput.Add (this.hbTestOptions);
-			global::Gtk.Box.BoxChild w25 = ((global::Gtk.Box.BoxChild)(this.vbTextInput [this.hbTestOptions]));
-			w25.Position = 0;
-			w25.Expand = false;
-			w25.Fill = false;
 			// Container child vbTextInput.Gtk.Box+BoxChild
 			this.sWinTest = new global::Gtk.ScrolledWindow ();
 			this.sWinTest.CanFocus = true;
@@ -395,11 +396,11 @@ namespace Irony.GrammarExplorer
 			this.txtSource.Name = "txtSource";
 			this.sWinTest.Add (this.txtSource);
 			this.vbTextInput.Add (this.sWinTest);
-			global::Gtk.Box.BoxChild w27 = ((global::Gtk.Box.BoxChild)(this.vbTextInput [this.sWinTest]));
-			w27.Position = 1;
+			global::Gtk.Box.BoxChild w26 = ((global::Gtk.Box.BoxChild)(this.vbTextInput [this.sWinTest]));
+			w26.Position = 1;
 			this.hbTest.Add (this.vbTextInput);
-			global::Gtk.Box.BoxChild w28 = ((global::Gtk.Box.BoxChild)(this.hbTest [this.vbTextInput]));
-			w28.Position = 0;
+			global::Gtk.Box.BoxChild w27 = ((global::Gtk.Box.BoxChild)(this.hbTest [this.vbTextInput]));
+			w27.Position = 0;
 			// Container child hbTest.Gtk.Box+BoxChild
 			this.tabOutput = new global::Gtk.Notebook ();
 			this.tabOutput.CanFocus = true;
@@ -431,8 +432,8 @@ namespace Irony.GrammarExplorer
 			this.tvAST.Name = "tvAST";
 			this.sWinAST.Add (this.tvAST);
 			this.tabOutput.Add (this.sWinAST);
-			global::Gtk.Notebook.NotebookChild w32 = ((global::Gtk.Notebook.NotebookChild)(this.tabOutput [this.sWinAST]));
-			w32.Position = 1;
+			global::Gtk.Notebook.NotebookChild w31 = ((global::Gtk.Notebook.NotebookChild)(this.tabOutput [this.sWinAST]));
+			w31.Position = 1;
 			// Notebook tab
 			this.lblAST = new global::Gtk.Label ();
 			this.lblAST.Name = "lblAST";
@@ -440,11 +441,11 @@ namespace Irony.GrammarExplorer
 			this.tabOutput.SetTabLabel (this.sWinAST, this.lblAST);
 			this.lblAST.ShowAll ();
 			this.hbTest.Add (this.tabOutput);
-			global::Gtk.Box.BoxChild w33 = ((global::Gtk.Box.BoxChild)(this.hbTest [this.tabOutput]));
-			w33.Position = 1;
+			global::Gtk.Box.BoxChild w32 = ((global::Gtk.Box.BoxChild)(this.hbTest [this.tabOutput]));
+			w32.Position = 1;
 			this.tabGrammar.Add (this.hbTest);
-			global::Gtk.Notebook.NotebookChild w34 = ((global::Gtk.Notebook.NotebookChild)(this.tabGrammar [this.hbTest]));
-			w34.Position = 3;
+			global::Gtk.Notebook.NotebookChild w33 = ((global::Gtk.Notebook.NotebookChild)(this.tabGrammar [this.hbTest]));
+			w33.Position = 3;
 			// Notebook tab
 			this.label10 = new global::Gtk.Label ();
 			this.label10.Name = "label10";
@@ -452,13 +453,13 @@ namespace Irony.GrammarExplorer
 			this.tabGrammar.SetTabLabel (this.hbTest, this.label10);
 			this.label10.ShowAll ();
 			this.vbox1.Add (this.tabGrammar);
-			global::Gtk.Box.BoxChild w35 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.tabGrammar]));
-			w35.Position = 2;
+			global::Gtk.Box.BoxChild w34 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.tabGrammar]));
+			w34.Position = 2;
 			// Container child vbox1.Gtk.Box+BoxChild
 			this.tabBottom = new global::Gtk.Notebook ();
 			this.tabBottom.CanFocus = true;
 			this.tabBottom.Name = "tabBottom";
-			this.tabBottom.CurrentPage = 0;
+			this.tabBottom.CurrentPage = 4;
 			this.tabBottom.BorderWidth = ((uint)(5));
 			// Container child tabBottom.Gtk.Notebook+NotebookChild
 			this.vbox7 = new global::Gtk.VBox ();
@@ -468,10 +469,10 @@ namespace Irony.GrammarExplorer
 			this.hseparator2 = new global::Gtk.HSeparator ();
 			this.hseparator2.Name = "hseparator2";
 			this.vbox7.Add (this.hseparator2);
-			global::Gtk.Box.BoxChild w36 = ((global::Gtk.Box.BoxChild)(this.vbox7 [this.hseparator2]));
-			w36.Position = 0;
-			w36.Expand = false;
-			w36.Fill = false;
+			global::Gtk.Box.BoxChild w35 = ((global::Gtk.Box.BoxChild)(this.vbox7 [this.hseparator2]));
+			w35.Position = 0;
+			w35.Expand = false;
+			w35.Fill = false;
 			// Container child vbox7.Gtk.Box+BoxChild
 			this.table6 = new global::Gtk.Table (((uint)(3)), ((uint)(2)), false);
 			this.table6.Name = "table6";
@@ -488,12 +489,12 @@ namespace Irony.GrammarExplorer
 			this.txtGrammarComments.Editable = false;
 			this.GtkScrolledWindow2.Add (this.txtGrammarComments);
 			this.table6.Add (this.GtkScrolledWindow2);
-			global::Gtk.Table.TableChild w38 = ((global::Gtk.Table.TableChild)(this.table6 [this.GtkScrolledWindow2]));
-			w38.TopAttach = ((uint)(2));
-			w38.BottomAttach = ((uint)(3));
-			w38.LeftAttach = ((uint)(1));
-			w38.RightAttach = ((uint)(2));
-			w38.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w37 = ((global::Gtk.Table.TableChild)(this.table6 [this.GtkScrolledWindow2]));
+			w37.TopAttach = ((uint)(2));
+			w37.BottomAttach = ((uint)(3));
+			w37.LeftAttach = ((uint)(1));
+			w37.RightAttach = ((uint)(2));
+			w37.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table6.Gtk.Table+TableChild
 			this.hbox13 = new global::Gtk.HBox ();
 			this.hbox13.Name = "hbox13";
@@ -503,33 +504,33 @@ namespace Irony.GrammarExplorer
 			this.lblLanguage.Name = "lblLanguage";
 			this.lblLanguage.LabelProp = global::Mono.Unix.Catalog.GetString ("(Language name)");
 			this.hbox13.Add (this.lblLanguage);
-			global::Gtk.Box.BoxChild w39 = ((global::Gtk.Box.BoxChild)(this.hbox13 [this.lblLanguage]));
-			w39.Position = 0;
-			w39.Expand = false;
-			w39.Fill = false;
+			global::Gtk.Box.BoxChild w38 = ((global::Gtk.Box.BoxChild)(this.hbox13 [this.lblLanguage]));
+			w38.Position = 0;
+			w38.Expand = false;
+			w38.Fill = false;
 			// Container child hbox13.Gtk.Box+BoxChild
 			this.label32 = new global::Gtk.Label ();
 			this.label32.Name = "label32";
 			this.label32.LabelProp = global::Mono.Unix.Catalog.GetString ("Version:");
 			this.hbox13.Add (this.label32);
-			global::Gtk.Box.BoxChild w40 = ((global::Gtk.Box.BoxChild)(this.hbox13 [this.label32]));
-			w40.Position = 1;
-			w40.Expand = false;
-			w40.Fill = false;
+			global::Gtk.Box.BoxChild w39 = ((global::Gtk.Box.BoxChild)(this.hbox13 [this.label32]));
+			w39.Position = 1;
+			w39.Expand = false;
+			w39.Fill = false;
 			// Container child hbox13.Gtk.Box+BoxChild
 			this.lblLanguageVersion = new global::Gtk.Label ();
 			this.lblLanguageVersion.Name = "lblLanguageVersion";
 			this.lblLanguageVersion.LabelProp = global::Mono.Unix.Catalog.GetString ("(Version)");
 			this.hbox13.Add (this.lblLanguageVersion);
-			global::Gtk.Box.BoxChild w41 = ((global::Gtk.Box.BoxChild)(this.hbox13 [this.lblLanguageVersion]));
-			w41.Position = 2;
-			w41.Expand = false;
-			w41.Fill = false;
+			global::Gtk.Box.BoxChild w40 = ((global::Gtk.Box.BoxChild)(this.hbox13 [this.lblLanguageVersion]));
+			w40.Position = 2;
+			w40.Expand = false;
+			w40.Fill = false;
 			this.table6.Add (this.hbox13);
-			global::Gtk.Table.TableChild w42 = ((global::Gtk.Table.TableChild)(this.table6 [this.hbox13]));
-			w42.LeftAttach = ((uint)(1));
-			w42.RightAttach = ((uint)(2));
-			w42.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w41 = ((global::Gtk.Table.TableChild)(this.table6 [this.hbox13]));
+			w41.LeftAttach = ((uint)(1));
+			w41.RightAttach = ((uint)(2));
+			w41.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table6.Gtk.Table+TableChild
 			this.hbox14 = new global::Gtk.HBox ();
 			this.hbox14.Name = "hbox14";
@@ -539,17 +540,17 @@ namespace Irony.GrammarExplorer
 			this.lblLanguageDescr.Name = "lblLanguageDescr";
 			this.lblLanguageDescr.LabelProp = global::Mono.Unix.Catalog.GetString ("(Description)");
 			this.hbox14.Add (this.lblLanguageDescr);
-			global::Gtk.Box.BoxChild w43 = ((global::Gtk.Box.BoxChild)(this.hbox14 [this.lblLanguageDescr]));
-			w43.Position = 0;
-			w43.Expand = false;
-			w43.Fill = false;
+			global::Gtk.Box.BoxChild w42 = ((global::Gtk.Box.BoxChild)(this.hbox14 [this.lblLanguageDescr]));
+			w42.Position = 0;
+			w42.Expand = false;
+			w42.Fill = false;
 			this.table6.Add (this.hbox14);
-			global::Gtk.Table.TableChild w44 = ((global::Gtk.Table.TableChild)(this.table6 [this.hbox14]));
-			w44.TopAttach = ((uint)(1));
-			w44.BottomAttach = ((uint)(2));
-			w44.LeftAttach = ((uint)(1));
-			w44.RightAttach = ((uint)(2));
-			w44.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w43 = ((global::Gtk.Table.TableChild)(this.table6 [this.hbox14]));
+			w43.TopAttach = ((uint)(1));
+			w43.BottomAttach = ((uint)(2));
+			w43.LeftAttach = ((uint)(1));
+			w43.RightAttach = ((uint)(2));
+			w43.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table6.Gtk.Table+TableChild
 			this.label29 = new global::Gtk.Label ();
 			this.label29.Name = "label29";
@@ -557,45 +558,45 @@ namespace Irony.GrammarExplorer
 			this.label29.LabelProp = global::Mono.Unix.Catalog.GetString ("Language:");
 			this.label29.Justify = ((global::Gtk.Justification)(1));
 			this.table6.Add (this.label29);
-			global::Gtk.Table.TableChild w45 = ((global::Gtk.Table.TableChild)(this.table6 [this.label29]));
-			w45.XOptions = ((global::Gtk.AttachOptions)(4));
-			w45.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w44 = ((global::Gtk.Table.TableChild)(this.table6 [this.label29]));
+			w44.XOptions = ((global::Gtk.AttachOptions)(4));
+			w44.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table6.Gtk.Table+TableChild
 			this.label30 = new global::Gtk.Label ();
 			this.label30.Name = "label30";
 			this.label30.Xpad = 10;
 			this.label30.LabelProp = global::Mono.Unix.Catalog.GetString ("Description:");
 			this.table6.Add (this.label30);
-			global::Gtk.Table.TableChild w46 = ((global::Gtk.Table.TableChild)(this.table6 [this.label30]));
-			w46.TopAttach = ((uint)(1));
-			w46.BottomAttach = ((uint)(2));
-			w46.XOptions = ((global::Gtk.AttachOptions)(4));
-			w46.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w45 = ((global::Gtk.Table.TableChild)(this.table6 [this.label30]));
+			w45.TopAttach = ((uint)(1));
+			w45.BottomAttach = ((uint)(2));
+			w45.XOptions = ((global::Gtk.AttachOptions)(4));
+			w45.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table6.Gtk.Table+TableChild
 			this.label31 = new global::Gtk.Label ();
 			this.label31.Name = "label31";
 			this.label31.Xpad = 10;
 			this.label31.LabelProp = global::Mono.Unix.Catalog.GetString ("Grammer Comment:");
 			this.table6.Add (this.label31);
-			global::Gtk.Table.TableChild w47 = ((global::Gtk.Table.TableChild)(this.table6 [this.label31]));
-			w47.TopAttach = ((uint)(2));
-			w47.BottomAttach = ((uint)(3));
-			w47.XOptions = ((global::Gtk.AttachOptions)(4));
-			w47.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w46 = ((global::Gtk.Table.TableChild)(this.table6 [this.label31]));
+			w46.TopAttach = ((uint)(2));
+			w46.BottomAttach = ((uint)(3));
+			w46.XOptions = ((global::Gtk.AttachOptions)(4));
+			w46.YOptions = ((global::Gtk.AttachOptions)(4));
 			this.vbox7.Add (this.table6);
-			global::Gtk.Box.BoxChild w48 = ((global::Gtk.Box.BoxChild)(this.vbox7 [this.table6]));
-			w48.Position = 1;
-			w48.Expand = false;
-			w48.Fill = false;
+			global::Gtk.Box.BoxChild w47 = ((global::Gtk.Box.BoxChild)(this.vbox7 [this.table6]));
+			w47.Position = 1;
+			w47.Expand = false;
+			w47.Fill = false;
 			// Container child vbox7.Gtk.Box+BoxChild
 			this.hseparator1 = new global::Gtk.HSeparator ();
 			this.hseparator1.Name = "hseparator1";
 			this.vbox7.Add (this.hseparator1);
-			global::Gtk.Box.BoxChild w49 = ((global::Gtk.Box.BoxChild)(this.vbox7 [this.hseparator1]));
-			w49.Position = 2;
-			w49.Expand = false;
-			w49.Fill = false;
-			w49.Padding = ((uint)(5));
+			global::Gtk.Box.BoxChild w48 = ((global::Gtk.Box.BoxChild)(this.vbox7 [this.hseparator1]));
+			w48.Position = 2;
+			w48.Expand = false;
+			w48.Fill = false;
+			w48.Padding = ((uint)(5));
 			// Container child vbox7.Gtk.Box+BoxChild
 			this.hbox15 = new global::Gtk.HBox ();
 			this.hbox15.Name = "hbox15";
@@ -612,52 +613,52 @@ namespace Irony.GrammarExplorer
 			this.label33.Xpad = 10;
 			this.label33.LabelProp = global::Mono.Unix.Catalog.GetString ("Parser construction time, ms:");
 			this.table7.Add (this.label33);
-			global::Gtk.Table.TableChild w50 = ((global::Gtk.Table.TableChild)(this.table7 [this.label33]));
-			w50.TopAttach = ((uint)(1));
-			w50.BottomAttach = ((uint)(2));
-			w50.XOptions = ((global::Gtk.AttachOptions)(4));
-			w50.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w49 = ((global::Gtk.Table.TableChild)(this.table7 [this.label33]));
+			w49.TopAttach = ((uint)(1));
+			w49.BottomAttach = ((uint)(2));
+			w49.XOptions = ((global::Gtk.AttachOptions)(4));
+			w49.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table7.Gtk.Table+TableChild
 			this.label34 = new global::Gtk.Label ();
 			this.label34.Name = "label34";
 			this.label34.Xpad = 10;
 			this.label34.LabelProp = global::Mono.Unix.Catalog.GetString ("Parser state count:");
 			this.table7.Add (this.label34);
-			global::Gtk.Table.TableChild w51 = ((global::Gtk.Table.TableChild)(this.table7 [this.label34]));
-			w51.XOptions = ((global::Gtk.AttachOptions)(4));
-			w51.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w50 = ((global::Gtk.Table.TableChild)(this.table7 [this.label34]));
+			w50.XOptions = ((global::Gtk.AttachOptions)(4));
+			w50.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table7.Gtk.Table+TableChild
 			this.lblParserConstrTime = new global::Gtk.Label ();
 			this.lblParserConstrTime.Name = "lblParserConstrTime";
 			this.lblParserConstrTime.LabelProp = global::Mono.Unix.Catalog.GetString ("0");
 			this.table7.Add (this.lblParserConstrTime);
-			global::Gtk.Table.TableChild w52 = ((global::Gtk.Table.TableChild)(this.table7 [this.lblParserConstrTime]));
-			w52.TopAttach = ((uint)(1));
-			w52.BottomAttach = ((uint)(2));
-			w52.LeftAttach = ((uint)(1));
-			w52.RightAttach = ((uint)(2));
-			w52.XOptions = ((global::Gtk.AttachOptions)(4));
-			w52.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w51 = ((global::Gtk.Table.TableChild)(this.table7 [this.lblParserConstrTime]));
+			w51.TopAttach = ((uint)(1));
+			w51.BottomAttach = ((uint)(2));
+			w51.LeftAttach = ((uint)(1));
+			w51.RightAttach = ((uint)(2));
+			w51.XOptions = ((global::Gtk.AttachOptions)(4));
+			w51.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table7.Gtk.Table+TableChild
 			this.lblParserStateCount = new global::Gtk.Label ();
 			this.lblParserStateCount.Name = "lblParserStateCount";
 			this.lblParserStateCount.LabelProp = global::Mono.Unix.Catalog.GetString ("0");
 			this.table7.Add (this.lblParserStateCount);
-			global::Gtk.Table.TableChild w53 = ((global::Gtk.Table.TableChild)(this.table7 [this.lblParserStateCount]));
-			w53.LeftAttach = ((uint)(1));
-			w53.RightAttach = ((uint)(2));
-			w53.XOptions = ((global::Gtk.AttachOptions)(4));
-			w53.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w52 = ((global::Gtk.Table.TableChild)(this.table7 [this.lblParserStateCount]));
+			w52.LeftAttach = ((uint)(1));
+			w52.RightAttach = ((uint)(2));
+			w52.XOptions = ((global::Gtk.AttachOptions)(4));
+			w52.YOptions = ((global::Gtk.AttachOptions)(4));
 			this.hbox15.Add (this.table7);
-			global::Gtk.Box.BoxChild w54 = ((global::Gtk.Box.BoxChild)(this.hbox15 [this.table7]));
-			w54.Position = 0;
+			global::Gtk.Box.BoxChild w53 = ((global::Gtk.Box.BoxChild)(this.hbox15 [this.table7]));
+			w53.Position = 0;
+			w53.Expand = false;
+			w53.Fill = false;
+			this.vbox7.Add (this.hbox15);
+			global::Gtk.Box.BoxChild w54 = ((global::Gtk.Box.BoxChild)(this.vbox7 [this.hbox15]));
+			w54.Position = 3;
 			w54.Expand = false;
 			w54.Fill = false;
-			this.vbox7.Add (this.hbox15);
-			global::Gtk.Box.BoxChild w55 = ((global::Gtk.Box.BoxChild)(this.vbox7 [this.hbox15]));
-			w55.Position = 3;
-			w55.Expand = false;
-			w55.Fill = false;
 			this.tabBottom.Add (this.vbox7);
 			// Notebook tab
 			this.label11 = new global::Gtk.Label ();
@@ -675,8 +676,8 @@ namespace Irony.GrammarExplorer
 			this.gridGrammarErrors.Name = "gridGrammarErrors";
 			this.GtkScrolledWindow3.Add (this.gridGrammarErrors);
 			this.tabBottom.Add (this.GtkScrolledWindow3);
-			global::Gtk.Notebook.NotebookChild w58 = ((global::Gtk.Notebook.NotebookChild)(this.tabBottom [this.GtkScrolledWindow3]));
-			w58.Position = 1;
+			global::Gtk.Notebook.NotebookChild w57 = ((global::Gtk.Notebook.NotebookChild)(this.tabBottom [this.GtkScrolledWindow3]));
+			w57.Position = 1;
 			// Notebook tab
 			this.label12 = new global::Gtk.Label ();
 			this.label12.Name = "label12";
@@ -711,85 +712,85 @@ namespace Irony.GrammarExplorer
 			this.lblParseErrorCount.Name = "lblParseErrorCount";
 			this.lblParseErrorCount.LabelProp = global::Mono.Unix.Catalog.GetString ("0");
 			this.table1.Add (this.lblParseErrorCount);
-			global::Gtk.Table.TableChild w59 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblParseErrorCount]));
-			w59.TopAttach = ((uint)(3));
-			w59.BottomAttach = ((uint)(4));
-			w59.LeftAttach = ((uint)(1));
-			w59.RightAttach = ((uint)(2));
-			w59.XOptions = ((global::Gtk.AttachOptions)(4));
-			w59.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w58 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblParseErrorCount]));
+			w58.TopAttach = ((uint)(3));
+			w58.BottomAttach = ((uint)(4));
+			w58.LeftAttach = ((uint)(1));
+			w58.RightAttach = ((uint)(2));
+			w58.XOptions = ((global::Gtk.AttachOptions)(4));
+			w58.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table1.Gtk.Table+TableChild
 			this.lblParseTime = new global::Gtk.Label ();
 			this.lblParseTime.Name = "lblParseTime";
 			this.lblParseTime.LabelProp = global::Mono.Unix.Catalog.GetString ("0");
 			this.table1.Add (this.lblParseTime);
-			global::Gtk.Table.TableChild w60 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblParseTime]));
-			w60.TopAttach = ((uint)(2));
-			w60.BottomAttach = ((uint)(3));
-			w60.LeftAttach = ((uint)(1));
-			w60.RightAttach = ((uint)(2));
-			w60.XOptions = ((global::Gtk.AttachOptions)(4));
-			w60.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w59 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblParseTime]));
+			w59.TopAttach = ((uint)(2));
+			w59.BottomAttach = ((uint)(3));
+			w59.LeftAttach = ((uint)(1));
+			w59.RightAttach = ((uint)(2));
+			w59.XOptions = ((global::Gtk.AttachOptions)(4));
+			w59.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table1.Gtk.Table+TableChild
 			this.lblSrcLineCount = new global::Gtk.Label ();
 			this.lblSrcLineCount.Name = "lblSrcLineCount";
 			this.lblSrcLineCount.LabelProp = global::Mono.Unix.Catalog.GetString ("0");
 			this.table1.Add (this.lblSrcLineCount);
-			global::Gtk.Table.TableChild w61 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblSrcLineCount]));
-			w61.LeftAttach = ((uint)(1));
-			w61.RightAttach = ((uint)(2));
-			w61.XOptions = ((global::Gtk.AttachOptions)(4));
-			w61.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w60 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblSrcLineCount]));
+			w60.LeftAttach = ((uint)(1));
+			w60.RightAttach = ((uint)(2));
+			w60.XOptions = ((global::Gtk.AttachOptions)(4));
+			w60.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table1.Gtk.Table+TableChild
 			this.lblSrcTokenCount = new global::Gtk.Label ();
 			this.lblSrcTokenCount.Name = "lblSrcTokenCount";
 			this.lblSrcTokenCount.LabelProp = global::Mono.Unix.Catalog.GetString ("0");
 			this.table1.Add (this.lblSrcTokenCount);
-			global::Gtk.Table.TableChild w62 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblSrcTokenCount]));
-			w62.TopAttach = ((uint)(1));
-			w62.BottomAttach = ((uint)(2));
-			w62.LeftAttach = ((uint)(1));
-			w62.RightAttach = ((uint)(2));
-			w62.XOptions = ((global::Gtk.AttachOptions)(4));
-			w62.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w61 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblSrcTokenCount]));
+			w61.TopAttach = ((uint)(1));
+			w61.BottomAttach = ((uint)(2));
+			w61.LeftAttach = ((uint)(1));
+			w61.RightAttach = ((uint)(2));
+			w61.XOptions = ((global::Gtk.AttachOptions)(4));
+			w61.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table1.Gtk.Table+TableChild
 			this.lblStatsErrorsTxt = new global::Gtk.Label ();
 			this.lblStatsErrorsTxt.Name = "lblStatsErrorsTxt";
 			this.lblStatsErrorsTxt.LabelProp = global::Mono.Unix.Catalog.GetString ("Errors:");
 			this.table1.Add (this.lblStatsErrorsTxt);
-			global::Gtk.Table.TableChild w63 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblStatsErrorsTxt]));
-			w63.TopAttach = ((uint)(3));
-			w63.BottomAttach = ((uint)(4));
-			w63.XOptions = ((global::Gtk.AttachOptions)(4));
-			w63.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w62 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblStatsErrorsTxt]));
+			w62.TopAttach = ((uint)(3));
+			w62.BottomAttach = ((uint)(4));
+			w62.XOptions = ((global::Gtk.AttachOptions)(4));
+			w62.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table1.Gtk.Table+TableChild
 			this.lblStatsLinesTxt = new global::Gtk.Label ();
 			this.lblStatsLinesTxt.Name = "lblStatsLinesTxt";
 			this.lblStatsLinesTxt.LabelProp = global::Mono.Unix.Catalog.GetString ("Lines:");
 			this.table1.Add (this.lblStatsLinesTxt);
-			global::Gtk.Table.TableChild w64 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblStatsLinesTxt]));
-			w64.XOptions = ((global::Gtk.AttachOptions)(4));
-			w64.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w63 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblStatsLinesTxt]));
+			w63.XOptions = ((global::Gtk.AttachOptions)(4));
+			w63.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table1.Gtk.Table+TableChild
 			this.lblStatsParseTimeTxt = new global::Gtk.Label ();
 			this.lblStatsParseTimeTxt.Name = "lblStatsParseTimeTxt";
 			this.lblStatsParseTimeTxt.LabelProp = global::Mono.Unix.Catalog.GetString ("Parse Time, ms:");
 			this.table1.Add (this.lblStatsParseTimeTxt);
-			global::Gtk.Table.TableChild w65 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblStatsParseTimeTxt]));
-			w65.TopAttach = ((uint)(2));
-			w65.BottomAttach = ((uint)(3));
-			w65.XOptions = ((global::Gtk.AttachOptions)(4));
-			w65.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w64 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblStatsParseTimeTxt]));
+			w64.TopAttach = ((uint)(2));
+			w64.BottomAttach = ((uint)(3));
+			w64.XOptions = ((global::Gtk.AttachOptions)(4));
+			w64.YOptions = ((global::Gtk.AttachOptions)(4));
 			// Container child table1.Gtk.Table+TableChild
 			this.lblStatsTokensTxt = new global::Gtk.Label ();
 			this.lblStatsTokensTxt.Name = "lblStatsTokensTxt";
 			this.lblStatsTokensTxt.LabelProp = global::Mono.Unix.Catalog.GetString ("Tokens:");
 			this.table1.Add (this.lblStatsTokensTxt);
-			global::Gtk.Table.TableChild w66 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblStatsTokensTxt]));
-			w66.TopAttach = ((uint)(1));
-			w66.BottomAttach = ((uint)(2));
-			w66.XOptions = ((global::Gtk.AttachOptions)(4));
-			w66.YOptions = ((global::Gtk.AttachOptions)(4));
+			global::Gtk.Table.TableChild w65 = ((global::Gtk.Table.TableChild)(this.table1 [this.lblStatsTokensTxt]));
+			w65.TopAttach = ((uint)(1));
+			w65.BottomAttach = ((uint)(2));
+			w65.XOptions = ((global::Gtk.AttachOptions)(4));
+			w65.YOptions = ((global::Gtk.AttachOptions)(4));
 			this.GtkAlignment1.Add (this.table1);
 			this.frameCompileInfo.Add (this.GtkAlignment1);
 			this.lblCompileInfoTxt = new global::Gtk.Label ();
@@ -798,15 +799,15 @@ namespace Irony.GrammarExplorer
 			this.lblCompileInfoTxt.UseMarkup = true;
 			this.frameCompileInfo.LabelWidget = this.lblCompileInfoTxt;
 			this.hbox2.Add (this.frameCompileInfo);
-			global::Gtk.Box.BoxChild w69 = ((global::Gtk.Box.BoxChild)(this.hbox2 [this.frameCompileInfo]));
+			global::Gtk.Box.BoxChild w68 = ((global::Gtk.Box.BoxChild)(this.hbox2 [this.frameCompileInfo]));
+			w68.Position = 0;
+			w68.Expand = false;
+			w68.Fill = false;
+			this.hbox9.Add (this.hbox2);
+			global::Gtk.Box.BoxChild w69 = ((global::Gtk.Box.BoxChild)(this.hbox9 [this.hbox2]));
 			w69.Position = 0;
 			w69.Expand = false;
 			w69.Fill = false;
-			this.hbox9.Add (this.hbox2);
-			global::Gtk.Box.BoxChild w70 = ((global::Gtk.Box.BoxChild)(this.hbox9 [this.hbox2]));
-			w70.Position = 0;
-			w70.Expand = false;
-			w70.Fill = false;
 			// Container child hbox9.Gtk.Box+BoxChild
 			this.frame1 = new global::Gtk.Frame ();
 			this.frame1.Name = "frame1";
@@ -822,11 +823,11 @@ namespace Irony.GrammarExplorer
 			this.GtkScrolledWindow1.Add (this.gridCompileErrors);
 			this.frame1.Add (this.GtkScrolledWindow1);
 			this.hbox9.Add (this.frame1);
-			global::Gtk.Box.BoxChild w73 = ((global::Gtk.Box.BoxChild)(this.hbox9 [this.frame1]));
-			w73.Position = 1;
+			global::Gtk.Box.BoxChild w72 = ((global::Gtk.Box.BoxChild)(this.hbox9 [this.frame1]));
+			w72.Position = 1;
 			this.tabBottom.Add (this.hbox9);
-			global::Gtk.Notebook.NotebookChild w74 = ((global::Gtk.Notebook.NotebookChild)(this.tabBottom [this.hbox9]));
-			w74.Position = 2;
+			global::Gtk.Notebook.NotebookChild w73 = ((global::Gtk.Notebook.NotebookChild)(this.tabBottom [this.hbox9]));
+			w73.Position = 2;
 			// Notebook tab
 			this.label13 = new global::Gtk.Label ();
 			this.label13.Name = "label13";
@@ -850,18 +851,18 @@ namespace Irony.GrammarExplorer
 			this.chkParserTrace.DrawIndicator = true;
 			this.chkParserTrace.UseUnderline = true;
 			this.hbox3.Add (this.chkParserTrace);
-			global::Gtk.Box.BoxChild w75 = ((global::Gtk.Box.BoxChild)(this.hbox3 [this.chkParserTrace]));
-			w75.Position = 0;
+			global::Gtk.Box.BoxChild w74 = ((global::Gtk.Box.BoxChild)(this.hbox3 [this.chkParserTrace]));
+			w74.Position = 0;
 			// Container child hbox3.Gtk.Box+BoxChild
 			this.label16 = new global::Gtk.Label ();
 			this.label16.Name = "label16";
 			this.label16.LabelProp = global::Mono.Unix.Catalog.GetString ("<i>(Double-click grid cell to navigate to parser state or source code position)</i>");
 			this.label16.UseMarkup = true;
 			this.hbox3.Add (this.label16);
-			global::Gtk.Box.BoxChild w76 = ((global::Gtk.Box.BoxChild)(this.hbox3 [this.label16]));
-			w76.Position = 1;
-			w76.Expand = false;
-			w76.Fill = false;
+			global::Gtk.Box.BoxChild w75 = ((global::Gtk.Box.BoxChild)(this.hbox3 [this.label16]));
+			w75.Position = 1;
+			w75.Expand = false;
+			w75.Fill = false;
 			// Container child hbox3.Gtk.Box+BoxChild
 			this.chkExcludeComments = new global::Gtk.CheckButton ();
 			this.chkExcludeComments.CanFocus = true;
@@ -870,13 +871,13 @@ namespace Irony.GrammarExplorer
 			this.chkExcludeComments.DrawIndicator = true;
 			this.chkExcludeComments.UseUnderline = true;
 			this.hbox3.Add (this.chkExcludeComments);
-			global::Gtk.Box.BoxChild w77 = ((global::Gtk.Box.BoxChild)(this.hbox3 [this.chkExcludeComments]));
-			w77.Position = 3;
+			global::Gtk.Box.BoxChild w76 = ((global::Gtk.Box.BoxChild)(this.hbox3 [this.chkExcludeComments]));
+			w76.Position = 3;
 			this.vbox2.Add (this.hbox3);
-			global::Gtk.Box.BoxChild w78 = ((global::Gtk.Box.BoxChild)(this.vbox2 [this.hbox3]));
-			w78.Position = 0;
-			w78.Expand = false;
-			w78.Fill = false;
+			global::Gtk.Box.BoxChild w77 = ((global::Gtk.Box.BoxChild)(this.vbox2 [this.hbox3]));
+			w77.Position = 0;
+			w77.Expand = false;
+			w77.Fill = false;
 			// Container child vbox2.Gtk.Box+BoxChild
 			this.hbox4 = new global::Gtk.HBox ();
 			this.hbox4.Name = "hbox4";
@@ -895,8 +896,8 @@ namespace Irony.GrammarExplorer
 			this.gridParserTrace.HoverExpand = true;
 			this.GtkScrolledWindow4.Add (this.gridParserTrace);
 			this.hbox4.Add (this.GtkScrolledWindow4);
-			global::Gtk.Box.BoxChild w80 = ((global::Gtk.Box.BoxChild)(this.hbox4 [this.GtkScrolledWindow4]));
-			w80.Position = 0;
+			global::Gtk.Box.BoxChild w79 = ((global::Gtk.Box.BoxChild)(this.hbox4 [this.GtkScrolledWindow4]));
+			w79.Position = 0;
 			// Container child hbox4.Gtk.Box+BoxChild
 			this.GtkScrolledWindow5 = new global::Gtk.ScrolledWindow ();
 			this.GtkScrolledWindow5.Name = "GtkScrolledWindow5";
@@ -908,14 +909,14 @@ namespace Irony.GrammarExplorer
 			this.lstTokens.Name = "lstTokens";
 			this.GtkScrolledWindow5.Add (this.lstTokens);
 			this.hbox4.Add (this.GtkScrolledWindow5);
-			global::Gtk.Box.BoxChild w82 = ((global::Gtk.Box.BoxChild)(this.hbox4 [this.GtkScrolledWindow5]));
-			w82.Position = 1;
+			global::Gtk.Box.BoxChild w81 = ((global::Gtk.Box.BoxChild)(this.hbox4 [this.GtkScrolledWindow5]));
+			w81.Position = 1;
 			this.vbox2.Add (this.hbox4);
-			global::Gtk.Box.BoxChild w83 = ((global::Gtk.Box.BoxChild)(this.vbox2 [this.hbox4]));
-			w83.Position = 1;
+			global::Gtk.Box.BoxChild w82 = ((global::Gtk.Box.BoxChild)(this.vbox2 [this.hbox4]));
+			w82.Position = 1;
 			this.tabBottom.Add (this.vbox2);
-			global::Gtk.Notebook.NotebookChild w84 = ((global::Gtk.Notebook.NotebookChild)(this.tabBottom [this.vbox2]));
-			w84.Position = 3;
+			global::Gtk.Notebook.NotebookChild w83 = ((global::Gtk.Notebook.NotebookChild)(this.tabBottom [this.vbox2]));
+			w83.Position = 3;
 			// Notebook tab
 			this.label14 = new global::Gtk.Label ();
 			this.label14.Name = "label14";
@@ -931,6 +932,10 @@ namespace Irony.GrammarExplorer
 			this.GtkAlignment.Name = "GtkAlignment";
 			this.GtkAlignment.LeftPadding = ((uint)(12));
 			// Container child GtkAlignment.Gtk.Container+ContainerChild
+			this.hbox5 = new global::Gtk.HBox ();
+			this.hbox5.Name = "hbox5";
+			this.hbox5.Spacing = 6;
+			// Container child hbox5.Gtk.Box+BoxChild
 			this.GtkScrolledWindow = new global::Gtk.ScrolledWindow ();
 			this.GtkScrolledWindow.Name = "GtkScrolledWindow";
 			this.GtkScrolledWindow.ShadowType = ((global::Gtk.ShadowType)(1));
@@ -938,17 +943,129 @@ namespace Irony.GrammarExplorer
 			this.txtOutput = new global::Gtk.TextView ();
 			this.txtOutput.CanFocus = true;
 			this.txtOutput.Name = "txtOutput";
-			this.txtOutput.Editable = false;
 			this.GtkScrolledWindow.Add (this.txtOutput);
-			this.GtkAlignment.Add (this.GtkScrolledWindow);
+			this.hbox5.Add (this.GtkScrolledWindow);
+			global::Gtk.Box.BoxChild w85 = ((global::Gtk.Box.BoxChild)(this.hbox5 [this.GtkScrolledWindow]));
+			w85.Position = 0;
+			// Container child hbox5.Gtk.Box+BoxChild
+			this.frame3 = new global::Gtk.Frame ();
+			this.frame3.Name = "frame3";
+			this.frame3.ShadowType = ((global::Gtk.ShadowType)(0));
+			// Container child frame3.Gtk.Container+ContainerChild
+			this.GtkAlignment2 = new global::Gtk.Alignment (0F, 0F, 1F, 1F);
+			this.GtkAlignment2.Name = "GtkAlignment2";
+			this.GtkAlignment2.LeftPadding = ((uint)(12));
+			// Container child GtkAlignment2.Gtk.Container+ContainerChild
+			this.vbox3 = new global::Gtk.VBox ();
+			this.vbox3.Name = "vbox3";
+			this.vbox3.Spacing = 6;
+			// Container child vbox3.Gtk.Box+BoxChild
+			this.table2 = new global::Gtk.Table (((uint)(3)), ((uint)(3)), false);
+			this.table2.Name = "table2";
+			this.table2.RowSpacing = ((uint)(6));
+			this.table2.ColumnSpacing = ((uint)(6));
+			// Container child table2.Gtk.Table+TableChild
+			this.label1 = new global::Gtk.Label ();
+			this.label1.Name = "label1";
+			this.label1.LabelProp = global::Mono.Unix.Catalog.GetString ("Execution time, ms:");
+			this.table2.Add (this.label1);
+			global::Gtk.Table.TableChild w86 = ((global::Gtk.Table.TableChild)(this.table2 [this.label1]));
+			w86.XOptions = ((global::Gtk.AttachOptions)(4));
+			w86.YOptions = ((global::Gtk.AttachOptions)(4));
+			// Container child table2.Gtk.Table+TableChild
+			this.label2 = new global::Gtk.Label ();
+			this.label2.Name = "label2";
+			this.label2.LabelProp = global::Mono.Unix.Catalog.GetString ("GC Collection Count:");
+			this.table2.Add (this.label2);
+			global::Gtk.Table.TableChild w87 = ((global::Gtk.Table.TableChild)(this.table2 [this.label2]));
+			w87.TopAttach = ((uint)(1));
+			w87.BottomAttach = ((uint)(2));
+			w87.XOptions = ((global::Gtk.AttachOptions)(4));
+			w87.YOptions = ((global::Gtk.AttachOptions)(4));
+			// Container child table2.Gtk.Table+TableChild
+			this.label4 = new global::Gtk.Label ();
+			this.label4.Name = "label4";
+			this.label4.LabelProp = global::Mono.Unix.Catalog.GetString ("Runtime error:");
+			this.table2.Add (this.label4);
+			global::Gtk.Table.TableChild w88 = ((global::Gtk.Table.TableChild)(this.table2 [this.label4]));
+			w88.TopAttach = ((uint)(2));
+			w88.BottomAttach = ((uint)(3));
+			w88.XOptions = ((global::Gtk.AttachOptions)(4));
+			w88.YOptions = ((global::Gtk.AttachOptions)(4));
+			// Container child table2.Gtk.Table+TableChild
+			this.lblGCCount = new global::Gtk.Label ();
+			this.lblGCCount.Name = "lblGCCount";
+			this.lblGCCount.LabelProp = global::Mono.Unix.Catalog.GetString ("0");
+			this.table2.Add (this.lblGCCount);
+			global::Gtk.Table.TableChild w89 = ((global::Gtk.Table.TableChild)(this.table2 [this.lblGCCount]));
+			w89.TopAttach = ((uint)(1));
+			w89.BottomAttach = ((uint)(2));
+			w89.LeftAttach = ((uint)(1));
+			w89.RightAttach = ((uint)(2));
+			w89.XOptions = ((global::Gtk.AttachOptions)(4));
+			w89.YOptions = ((global::Gtk.AttachOptions)(4));
+			// Container child table2.Gtk.Table+TableChild
+			this.lblRunTime = new global::Gtk.Label ();
+			this.lblRunTime.Name = "lblRunTime";
+			this.lblRunTime.LabelProp = global::Mono.Unix.Catalog.GetString ("0");
+			this.table2.Add (this.lblRunTime);
+			global::Gtk.Table.TableChild w90 = ((global::Gtk.Table.TableChild)(this.table2 [this.lblRunTime]));
+			w90.LeftAttach = ((uint)(1));
+			w90.RightAttach = ((uint)(2));
+			w90.XOptions = ((global::Gtk.AttachOptions)(4));
+			w90.YOptions = ((global::Gtk.AttachOptions)(4));
+			this.vbox3.Add (this.table2);
+			global::Gtk.Box.BoxChild w91 = ((global::Gtk.Box.BoxChild)(this.vbox3 [this.table2]));
+			w91.Position = 0;
+			w91.Expand = false;
+			w91.Fill = false;
+			// Container child vbox3.Gtk.Box+BoxChild
+			this.lnkShowErrLocation = new global::Gtk.Button ();
+			this.lnkShowErrLocation.Sensitive = false;
+			this.lnkShowErrLocation.CanFocus = true;
+			this.lnkShowErrLocation.Name = "lnkShowErrLocation";
+			this.lnkShowErrLocation.UseUnderline = true;
+			this.lnkShowErrLocation.Relief = ((global::Gtk.ReliefStyle)(1));
+			this.lnkShowErrLocation.Label = global::Mono.Unix.Catalog.GetString ("Show error location");
+			this.vbox3.Add (this.lnkShowErrLocation);
+			global::Gtk.Box.BoxChild w92 = ((global::Gtk.Box.BoxChild)(this.vbox3 [this.lnkShowErrLocation]));
+			w92.Position = 2;
+			w92.Expand = false;
+			w92.Fill = false;
+			// Container child vbox3.Gtk.Box+BoxChild
+			this.lnkShowErrStack = new global::Gtk.Button ();
+			this.lnkShowErrStack.Sensitive = false;
+			this.lnkShowErrStack.CanFocus = true;
+			this.lnkShowErrStack.Name = "lnkShowErrStack";
+			this.lnkShowErrStack.UseUnderline = true;
+			this.lnkShowErrStack.Relief = ((global::Gtk.ReliefStyle)(1));
+			this.lnkShowErrStack.Label = global::Mono.Unix.Catalog.GetString ("Show full stack");
+			this.vbox3.Add (this.lnkShowErrStack);
+			global::Gtk.Box.BoxChild w93 = ((global::Gtk.Box.BoxChild)(this.vbox3 [this.lnkShowErrStack]));
+			w93.Position = 3;
+			w93.Expand = false;
+			w93.Fill = false;
+			this.GtkAlignment2.Add (this.vbox3);
+			this.frame3.Add (this.GtkAlignment2);
+			this.GtkLabel14 = new global::Gtk.Label ();
+			this.GtkLabel14.Name = "GtkLabel14";
+			this.GtkLabel14.LabelProp = global::Mono.Unix.Catalog.GetString ("<b>GtkFrame</b>");
+			this.GtkLabel14.UseMarkup = true;
+			this.frame3.LabelWidget = this.GtkLabel14;
+			this.hbox5.Add (this.frame3);
+			global::Gtk.Box.BoxChild w96 = ((global::Gtk.Box.BoxChild)(this.hbox5 [this.frame3]));
+			w96.Position = 1;
+			w96.Expand = false;
+			w96.Fill = false;
+			this.GtkAlignment.Add (this.hbox5);
 			this.frame2.Add (this.GtkAlignment);
 			this.GtkLabel15 = new global::Gtk.Label ();
 			this.GtkLabel15.Name = "GtkLabel15";
 			this.GtkLabel15.UseMarkup = true;
 			this.frame2.LabelWidget = this.GtkLabel15;
 			this.tabBottom.Add (this.frame2);
-			global::Gtk.Notebook.NotebookChild w88 = ((global::Gtk.Notebook.NotebookChild)(this.tabBottom [this.frame2]));
-			w88.Position = 4;
+			global::Gtk.Notebook.NotebookChild w99 = ((global::Gtk.Notebook.NotebookChild)(this.tabBottom [this.frame2]));
+			w99.Position = 4;
 			// Notebook tab
 			this.label15 = new global::Gtk.Label ();
 			this.label15.Name = "label15";
@@ -956,8 +1073,8 @@ namespace Irony.GrammarExplorer
 			this.tabBottom.SetTabLabel (this.frame2, this.label15);
 			this.label15.ShowAll ();
 			this.vbox1.Add (this.tabBottom);
-			global::Gtk.Box.BoxChild w89 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.tabBottom]));
-			w89.Position = 3;
+			global::Gtk.Box.BoxChild w100 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.tabBottom]));
+			w100.Position = 3;
 			this.Add (this.vbox1);
 			if ((this.Child != null)) {
 				this.Child.ShowAll ();
@@ -967,7 +1084,6 @@ namespace Irony.GrammarExplorer
 			this.DeleteEvent += new global::Gtk.DeleteEventHandler (this.OnDeleteEvent);
 			this.Realized += new global::System.EventHandler (this.OnRealized);
 			this.StateChanged += new global::Gtk.StateChangedHandler (this.OnStateChanged);
-			this.dlgSelectAssembly.SelectionChanged += new global::System.EventHandler (this.OnDlgSelectAssemblySelectionChanged);
 			this.cboGrammars.Changed += new global::System.EventHandler (this.OnCboGrammarsChanged);
 			this.btnManageGrammars.Changed += new global::System.EventHandler (this.OnbtnManageGrammarsChanged);
 			this.btnRefresh.Clicked += new global::System.EventHandler (this.OnBtnRefreshClicked);

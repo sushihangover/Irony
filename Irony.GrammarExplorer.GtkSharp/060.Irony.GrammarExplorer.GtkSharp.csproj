@@ -17,11 +17,13 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug</OutputPath>
-    <DefineConstants>DEBUG;</DefineConstants>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <ConsolePause>false</ConsolePause>
+    <LangVersion>5</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -30,18 +32,8 @@
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
     <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug-XPlatform|AnyCPU' ">
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug-XPlatform</OutputPath>
-    <WarningLevel>4</WarningLevel>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>DEBUG;</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release-XPlatform|AnyCPU' ">
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release-XPlatform</OutputPath>
-    <WarningLevel>4</WarningLevel>
+    <LangVersion>5</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -66,9 +58,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="fmSelectGrammars.resx">
-      <DependentUpon>fmSelectGrammarsWF.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="gtk-gui\generated.cs" />
@@ -86,6 +75,9 @@
     </Compile>
     <Compile Include="dlgSelectGrammars.cs" />
     <Compile Include="gtk-gui\Irony.GrammerExplorer.dlgSelectGrammars.cs" />
+    <Compile Include="dlgShowException.cs" />
+    <Compile Include="gtk-gui\Irony.GrammerExplorer.dlgShowException.cs" />
+    <Compile Include="Configuration.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -105,11 +97,5 @@
     </None>
     <None Include="Properties\app.config" />
     <None Include="Properties\user.config" />
-    <None Include="fmSelectGrammarsWF.cs">
-      <SubType>Form</SubType>
-    </None>
-    <None Include="fmSelectGrammars.Designer.cs">
-      <DependentUpon>fmSelectGrammarsWF.cs</DependentUpon>
-    </None>
   </ItemGroup>
 </Project>

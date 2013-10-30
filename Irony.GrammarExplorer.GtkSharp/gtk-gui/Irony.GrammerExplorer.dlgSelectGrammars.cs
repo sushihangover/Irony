@@ -19,7 +19,7 @@ namespace Irony.GrammerExplorer
 			this.Name = "Irony.GrammerExplorer.dlgSelectGrammars";
 			this.Title = global::Mono.Unix.Catalog.GetString ("Select Grammar(s)");
 			this.TypeHint = ((global::Gdk.WindowTypeHint)(5));
-			this.WindowPosition = ((global::Gtk.WindowPosition)(4));
+			this.WindowPosition = ((global::Gtk.WindowPosition)(2));
 			this.Modal = true;
 			this.Role = "";
 			// Internal child Irony.GrammerExplorer.dlgSelectGrammars.VBox
