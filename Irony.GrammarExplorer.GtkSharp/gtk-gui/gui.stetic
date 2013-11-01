@@ -6,7 +6,10 @@
   </configuration>
   <import>
     <widget-library name="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
+    <widget-library name="Mono.TextEditor, Version=1.0.0.0, Culture=neutral" />
+    <widget-library name="Xwt.Gtk, Version=0.1.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756" />
     <widget-library name="../bin/Debug/Irony.GrammarExplorer.GtkSharp.exe" internal="true" />
+    <widget-library name="../../../../../../../../Applications/Xamarin Studio.app/Contents/MacOS/lib/monodevelop/bin/Mono.TextEditor.dll" />
   </import>
   <widget class="Gtk.Window" id="Irony.GrammarExplorer.MainWindow" design-size="1228 736">
     <action-group name="Default">
@@ -179,7 +182,7 @@
                 <property name="Tooltip" translatable="yes">Manage Grammars</property>
                 <property name="IsTextCombo">False</property>
                 <property name="Items" translatable="yes" />
-                <signal name="Changed" handler="OnbtnManageGrammarsChanged" />
+                <signal name="Changed" handler="OnBtnManageGrammarsChanged" />
               </widget>
               <packing>
                 <property name="Position">3</property>
@@ -232,7 +235,6 @@
                 <property name="CanFocus">True</property>
                 <property name="IsEditable">True</property>
                 <property name="InvisibleChar">●</property>
-                <signal name="Changed" handler="OnTxtSearchChanged" />
               </widget>
               <packing>
                 <property name="Position">8</property>
@@ -418,7 +420,6 @@
                             <property name="WidthRequest">0</property>
                             <property name="Title" translatable="yes">Load file to parse:</property>
                             <property name="WidthChars">0</property>
-                            <signal name="SelectionChanged" handler="OnFcbtnFileOpenSelectionChanged" />
                           </widget>
                           <packing>
                             <property name="Position">2</property>
@@ -482,15 +483,17 @@
                       </packing>
                     </child>
                     <child>
-                      <widget class="Gtk.ScrolledWindow" id="sWinTest">
+                      <widget class="Gtk.ScrolledWindow" id="swEditor">
                         <property name="MemberName" />
                         <property name="CanFocus">True</property>
                         <property name="ShadowType">In</property>
                         <child>
-                          <widget class="Gtk.TextView" id="txtSource">
+                          <widget class="Gtk.Viewport" id="GtkViewport1">
                             <property name="MemberName" />
-                            <property name="CanFocus">True</property>
-                            <property name="Text" translatable="yes" />
+                            <property name="ShadowType">None</property>
+                            <child>
+                              <placeholder />
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -587,7 +590,7 @@
           <widget class="Gtk.Notebook" id="tabBottom">
             <property name="MemberName" />
             <property name="CanFocus">True</property>
-            <property name="CurrentPage">4</property>
+            <property name="CurrentPage">0</property>
             <property name="BorderWidth">5</property>
             <child>
               <widget class="Gtk.VBox" id="vbox7">

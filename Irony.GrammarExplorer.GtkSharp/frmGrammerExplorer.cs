@@ -31,6 +31,8 @@ using IgeMacIntegration;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Xwt.Motion;
+using Mono.TextEditor;
 
 namespace Irony.GrammarExplorer
 {
@@ -45,14 +47,8 @@ namespace Irony.GrammarExplorer
 
 		public MainWindow () : base (Gtk.WindowType.Toplevel)
 		{
-//		Mono.TextEditor.TextEditor txTest = new Mono.TextEditor.TextEditor();
 			Build ();
 			_grammarLoader.AssemblyUpdated += GrammarAssemblyUpdated;
-			// Add TextEditor to ScrolledWindow control (widget).
-//		textEditorScrolledWindow.Child = textEditor;
-//		textEditor.ShowAll ();
-//		sWinTest.Child = txTest;
-//		txTest.ShowAll ();
 
 			// Setup GTK Models(listStore) as no way to do this in MonoDevelop/Stetic, so dumb...yuk....
 			SetupModel_gridGrammarErrors ();
@@ -64,6 +60,16 @@ namespace Irony.GrammarExplorer
 			SetupModel_tvParseTree ();
 			SetupModel_tvAST ();
 			SetOSX_Menus ();
+
+			try {
+				teEditor = new TextEditor();
+				swEditor.Child = teEditor;
+				swEditor.ShowAll();
+			} catch (Exception error)  {
+				dlgShowException showExceptionDialog = new dlgShowException (error.Message);
+				showExceptionDialog.Response += (object o, ResponseArgs args) => showExceptionDialog.Destroy();
+				Application.Quit ();
+			}
 
 			tabGrammar.CurrentPage = 0;
 			tabBottom.CurrentPage = 0;
@@ -89,6 +95,7 @@ namespace Irony.GrammarExplorer
 			a.RetVal = true;
 		}
 		//fields
+		TextEditor teEditor;
 		Regex regexCleanWhiteSpace = new Regex (@"[ ]{2,}", RegexOptions.None);
 		bool _fullScreen;
 		Grammar _grammar;
@@ -201,7 +208,7 @@ namespace Irony.GrammarExplorer
 		{
 			ClearLanguageInfo ();
 			try {
-				txtSource.Buffer.Text = MyApp.Settings.Default.SourceSample;
+				teEditor.Text = MyApp.Settings.Default.SourceSample;
 				txtSearch.Text = MyApp.Settings.Default.SearchPattern;
 				GrammarItemList grammars = GrammarItemList.FromXml (MyApp.Settings.Default.Grammars);
 				UpdateModelFromGrammerList (grammars, cboGrammars.Model as ListStore);
@@ -222,7 +229,7 @@ namespace Irony.GrammarExplorer
 
 		private void fmExploreGrammarWindowClosing ()
 		{
-			MyApp.Settings.Default.SourceSample = txtSource.Buffer.Text;
+			MyApp.Settings.Default.SourceSample = teEditor.Text;
 			MyApp.Settings.Default.SearchPattern = txtSearch.Text;
 			MyApp.Settings.Default.EnableTrace = chkParserTrace.Active;
 			MyApp.Settings.Default.DisableHili = chkDisableHili.Active;
@@ -293,7 +300,7 @@ namespace Irony.GrammarExplorer
 			System.GC.Collect (); //to avoid disruption of perf times with occasional collections
 			_parser.Context.TracingEnabled = chkParserTrace.Active;
 			try {
-				_parser.Parse (txtSource.Buffer.Text, "<source>");
+				_parser.Parse (teEditor.Text, "<source>");
 			} catch (Exception ex) {
 				(gridCompileErrors.Model as ListStore).AppendValues (null, ex.Message, null);
 				tabBottom.CurrentPage = 2; //pageParserOutput;
@@ -328,7 +335,7 @@ namespace Irony.GrammarExplorer
 
 				sw.Start ();
 				var iRunner = _grammar as ICanRunSample;
-				var args = new RunSampleArgs (_language, txtSource.Buffer.Text, _parseTree);
+				var args = new RunSampleArgs (_language, teEditor.Text, _parseTree);
 				string output = iRunner.RunSample (args);
 				sw.Stop ();
 //				lblRunTime.Text = sw.ElapsedMilliseconds.ToString();
@@ -735,10 +742,10 @@ namespace Irony.GrammarExplorer
 			StreamReader reader = null;
 			try {
 				reader = new StreamReader (path);
-				txtSource.Buffer.Text = String.Empty;  //to clear any old formatting
+				teEditor.Text = String.Empty;  //to clear any old formatting
 //				txtSource.ClearUndo();
 //				txtSource.ClearStylesBuffer();
-				txtSource.Buffer.Text = reader.ReadToEnd();
+				teEditor.Text = reader.ReadToEnd();
 //				txtSource.SetVisibleState(0, FastColoredTextBoxNS.VisibleState.Visible);
 //				txtSource.Selection = txtSource.GetRange(0, 0);
 			} catch (Exception error) {
@@ -779,9 +786,9 @@ namespace Irony.GrammarExplorer
 //			var visibleRange = txtSource.VisibleRange;
 //			var firstVisibleLine = Math.Min(visibleRange.Start.iLine, visibleRange.End.iLine);
 //
-			var txt = txtSource.Buffer.Text;
-			txtSource.Buffer.Text = String.Empty;
-			txtSource.Buffer.Text = txt; //remove all old highlighting
+			var txt = teEditor.Text;
+			teEditor.Text = String.Empty;
+			teEditor.Text = txt; //remove all old highlighting
 //
 //			txtSource.SetVisibleState(firstVisibleLine, FastColoredTextBoxNS.VisibleState.Visible);
 //			txtSource.Selection = selectedRange;
@@ -1070,26 +1077,6 @@ namespace Irony.GrammarExplorer
 			this.Iconify ();
 		}
 
-		bool _InManageGrammarSelectiion = false; //hack, no context menu like winform, using a combobox instead.
-		// and need to ignore 'second' change event when clearing the selection after processing user's selection
-		protected void OnbtnManageGrammarsChanged (object sender, EventArgs e)
-		{
-			if (!_InManageGrammarSelectiion) {
-				_InManageGrammarSelectiion = true;
-				try {
-					string _manageGrammar;
-					TreeIter ti;
-					btnManageGrammars.GetActiveIter (out ti);
-					ListStore listStore = btnManageGrammars.Model as ListStore;
-					_manageGrammar = listStore.GetValue (ti, 0) as string;
-					Console.WriteLine(_manageGrammar);
-					(listStore.GetValue (ti, 1) as System.Action)();
-				} finally {
-					btnManageGrammars.SetActiveIter (TreeIter.Zero);
-					_InManageGrammarSelectiion = false;
-				}
-			}
-		}
 
 		protected void OnOpenGrammarAssemblyActionActivated (object sender, EventArgs e)
 		{
@@ -1145,6 +1132,27 @@ namespace Irony.GrammarExplorer
 		protected void OnTxtSearchChanged (object sender, EventArgs e)
 		{
 			btnSearch.Sensitive = (txtSearch.Text != String.Empty);
+		}
+
+		bool _InManageGrammarSelectiion = false; //hack, no context menu like winform, using a combobox instead.
+		// and need to ignore 'second' change event when clearing the selection after processing user's selection
+		protected void OnBtnManageGrammarsChanged (object sender, EventArgs e)
+		{
+			if (!_InManageGrammarSelectiion) {
+				_InManageGrammarSelectiion = true;
+				try {
+					string _manageGrammar;
+					TreeIter ti;
+					btnManageGrammars.GetActiveIter (out ti);
+					ListStore listStore = btnManageGrammars.Model as ListStore;
+					_manageGrammar = listStore.GetValue (ti, 0) as string;
+					Console.WriteLine(_manageGrammar);
+					(listStore.GetValue (ti, 1) as System.Action)();
+				} finally {
+					btnManageGrammars.SetActiveIter (TreeIter.Zero);
+					_InManageGrammarSelectiion = false;
+				}
+			}
 		}
 
 		#endregion
