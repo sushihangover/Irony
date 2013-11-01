@@ -4,15 +4,28 @@ namespace Irony.GrammarExplorer
 {
 	public partial class MainWindow
 	{
+		private global::Gtk.UIManager UIManager;
+		private global::Gtk.Action IronyGrammarExplorerAction;
+		private global::Gtk.Action QuitAction;
+		private global::Gtk.Action AboutIrontGrammarExplorerAction;
+		private global::Gtk.Action GrammarAction;
+		private global::Gtk.Action OpenAction;
+		private global::Gtk.Action WindowAction;
+		private global::Gtk.Action HelpAction;
+		private global::Gtk.Action ViewAction;
+		private global::Gtk.Action EnterFullScreenAction;
+		private global::Gtk.Action MinimizeAction;
+		private global::Gtk.Action IronyOnTheWebAction;
+		private global::Gtk.Action CloseAction;
+		private global::Gtk.Action RefreshAction;
 		private global::Gtk.VBox vbox1;
+		private global::Gtk.MenuBar mbExplorer;
 		private global::Gtk.HBox hbox1;
-		private global::Gtk.FileChooserButton dlgSelectAssembly;
 		private global::Gtk.Label lblGrammer;
 		private global::Gtk.ComboBox cboGrammars;
 		private global::Gtk.ComboBox btnManageGrammars;
 		private global::Gtk.Button btnRefresh;
 		private global::Gtk.CheckButton chkAutoRefresh;
-		private global::Gtk.FileChooserButton filechooserbutton1;
 		private global::Gtk.Entry txtSearch;
 		private global::Gtk.Button btnSearch;
 		private global::Gtk.Label lblSearchError;
@@ -116,14 +129,57 @@ namespace Irony.GrammarExplorer
 		private global::Gtk.Label lblRunTime;
 		private global::Gtk.Button lnkShowErrLocation;
 		private global::Gtk.Button lnkShowErrStack;
-		private global::Gtk.Label GtkLabel14;
-		private global::Gtk.Label GtkLabel15;
+		private global::Gtk.Label GtkLabel18;
+		private global::Gtk.Label GtkLabel19;
 		private global::Gtk.Label label15;
 
 		protected virtual void Build ()
 		{
 			global::Stetic.Gui.Initialize (this);
 			// Widget Irony.GrammarExplorer.MainWindow
+			this.UIManager = new global::Gtk.UIManager ();
+			global::Gtk.ActionGroup w1 = new global::Gtk.ActionGroup ("Default");
+			this.IronyGrammarExplorerAction = new global::Gtk.Action ("IronyGrammarExplorerAction", global::Mono.Unix.Catalog.GetString ("Irony Grammar Explorer"), null, null);
+			this.IronyGrammarExplorerAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Irony Grammar Explorer");
+			w1.Add (this.IronyGrammarExplorerAction, null);
+			this.QuitAction = new global::Gtk.Action ("QuitAction", global::Mono.Unix.Catalog.GetString ("Quit"), null, null);
+			this.QuitAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Quit");
+			w1.Add (this.QuitAction, "<Control>q");
+			this.AboutIrontGrammarExplorerAction = new global::Gtk.Action ("AboutIrontGrammarExplorerAction", global::Mono.Unix.Catalog.GetString ("About Iront Grammar Explorer"), null, null);
+			this.AboutIrontGrammarExplorerAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("About Iront Grammar Explorer");
+			w1.Add (this.AboutIrontGrammarExplorerAction, null);
+			this.GrammarAction = new global::Gtk.Action ("GrammarAction", global::Mono.Unix.Catalog.GetString ("Grammar"), null, null);
+			this.GrammarAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("File");
+			w1.Add (this.GrammarAction, null);
+			this.OpenAction = new global::Gtk.Action ("OpenAction", global::Mono.Unix.Catalog.GetString ("Open"), null, null);
+			this.OpenAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Open");
+			w1.Add (this.OpenAction, "<Control>o");
+			this.WindowAction = new global::Gtk.Action ("WindowAction", global::Mono.Unix.Catalog.GetString ("Window"), null, null);
+			this.WindowAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Window");
+			w1.Add (this.WindowAction, null);
+			this.HelpAction = new global::Gtk.Action ("HelpAction", global::Mono.Unix.Catalog.GetString ("Help"), null, null);
+			this.HelpAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Help");
+			w1.Add (this.HelpAction, null);
+			this.ViewAction = new global::Gtk.Action ("ViewAction", global::Mono.Unix.Catalog.GetString ("View"), null, null);
+			this.ViewAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("View");
+			w1.Add (this.ViewAction, null);
+			this.EnterFullScreenAction = new global::Gtk.Action ("EnterFullScreenAction", global::Mono.Unix.Catalog.GetString ("Enter Full Screen"), null, null);
+			this.EnterFullScreenAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Enter Full Screen");
+			w1.Add (this.EnterFullScreenAction, "<Control>f");
+			this.MinimizeAction = new global::Gtk.Action ("MinimizeAction", global::Mono.Unix.Catalog.GetString ("Minimize"), null, null);
+			this.MinimizeAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Minimize");
+			w1.Add (this.MinimizeAction, "<Control>m");
+			this.IronyOnTheWebAction = new global::Gtk.Action ("IronyOnTheWebAction", global::Mono.Unix.Catalog.GetString ("Irony on the Web"), null, null);
+			this.IronyOnTheWebAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Irony on the Web");
+			w1.Add (this.IronyOnTheWebAction, "<Control>h");
+			this.CloseAction = new global::Gtk.Action ("CloseAction", global::Mono.Unix.Catalog.GetString ("Close"), null, null);
+			this.CloseAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Close");
+			w1.Add (this.CloseAction, "<Control>w");
+			this.RefreshAction = new global::Gtk.Action ("RefreshAction", global::Mono.Unix.Catalog.GetString ("Refresh"), null, null);
+			this.RefreshAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Refresh");
+			w1.Add (this.RefreshAction, "<Control>r");
+			this.UIManager.InsertActionGroup (w1, 0);
+			this.AddAccelGroup (this.UIManager.AccelGroup);
 			this.Name = "Irony.GrammarExplorer.MainWindow";
 			this.Title = global::Mono.Unix.Catalog.GetString ("Irony Grammar Exploror Gtk#");
 			this.Icon = global::Stetic.IconLoader.LoadIcon (this, "gtk-bold", global::Gtk.IconSize.LargeToolbar);
@@ -138,45 +194,47 @@ namespace Irony.GrammarExplorer
 			this.vbox1.Name = "vbox1";
 			this.vbox1.Spacing = 6;
 			// Container child vbox1.Gtk.Box+BoxChild
+			this.UIManager.AddUiFromString ("<ui><menubar name='mbExplorer'><menu name='IronyGrammarExplorerAction' action='IronyGrammarExplorerAction'><menuitem name='AboutIrontGrammarExplorerAction' action='AboutIrontGrammarExplorerAction'/><menuitem name='QuitAction' action='QuitAction'/></menu><menu name='GrammarAction' action='GrammarAction'><menuitem name='OpenAction' action='OpenAction'/><menuitem name='RefreshAction' action='RefreshAction'/><menuitem name='CloseAction' action='CloseAction'/></menu><menu name='ViewAction' action='ViewAction'><menuitem name='EnterFullScreenAction' action='EnterFullScreenAction'/></menu><menu name='WindowAction' action='WindowAction'><menuitem name='MinimizeAction' action='MinimizeAction'/></menu><menu name='HelpAction' action='HelpAction'><menuitem name='IronyOnTheWebAction' action='IronyOnTheWebAction'/></menu></menubar></ui>");
+			this.mbExplorer = ((global::Gtk.MenuBar)(this.UIManager.GetWidget ("/mbExplorer")));
+			this.mbExplorer.Name = "mbExplorer";
+			this.vbox1.Add (this.mbExplorer);
+			global::Gtk.Box.BoxChild w2 = ((global::Gtk.Box.BoxChild)(this.vbox1 [this.mbExplorer]));
+			w2.Position = 0;
+			w2.Expand = false;
+			w2.Fill = false;
+			// Container child vbox1.Gtk.Box+BoxChild
 			this.hbox1 = new global::Gtk.HBox ();
 			this.hbox1.Name = "hbox1";
 			this.hbox1.Spacing = 6;
-			// Container child hbox1.Gtk.Box+BoxChild
-			this.dlgSelectAssembly = new global::Gtk.FileChooserButton (global::Mono.Unix.Catalog.GetString ("Select a grammer file"), ((global::Gtk.FileChooserAction)(0)));
-			this.dlgSelectAssembly.Name = "dlgSelectAssembly";
-			this.hbox1.Add (this.dlgSelectAssembly);
-			global::Gtk.Box.BoxChild w1 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.dlgSelectAssembly]));
-			w1.Position = 0;
-			w1.Padding = ((uint)(10));
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.lblGrammer = new global::Gtk.Label ();
 			this.lblGrammer.Name = "lblGrammer";
 			this.lblGrammer.Xpad = 10;
 			this.lblGrammer.LabelProp = global::Mono.Unix.Catalog.GetString ("Grammer:");
 			this.hbox1.Add (this.lblGrammer);
-			global::Gtk.Box.BoxChild w2 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.lblGrammer]));
-			w2.Position = 1;
-			w2.Expand = false;
-			w2.Fill = false;
+			global::Gtk.Box.BoxChild w3 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.lblGrammer]));
+			w3.Position = 1;
+			w3.Expand = false;
+			w3.Fill = false;
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.cboGrammars = new global::Gtk.ComboBox ();
 			this.cboGrammars.WidthRequest = 250;
 			this.cboGrammars.Name = "cboGrammars";
 			this.hbox1.Add (this.cboGrammars);
-			global::Gtk.Box.BoxChild w3 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.cboGrammars]));
-			w3.Position = 2;
-			w3.Expand = false;
-			w3.Fill = false;
+			global::Gtk.Box.BoxChild w4 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.cboGrammars]));
+			w4.Position = 2;
+			w4.Expand = false;
+			w4.Fill = false;
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.btnManageGrammars = new global::Gtk.ComboBox ();
 			this.btnManageGrammars.TooltipMarkup = "Manage Grammars";
 			this.btnManageGrammars.WidthRequest = 21;
 			this.btnManageGrammars.Name = "btnManageGrammars";
 			this.hbox1.Add (this.btnManageGrammars);
-			global::Gtk.Box.BoxChild w4 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.btnManageGrammars]));
-			w4.Position = 3;
-			w4.Expand = false;
-			w4.Fill = false;
+			global::Gtk.Box.BoxChild w5 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.btnManageGrammars]));
+			w5.Position = 3;
+			w5.Expand = false;
+			w5.Fill = false;
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.btnRefresh = new global::Gtk.Button ();
 			this.btnRefresh.CanFocus = true;
@@ -184,10 +242,10 @@ namespace Irony.GrammarExplorer
 			this.btnRefresh.UseUnderline = true;
 			this.btnRefresh.Label = global::Mono.Unix.Catalog.GetString ("Refresh");
 			this.hbox1.Add (this.btnRefresh);
-			global::Gtk.Box.BoxChild w5 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.btnRefresh]));
-			w5.Position = 5;
-			w5.Expand = false;
-			w5.Fill = false;
+			global::Gtk.Box.BoxChild w6 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.btnRefresh]));
+			w6.Position = 5;
+			w6.Expand = false;
+			w6.Fill = false;
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.chkAutoRefresh = new global::Gtk.CheckButton ();
 			this.chkAutoRefresh.CanFocus = true;
@@ -197,16 +255,11 @@ namespace Irony.GrammarExplorer
 			this.chkAutoRefresh.DrawIndicator = true;
 			this.chkAutoRefresh.UseUnderline = true;
 			this.hbox1.Add (this.chkAutoRefresh);
-			global::Gtk.Box.BoxChild w6 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.chkAutoRefresh]));
-			w6.Position = 6;
-			// Container child hbox1.Gtk.Box+BoxChild
-			this.filechooserbutton1 = new global::Gtk.FileChooserButton (global::Mono.Unix.Catalog.GetString ("Select a File"), ((global::Gtk.FileChooserAction)(0)));
-			this.filechooserbutton1.Name = "filechooserbutton1";
-			this.hbox1.Add (this.filechooserbutton1);
-			global::Gtk.Box.BoxChild w7 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.filechooserbutton1]));
-			w7.Position = 7;
+			global::Gtk.Box.BoxChild w7 = ((global::Gtk.Box.BoxChild)(this.hbox1 [this.chkAutoRefresh]));
+			w7.Position = 6;
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.txtSearch = new global::Gtk.Entry ();
+			this.txtSearch.Sensitive = false;
 			this.txtSearch.CanFocus = true;
 			this.txtSearch.Name = "txtSearch";
 			this.txtSearch.IsEditable = true;
@@ -216,6 +269,7 @@ namespace Irony.GrammarExplorer
 			w8.Position = 8;
 			// Container child hbox1.Gtk.Box+BoxChild
 			this.btnSearch = new global::Gtk.Button ();
+			this.btnSearch.Sensitive = false;
 			this.btnSearch.CanFocus = true;
 			this.btnSearch.Name = "btnSearch";
 			this.btnSearch.UseUnderline = true;
@@ -371,6 +425,7 @@ namespace Irony.GrammarExplorer
 			w22.Fill = false;
 			// Container child hbTestOptions.Gtk.Box+BoxChild
 			this.btnLocate = new global::Gtk.Button ();
+			this.btnLocate.Sensitive = false;
 			this.btnLocate.CanFocus = true;
 			this.btnLocate.Name = "btnLocate";
 			this.btnLocate.UseUnderline = true;
@@ -405,7 +460,7 @@ namespace Irony.GrammarExplorer
 			this.tabOutput = new global::Gtk.Notebook ();
 			this.tabOutput.CanFocus = true;
 			this.tabOutput.Name = "tabOutput";
-			this.tabOutput.CurrentPage = 0;
+			this.tabOutput.CurrentPage = 1;
 			// Container child tabOutput.Gtk.Notebook+NotebookChild
 			this.sWinParseTree = new global::Gtk.ScrolledWindow ();
 			this.sWinParseTree.Name = "sWinParseTree";
@@ -1047,11 +1102,11 @@ namespace Irony.GrammarExplorer
 			w93.Fill = false;
 			this.GtkAlignment2.Add (this.vbox3);
 			this.frame3.Add (this.GtkAlignment2);
-			this.GtkLabel14 = new global::Gtk.Label ();
-			this.GtkLabel14.Name = "GtkLabel14";
-			this.GtkLabel14.LabelProp = global::Mono.Unix.Catalog.GetString ("<b>GtkFrame</b>");
-			this.GtkLabel14.UseMarkup = true;
-			this.frame3.LabelWidget = this.GtkLabel14;
+			this.GtkLabel18 = new global::Gtk.Label ();
+			this.GtkLabel18.Name = "GtkLabel18";
+			this.GtkLabel18.LabelProp = global::Mono.Unix.Catalog.GetString ("<b>Runtime Stats:</b>");
+			this.GtkLabel18.UseMarkup = true;
+			this.frame3.LabelWidget = this.GtkLabel18;
 			this.hbox5.Add (this.frame3);
 			global::Gtk.Box.BoxChild w96 = ((global::Gtk.Box.BoxChild)(this.hbox5 [this.frame3]));
 			w96.Position = 1;
@@ -1059,10 +1114,10 @@ namespace Irony.GrammarExplorer
 			w96.Fill = false;
 			this.GtkAlignment.Add (this.hbox5);
 			this.frame2.Add (this.GtkAlignment);
-			this.GtkLabel15 = new global::Gtk.Label ();
-			this.GtkLabel15.Name = "GtkLabel15";
-			this.GtkLabel15.UseMarkup = true;
-			this.frame2.LabelWidget = this.GtkLabel15;
+			this.GtkLabel19 = new global::Gtk.Label ();
+			this.GtkLabel19.Name = "GtkLabel19";
+			this.GtkLabel19.UseMarkup = true;
+			this.frame2.LabelWidget = this.GtkLabel19;
 			this.tabBottom.Add (this.frame2);
 			global::Gtk.Notebook.NotebookChild w99 = ((global::Gtk.Notebook.NotebookChild)(this.tabBottom [this.frame2]));
 			w99.Position = 4;
@@ -1079,18 +1134,25 @@ namespace Irony.GrammarExplorer
 			if ((this.Child != null)) {
 				this.Child.ShowAll ();
 			}
+			this.mbExplorer.Hide ();
 			this.lblSearchError.Hide ();
 			this.Show ();
 			this.DeleteEvent += new global::Gtk.DeleteEventHandler (this.OnDeleteEvent);
 			this.Realized += new global::System.EventHandler (this.OnRealized);
 			this.StateChanged += new global::Gtk.StateChangedHandler (this.OnStateChanged);
+			this.QuitAction.Activated += new global::System.EventHandler (this.OnQuitActionActivated);
+			this.AboutIrontGrammarExplorerAction.Activated += new global::System.EventHandler (this.OnAboutIrontGrammarExplorerActionActivated);
+			this.OpenAction.Activated += new global::System.EventHandler (this.OnOpenGrammarAssemblyActionActivated);
+			this.EnterFullScreenAction.Activated += new global::System.EventHandler (this.OnEnterFullScreenActionActivated);
+			this.MinimizeAction.Activated += new global::System.EventHandler (this.OnMinimizeActionActivated);
+			this.CloseAction.Activated += new global::System.EventHandler (this.OnCloseGrammarAssemblyActionActivated);
 			this.cboGrammars.Changed += new global::System.EventHandler (this.OnCboGrammarsChanged);
 			this.btnManageGrammars.Changed += new global::System.EventHandler (this.OnbtnManageGrammarsChanged);
 			this.btnRefresh.Clicked += new global::System.EventHandler (this.OnBtnRefreshClicked);
+			this.txtSearch.Changed += new global::System.EventHandler (this.OnTxtSearchChanged);
 			this.fcbtnFileOpen.SelectionChanged += new global::System.EventHandler (this.OnFcbtnFileOpenSelectionChanged);
 			this.btnParse.Clicked += new global::System.EventHandler (this.OnBtnParseClicked);
 			this.btnRun.Clicked += new global::System.EventHandler (this.OnBtnRunClicked);
-			this.btnLocate.Clicked += new global::System.EventHandler (this.OnBtnLocateClicked);
 		}
 	}
 }

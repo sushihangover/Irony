@@ -18,11 +18,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Irony.GrammarExplorer")]
-[assembly: AssemblyDescription("Grammar Explorer for Irony")]
+[assembly: AssemblyDescription("Grammar Explorer for Irony (GtkSharp Edition)")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("GrammarExplorer")]
-[assembly: AssemblyCopyright("Copyright © 2010 Roman Ivantsov")]
+[assembly: AssemblyCopyright("Copyright © 2013 Robert Nees (Gtk#) © 2010 Roman Ivantsov (Window.Forms")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

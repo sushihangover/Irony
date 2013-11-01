@@ -9,6 +9,86 @@
     <widget-library name="../bin/Debug/Irony.GrammarExplorer.GtkSharp.exe" internal="true" />
   </import>
   <widget class="Gtk.Window" id="Irony.GrammarExplorer.MainWindow" design-size="1228 736">
+    <action-group name="Default">
+      <action id="IronyGrammarExplorerAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Irony Grammar Explorer</property>
+        <property name="ShortLabel" translatable="yes">Irony Grammar Explorer</property>
+      </action>
+      <action id="QuitAction">
+        <property name="Type">Action</property>
+        <property name="Accelerator">&lt;Control&gt;q</property>
+        <property name="Label" translatable="yes">Quit</property>
+        <property name="ShortLabel" translatable="yes">Quit</property>
+        <signal name="Activated" handler="OnQuitActionActivated" />
+      </action>
+      <action id="AboutIrontGrammarExplorerAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">About Iront Grammar Explorer</property>
+        <property name="ShortLabel" translatable="yes">About Iront Grammar Explorer</property>
+        <signal name="Activated" handler="OnAboutIrontGrammarExplorerActionActivated" />
+      </action>
+      <action id="GrammarAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Grammar</property>
+        <property name="ShortLabel" translatable="yes">File</property>
+      </action>
+      <action id="OpenAction">
+        <property name="Type">Action</property>
+        <property name="Accelerator">&lt;Control&gt;o</property>
+        <property name="Label" translatable="yes">Open</property>
+        <property name="ShortLabel" translatable="yes">Open</property>
+        <signal name="Activated" handler="OnOpenGrammarAssemblyActionActivated" />
+      </action>
+      <action id="WindowAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Window</property>
+        <property name="ShortLabel" translatable="yes">Window</property>
+      </action>
+      <action id="HelpAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">Help</property>
+        <property name="ShortLabel" translatable="yes">Help</property>
+      </action>
+      <action id="ViewAction">
+        <property name="Type">Action</property>
+        <property name="Label" translatable="yes">View</property>
+        <property name="ShortLabel" translatable="yes">View</property>
+      </action>
+      <action id="EnterFullScreenAction">
+        <property name="Type">Action</property>
+        <property name="Accelerator">&lt;Control&gt;f</property>
+        <property name="Label" translatable="yes">Enter Full Screen</property>
+        <property name="ShortLabel" translatable="yes">Enter Full Screen</property>
+        <signal name="Activated" handler="OnEnterFullScreenActionActivated" />
+      </action>
+      <action id="MinimizeAction">
+        <property name="Type">Action</property>
+        <property name="Accelerator">&lt;Control&gt;m</property>
+        <property name="Label" translatable="yes">Minimize</property>
+        <property name="ShortLabel" translatable="yes">Minimize</property>
+        <signal name="Activated" handler="OnMinimizeActionActivated" />
+      </action>
+      <action id="IronyOnTheWebAction">
+        <property name="Type">Action</property>
+        <property name="Accelerator">&lt;Control&gt;h</property>
+        <property name="Label" translatable="yes">Irony on the Web</property>
+        <property name="ShortLabel" translatable="yes">Irony on the Web</property>
+      </action>
+      <action id="CloseAction">
+        <property name="Type">Action</property>
+        <property name="Accelerator">&lt;Control&gt;w</property>
+        <property name="Label" translatable="yes">Close</property>
+        <property name="ShortLabel" translatable="yes">Close</property>
+        <signal name="Activated" handler="OnCloseGrammarAssemblyActionActivated" />
+      </action>
+      <action id="RefreshAction">
+        <property name="Type">Action</property>
+        <property name="Accelerator">&lt;Control&gt;r</property>
+        <property name="Label" translatable="yes">Refresh</property>
+        <property name="ShortLabel" translatable="yes">Refresh</property>
+      </action>
+    </action-group>
     <property name="MemberName" />
     <property name="Title" translatable="yes">Irony Grammar Exploror Gtk#</property>
     <property name="Icon">stock:gtk-bold LargeToolbar</property>
@@ -26,22 +106,43 @@
         <property name="MemberName" />
         <property name="Spacing">6</property>
         <child>
-          <placeholder />
+          <widget class="Gtk.MenuBar" id="mbExplorer">
+            <property name="MemberName" />
+            <property name="Visible">False</property>
+            <node name="mbExplorer" type="Menubar">
+              <node type="Menu" action="IronyGrammarExplorerAction">
+                <node type="Menuitem" action="AboutIrontGrammarExplorerAction" />
+                <node type="Menuitem" action="QuitAction" />
+              </node>
+              <node type="Menu" action="GrammarAction">
+                <node type="Menuitem" action="OpenAction" />
+                <node type="Menuitem" action="RefreshAction" />
+                <node type="Menuitem" action="CloseAction" />
+              </node>
+              <node type="Menu" action="ViewAction">
+                <node type="Menuitem" action="EnterFullScreenAction" />
+              </node>
+              <node type="Menu" action="WindowAction">
+                <node type="Menuitem" action="MinimizeAction" />
+              </node>
+              <node type="Menu" action="HelpAction">
+                <node type="Menuitem" action="IronyOnTheWebAction" />
+              </node>
+            </node>
+          </widget>
+          <packing>
+            <property name="Position">0</property>
+            <property name="AutoSize">True</property>
+            <property name="Expand">False</property>
+            <property name="Fill">False</property>
+          </packing>
         </child>
         <child>
           <widget class="Gtk.HBox" id="hbox1">
             <property name="MemberName" />
             <property name="Spacing">6</property>
             <child>
-              <widget class="Gtk.FileChooserButton" id="dlgSelectAssembly">
-                <property name="MemberName" />
-                <property name="Title" translatable="yes">Select a grammer file</property>
-              </widget>
-              <packing>
-                <property name="Position">0</property>
-                <property name="AutoSize">True</property>
-                <property name="Padding">10</property>
-              </packing>
+              <placeholder />
             </child>
             <child>
               <widget class="Gtk.Label" id="lblGrammer">
@@ -122,20 +223,16 @@
               </packing>
             </child>
             <child>
-              <widget class="Gtk.FileChooserButton" id="filechooserbutton1">
-                <property name="MemberName" />
-              </widget>
-              <packing>
-                <property name="Position">7</property>
-                <property name="AutoSize">True</property>
-              </packing>
+              <placeholder />
             </child>
             <child>
               <widget class="Gtk.Entry" id="txtSearch">
                 <property name="MemberName" />
+                <property name="Sensitive">False</property>
                 <property name="CanFocus">True</property>
                 <property name="IsEditable">True</property>
                 <property name="InvisibleChar">●</property>
+                <signal name="Changed" handler="OnTxtSearchChanged" />
               </widget>
               <packing>
                 <property name="Position">8</property>
@@ -145,6 +242,7 @@
             <child>
               <widget class="Gtk.Button" id="btnSearch">
                 <property name="MemberName" />
+                <property name="Sensitive">False</property>
                 <property name="CanFocus">True</property>
                 <property name="Type">TextOnly</property>
                 <property name="Label" translatable="yes">Find</property>
@@ -362,11 +460,11 @@
                         <child>
                           <widget class="Gtk.Button" id="btnLocate">
                             <property name="MemberName" />
+                            <property name="Sensitive">False</property>
                             <property name="CanFocus">True</property>
                             <property name="Type">TextOnly</property>
                             <property name="Label" translatable="yes">Locate &gt;&gt;</property>
                             <property name="UseUnderline">True</property>
-                            <signal name="Clicked" handler="OnBtnLocateClicked" />
                           </widget>
                           <packing>
                             <property name="Position">5</property>
@@ -411,7 +509,7 @@
                   <widget class="Gtk.Notebook" id="tabOutput">
                     <property name="MemberName" />
                     <property name="CanFocus">True</property>
-                    <property name="CurrentPage">0</property>
+                    <property name="CurrentPage">1</property>
                     <child>
                       <widget class="Gtk.ScrolledWindow" id="sWinParseTree">
                         <property name="MemberName" />
@@ -1442,9 +1540,9 @@
                               </widget>
                             </child>
                             <child>
-                              <widget class="Gtk.Label" id="GtkLabel14">
+                              <widget class="Gtk.Label" id="GtkLabel18">
                                 <property name="MemberName" />
-                                <property name="LabelProp" translatable="yes">&lt;b&gt;GtkFrame&lt;/b&gt;</property>
+                                <property name="LabelProp" translatable="yes">&lt;b&gt;Runtime Stats:&lt;/b&gt;</property>
                                 <property name="UseMarkup">True</property>
                               </widget>
                               <packing>
@@ -1464,7 +1562,7 @@
                   </widget>
                 </child>
                 <child>
-                  <widget class="Gtk.Label" id="GtkLabel15">
+                  <widget class="Gtk.Label" id="GtkLabel19">
                     <property name="MemberName" />
                     <property name="UseMarkup">True</property>
                   </widget>

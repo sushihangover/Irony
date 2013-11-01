@@ -27,8 +27,11 @@ using System.Xml;
 using Irony.Ast;
 using Irony.Parsing;
 using Irony.GrammerExplorer;
+using IgeMacIntegration;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
-//using Irony.GrammarExplorer.Highlighter;
 namespace Irony.GrammarExplorer
 {
 	using ScriptException = Irony.Interpreter.ScriptException;
@@ -45,25 +48,38 @@ namespace Irony.GrammarExplorer
 //		Mono.TextEditor.TextEditor txTest = new Mono.TextEditor.TextEditor();
 			Build ();
 			_grammarLoader.AssemblyUpdated += GrammarAssemblyUpdated;
-
 			// Add TextEditor to ScrolledWindow control (widget).
 //		textEditorScrolledWindow.Child = textEditor;
 //		textEditor.ShowAll ();
 //		sWinTest.Child = txTest;
 //		txTest.ShowAll ();
 
-			// Setup GTK Models(listStore) as no way to due this in MonoDevelop/Stetic, so dumb...yuk....
+			// Setup GTK Models(listStore) as no way to do this in MonoDevelop/Stetic, so dumb...yuk....
 			SetupModel_gridGrammarErrors ();
 			SetupModel_gridCompileErrors ();
 			SetupModel_cboGrammars ();
 			SetModel_gridParserTrace ();
 			SetModel_lstTokens ();
 			SetupModel_btnManageGrammars ();
+			SetupModel_tvParseTree ();
+			SetupModel_tvAST ();
+			SetOSX_Menus ();
 
 			tabGrammar.CurrentPage = 0;
 			tabBottom.CurrentPage = 0;
 			fmExploreGrammarWindowLoad ();
 			this.Present ();
+		}
+
+		private void SetOSX_Menus() {
+			if (OpenTK.Configuration.RunningOnMacOS) {
+				mbExplorer.Hide ();
+
+//			if (PlatformDetection.IsMac) {
+				IgeMacMenu.GlobalKeyHandlerEnabled = true;
+				IgeMacMenu.MenuBar = mbExplorer;
+//				IgeMacMenu.QuitMenuItem = QuitAction;
+			}
 		}
 
 		protected void OnDeleteEvent (object sender, DeleteEventArgs a)
@@ -84,6 +100,22 @@ namespace Irony.GrammarExplorer
 		bool _loaded;
 		bool _treeClickDisabled;
 		//to temporarily disable tree click when we locate the node programmatically
+
+		private void SetupModel_tvAST ()
+		{
+			tvAST.AppendColumn ("AST Tree", new Gtk.CellRendererText (), "text", 0);
+			TreeStore modelAstTree = new TreeStore (typeof(string));
+			tvAST.HeadersVisible = false;
+			tvAST.Model = modelAstTree;
+		}
+
+		private void SetupModel_tvParseTree ()
+		{
+			tvParseTree.AppendColumn ("ParseTree", new Gtk.CellRendererText (), "text", 0);
+			TreeStore modelParseTree = new TreeStore (typeof(string));
+			tvParseTree.HeadersVisible = false;
+			tvParseTree.Model = modelParseTree;
+		}
 
 		private void SetupModel_gridGrammarErrors ()
 		{
@@ -258,7 +290,7 @@ namespace Irony.GrammarExplorer
 			if (_parser == null || !_parser.Language.CanParse ())
 				return;
 			_parseTree = null;
-//			GC.Collect (); //to avoid disruption of perf times with occasional collections
+			System.GC.Collect (); //to avoid disruption of perf times with occasional collections
 			_parser.Context.TracingEnabled = chkParserTrace.Active;
 			try {
 				_parser.Parse (txtSource.Buffer.Text, "<source>");
@@ -344,9 +376,8 @@ namespace Irony.GrammarExplorer
 			(lstTokens.Model as ListStore).Clear ();
 			(gridCompileErrors.Model as ListStore).Clear ();
 			(gridParserTrace.Model as ListStore).Clear ();
-//			tvParseTree.Nodes.Clear();
-//			tvAst.Nodes.Clear();
-//			Application.DoEvents();
+			ClearTreeView (tvParseTree);
+			ClearTreeView (tvAST);
 		}
 
 		private void ShowLanguageInfo ()
@@ -437,42 +468,69 @@ namespace Irony.GrammarExplorer
 			//Note: this time is "pure" parse time; actual delay after cliking "Compile" includes time to fill ParseTree, AstTree controls
 		}
 
-		private void ShowParseTree ()
+		private void ClearTreeView ( TreeView tv ) 
 		{
-//			tvParseTree.Nodes.Clear();
-//			if (_parseTree == null) return;
-//			AddParseNodeRec(null, _parseTree.Root);
+			TreeStore ts = (tv.Model as TreeStore);
+			if (ts.IterNChildren() > 0) {
+				//Hack: Gtk delegate threading issue again even on Application.Invoke....
+				tv.Model = null;
+				ts.Clear ();
+				tv.Model = ts;
+			}
 		}
 
-		private void AddParseNodeRec (TreeNode parent, ParseTreeNode node)
+		private void ShowParseTree ()
 		{
-//			if (node == null) return;
-//			string txt = node.ToString();
-//			TreeNode tvNode = (parent == null? tvParseTree.Nodes.Add(txt) : parent.Nodes.Add(txt) );
-//			tvNode.Tag = node;
-//			foreach(var child in node.ChildNodes)
-//				AddParseNodeRec(tvNode, child);
+			ClearTreeView (tvParseTree);
+			if (_parseTree != null) 
+			{
+				AddParseNodeRec(TreeIter.Zero, _parseTree.Root);
+			}
+		}
+
+		private void AddParseNodeRec (TreeIter parent, ParseTreeNode node)
+		{
+			if (node != null) {
+				string txt = regexCleanWhiteSpace.Replace (node.ToString(), @" ");
+
+				TreeIter ti;
+				TreeStore ptree = tvParseTree.Model as TreeStore;
+				if (!parent.Equals(TreeIter.Zero)) {
+					ti = ptree.AppendValues (parent, txt);
+				} else {
+					ti = ptree.AppendValues (txt);
+				}
+				foreach (var child in node.ChildNodes)
+					AddParseNodeRec (ti, child);
+			}
 		}
 
 		private void ShowAstTree ()
 		{
-//			tvAst.Nodes.Clear();
-//			if (_parseTree == null || _parseTree.Root == null || _parseTree.Root.AstNode == null) return;
-//			AddAstNodeRec(null, _parseTree.Root.AstNode);
+			ClearTreeView (tvAST);
+			if (_parseTree == null || _parseTree.Root == null || _parseTree.Root.AstNode == null) return;
+			AddAstNodeRec(TreeIter.Zero, _parseTree.Root.AstNode);
 		}
 
-		private void AddAstNodeRec (TreeNode parent, object astNode)
+		private void AddAstNodeRec (TreeIter parent, object astNode)
 		{
-//			if (astNode == null) return;
-//			string txt = astNode.ToString();
-//			TreeNode newNode = (parent == null ?
-//			                    tvAst.Nodes.Add(txt) : parent.Nodes.Add(txt));
-//			newNode.Tag = astNode;
-//			var iBrowsable = astNode as IBrowsableAstNode;
-//			if (iBrowsable == null) return;
-//			var childList = iBrowsable.GetChildNodes();
-//			foreach (var child in childList)
-//				AddAstNodeRec(newNode, child);
+			if (astNode != null) {
+				string txt = regexCleanWhiteSpace.Replace (astNode.ToString(), @" ");
+
+				TreeIter ti;
+				TreeStore asttree = tvAST.Model as TreeStore;
+				if (!parent.Equals(TreeIter.Zero)) {
+					ti = asttree.AppendValues (parent, txt);
+				} else {
+					ti = asttree.AppendValues (txt);
+				}
+				var iBrowsable = astNode as IBrowsableAstNode;
+				if (iBrowsable != null) {
+					var childList = iBrowsable.GetChildNodes();
+					foreach (var child in childList)
+						AddAstNodeRec(ti, child);
+				}
+			}
 		}
 
 		private void ShowParserConstructionResults ()
@@ -491,7 +549,7 @@ namespace Irony.GrammarExplorer
 			txtParserStates.Buffer.Text = ParserDataPrinter.PrintStateList (_language);
 			ShowGrammarErrors ();
 		}
-		//method
+
 		private void ShowGrammarErrors ()
 		{
 			(gridGrammarErrors.Model as ListStore).Clear ();
@@ -575,34 +633,9 @@ namespace Irony.GrammarExplorer
 			_runtimeError = null;
 			txtOutput.Buffer.Text = string.Empty;
 		}
-
 		#endregion
 
 		#region Grammar combo menu commands
-
-		private void menuGrammars_Opening (object sender, CancelEventArgs e)
-		{
-//			miRemove.Enabled = cboGrammars.Items.Count > 0;
-		}
-
-		private void miAdd_Click (object sender, EventArgs e)
-		{
-//			if (dlgSelectAssembly.ShowDialog() != DialogResult.OK) return;
-//			string location = dlgSelectAssembly.FileName;
-//			if (string.IsNullOrEmpty(location)) return;
-//			var oldGrammars = new GrammarItemList();
-//			foreach(var item in cboGrammars.Items)
-//				oldGrammars.Add((GrammarItem) item);
-//			var grammars = fmSelectGrammars.SelectGrammars(location, oldGrammars);
-//			if (grammars == null) return;
-//			foreach (GrammarItem item in grammars)
-//				cboGrammars.Items.Add(item);
-//			btnRefresh.Enabled = false;
-//			// auto-select the first grammar if no grammar currently selected
-//			if (cboGrammars.SelectedIndex < 0 && grammars.Count > 0)
-//				cboGrammars.SelectedIndex = 0;
-		}
-
 		private void RemoveCurrentGrammar ()
 		{
 //			if (MessageBox.Show("Are you sure you want to remove grammmar " + cboGrammars.SelectedItem + "?",
@@ -665,31 +698,6 @@ namespace Irony.GrammarExplorer
 		protected void OnBtnRefreshClicked (object sender, EventArgs e)
 		{
 			LoadSelectedGrammar ();
-		}
-
-		protected void OnSWinTestAdded (object o, AddedArgs args)
-		{
-//			throw new NotImplementedException ();
-		}
-
-		protected void OnBtnLocateClicked (object sender, EventArgs e)
-		{
-//			throw new NotImplementedException ();
-		}
-
-		protected void OnChkAutoRefreshClicked (object sender, EventArgs e)
-		{
-//			throw new NotImplementedException ();
-		}
-
-		protected void OnBtnRefreshEntered (object sender, EventArgs e)
-		{
-//			throw new NotImplementedException ();
-		}
-
-		protected void OnTxtSearchTextDeleted (object o, TextDeletedArgs args)
-		{
-//			throw new NotImplementedException ();
 		}
 
 		protected void SelectGrammars (string filename, GrammarItemList grammerlist)
@@ -914,11 +922,6 @@ namespace Irony.GrammarExplorer
 			LoadSelectedGrammar ();
 		}
 
-		//		private void btnFileOpen_Click(object sender, EventArgs e) {
-		//			if (dlgOpenFile.ShowDialog() != DialogResult.OK) return;
-		//			ClearParserOutput();
-		//			LoadSourceFile(dlgOpenFile.FileName);
-		//		}
 		protected void OnFcbtnFileOpenSelectionChanged (object sender, EventArgs e)
 		{
 			FileChooserButton file = sender as FileChooserButton;
@@ -1062,26 +1065,9 @@ namespace Irony.GrammarExplorer
 			_fullScreen = !_fullScreen;
 		}
 
-		protected void OnQuitAction1Activated (object sender, EventArgs e)
-		{
-			Application.Quit ();
-		}
-
 		protected void OnMinimizeActionActivated (object sender, EventArgs e)
 		{
 			this.Iconify ();
-		}
-
-		protected void OnFullScreenActionActivated (object sender, EventArgs e)
-		{
-			if (!_fullScreen) {
-				this.Fullscreen ();
-//				FullScreenAction.Label = "Exit Full Screen";
-			} else {
-				this.Unfullscreen ();	
-//				FullScreenAction.Label = "Enter Full Screen";
-			}
-			_fullScreen = !_fullScreen;
 		}
 
 		bool _InManageGrammarSelectiion = false; //hack, no context menu like winform, using a combobox instead.
@@ -1092,23 +1078,75 @@ namespace Irony.GrammarExplorer
 				_InManageGrammarSelectiion = true;
 				try {
 					string _manageGrammar;
-					System.Action methodtocall;
 					TreeIter ti;
 					btnManageGrammars.GetActiveIter (out ti);
 					ListStore listStore = btnManageGrammars.Model as ListStore;
 					_manageGrammar = listStore.GetValue (ti, 0) as string;
 					Console.WriteLine(_manageGrammar);
-					methodtocall = listStore.GetValue (ti, 1) as System.Action;
-					methodtocall();
-
-//					SelectGrammarAssembly ();
+					(listStore.GetValue (ti, 1) as System.Action)();
 				} finally {
 					btnManageGrammars.SetActiveIter (TreeIter.Zero);
 					_InManageGrammarSelectiion = false;
 				}
 			}
 		}
-		#endregion
 
+		protected void OnOpenGrammarAssemblyActionActivated (object sender, EventArgs e)
+		{
+			SelectGrammarAssembly ();
+		}
+
+		protected void OnEnterFullScreenActionActivated (object sender, EventArgs e)
+		{
+			if (!_fullScreen) {
+				this.Fullscreen ();
+				EnterFullScreenAction.Label = "Exit Full Screen";
+			} else {
+				this.Unfullscreen ();	
+				EnterFullScreenAction.Label = "Enter Full Screen";
+			}
+			_fullScreen = !_fullScreen;
+		}
+
+		protected void OnCloseGrammarAssemblyActionActivated (object sender, EventArgs e)
+		{
+			RemoveAllGrammarsInList ();
+		}
+
+		protected void OnQuitActionActivated (object sender, EventArgs e)
+		{
+			Application.Quit ();
+		}
+
+		protected void OnAboutIrontGrammarExplorerActionActivated (object sender, EventArgs e)
+		{
+			AboutDialog about = new AboutDialog();
+			about.Parent = this;
+			about.SetPosition (WindowPosition.CenterOnParent);
+			Assembly currentAssem = typeof(MainWindow).Assembly;
+			object[] attribs = currentAssem.GetCustomAttributes(typeof(AssemblyCompanyAttribute), true);
+			attribs = currentAssem.GetCustomAttributes(typeof(AssemblyDescriptionAttribute), true);
+			if(attribs.Length > 0)
+				about.ProgramName = ((AssemblyDescriptionAttribute)attribs[0]).Description;
+			attribs = currentAssem.GetCustomAttributes(typeof(AssemblyFileVersionAttribute), true);
+			if(attribs.Length > 0)
+				about.Version = ((AssemblyFileVersionAttribute)attribs[0]).Version;
+			string[] authors = { "GtkSharp version by Robert Nees", "Original Windows.Forms Version by Roman Ivantsov" };
+			attribs = currentAssem.GetCustomAttributes(typeof(AssemblyCopyrightAttribute), true);
+			if(attribs.Length > 0)
+				about.Copyright = ((AssemblyCopyrightAttribute)attribs[0]).Copyright;
+			about.Authors = authors;
+			// Note: Link will only work when run from within App bundle on OS-X
+			about.Website = "http://irony.codeplex.com";
+			about.Response += (object o, ResponseArgs args) => about.Destroy();
+			about.Show ();
+		}
+
+		protected void OnTxtSearchChanged (object sender, EventArgs e)
+		{
+			btnSearch.Sensitive = (txtSearch.Text != String.Empty);
+		}
+
+		#endregion
 	}
 }
