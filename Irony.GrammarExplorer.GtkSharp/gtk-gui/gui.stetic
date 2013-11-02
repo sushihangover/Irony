@@ -6,10 +6,8 @@
   </configuration>
   <import>
     <widget-library name="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
-    <widget-library name="Mono.TextEditor, Version=1.0.0.0, Culture=neutral" />
-    <widget-library name="Xwt.Gtk, Version=0.1.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756" />
-    <widget-library name="../bin/Debug/Irony.GrammarExplorer.GtkSharp.exe" internal="true" />
     <widget-library name="../../../../../../../../Applications/Xamarin Studio.app/Contents/MacOS/lib/monodevelop/bin/Mono.TextEditor.dll" />
+    <widget-library name="../bin/Debug/Irony.GrammarExplorer.GtkSharp.exe" internal="true" />
   </import>
   <widget class="Gtk.Window" id="Irony.GrammarExplorer.MainWindow" design-size="1228 736">
     <action-group name="Default">
@@ -141,7 +139,7 @@
           </packing>
         </child>
         <child>
-          <widget class="Gtk.HBox" id="hbox1">
+          <widget class="Gtk.HBox" id="hbGrammarOptions">
             <property name="MemberName" />
             <property name="Spacing">6</property>
             <child>
@@ -231,10 +229,11 @@
             <child>
               <widget class="Gtk.Entry" id="txtSearch">
                 <property name="MemberName" />
-                <property name="Sensitive">False</property>
                 <property name="CanFocus">True</property>
                 <property name="IsEditable">True</property>
                 <property name="InvisibleChar">●</property>
+                <signal name="Changed" handler="OnTxtSearchChanged" />
+                <signal name="EditingDone" handler="OnTxtSearchEditingDone" />
               </widget>
               <packing>
                 <property name="Position">8</property>
@@ -249,6 +248,7 @@
                 <property name="Type">TextOnly</property>
                 <property name="Label" translatable="yes">Find</property>
                 <property name="UseUnderline">True</property>
+                <signal name="Clicked" handler="OnBtnSearchClicked" />
               </widget>
               <packing>
                 <property name="Position">9</property>
@@ -305,16 +305,15 @@
             <child>
               <widget class="Gtk.ScrolledWindow" id="sWinTerminals">
                 <property name="MemberName" />
+                <property name="CanFocus">True</property>
                 <property name="ShadowType">In</property>
                 <child>
-                  <widget class="Gtk.TextView" id="txtTerms">
+                  <widget class="Gtk.Viewport" id="GtkViewport">
                     <property name="MemberName" />
-                    <property name="CanFocus">True</property>
-                    <property name="ShowScrollbars">True</property>
-                    <property name="Editable">False</property>
-                    <property name="CursorVisible">False</property>
-                    <property name="Text" translatable="yes" />
-                    <property name="LeftMargin">10</property>
+                    <property name="ShadowType">None</property>
+                    <child>
+                      <placeholder />
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -331,15 +330,15 @@
             <child>
               <widget class="Gtk.ScrolledWindow" id="sWinNonTerminals">
                 <property name="MemberName" />
+                <property name="CanFocus">True</property>
                 <property name="ShadowType">In</property>
                 <child>
-                  <widget class="Gtk.TextView" id="txtNonTerms">
+                  <widget class="Gtk.Viewport" id="GtkViewport2">
                     <property name="MemberName" />
-                    <property name="CanFocus">True</property>
-                    <property name="ShowScrollbars">True</property>
-                    <property name="Editable">False</property>
-                    <property name="Text" translatable="yes" />
-                    <property name="LeftMargin">10</property>
+                    <property name="ShadowType">None</property>
+                    <child>
+                      <placeholder />
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -359,15 +358,15 @@
             <child>
               <widget class="Gtk.ScrolledWindow" id="sWinParserStates">
                 <property name="MemberName" />
+                <property name="CanFocus">True</property>
                 <property name="ShadowType">In</property>
                 <child>
-                  <widget class="Gtk.TextView" id="txtParserStates">
+                  <widget class="Gtk.Viewport" id="GtkViewport3">
                     <property name="MemberName" />
-                    <property name="CanFocus">True</property>
-                    <property name="ShowScrollbars">True</property>
-                    <property name="Editable">False</property>
-                    <property name="Text" translatable="yes" />
-                    <property name="LeftMargin">10</property>
+                    <property name="ShadowType">None</property>
+                    <child>
+                      <placeholder />
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -466,6 +465,7 @@
                             <property name="Type">TextOnly</property>
                             <property name="Label" translatable="yes">Locate &gt;&gt;</property>
                             <property name="UseUnderline">True</property>
+                            <signal name="Clicked" handler="OnBtnLocateClicked" />
                           </widget>
                           <packing>
                             <property name="Position">5</property>
@@ -512,7 +512,7 @@
                   <widget class="Gtk.Notebook" id="tabOutput">
                     <property name="MemberName" />
                     <property name="CanFocus">True</property>
-                    <property name="CurrentPage">1</property>
+                    <property name="CurrentPage">0</property>
                     <child>
                       <widget class="Gtk.ScrolledWindow" id="sWinParseTree">
                         <property name="MemberName" />

@@ -8,8 +8,8 @@
  * MIT License.
  * You must not remove this notice from this software.
  * **********************************************************************************/
-//Original Windows.Forms Version by Roman Ivantsov
-//with contributions by Andrew Bradnan and Alexey Yakovlev
+//Original Windows.Form Version by Roman Ivantsov
+//with Windows.Form contributions by Andrew Bradnan and Alexey Yakovlev
 #endregion
 using Gtk;
 using Gdk;
@@ -24,15 +24,14 @@ using System.IO;
 using System.Configuration;
 using System.Text.RegularExpressions;
 using System.Xml;
-using Irony.Ast;
-using Irony.Parsing;
-using Irony.GrammerExplorer;
-using IgeMacIntegration;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Xwt.Motion;
+using IgeMacIntegration;
 using Mono.TextEditor;
+using Irony.Ast;
+using Irony.Parsing;
+using Irony.GrammerExplorer;
 
 namespace Irony.GrammarExplorer
 {
@@ -47,6 +46,11 @@ namespace Irony.GrammarExplorer
 
 		public MainWindow () : base (Gtk.WindowType.Toplevel)
 		{
+			teEditor = new TextEditor();
+			 txtTerms = new TextEditor();
+			 txtNonTerms = new TextEditor();
+			 txtParserStates = new TextEditor();
+
 			Build ();
 			_grammarLoader.AssemblyUpdated += GrammarAssemblyUpdated;
 
@@ -62,9 +66,32 @@ namespace Irony.GrammarExplorer
 			SetOSX_Menus ();
 
 			try {
-				teEditor = new TextEditor();
 				swEditor.Child = teEditor;
+				TextEditorOptions foo = new TextEditorOptions();
+				teEditor.Options = foo;
+				teEditor.Options.ColorScheme = "Visual Studio";
+				teEditor.Options.ShowIconMargin = false;
+				teEditor.Options.ShowFoldMargin = false;
+				teEditor.Options.ShowRuler = false;
+				teEditor.Options = foo;
+
 				swEditor.ShowAll();
+				sWinTerminals.Child = txtTerms;
+				sWinTerminals.ShowAll();
+//				txtTerms.Document.ReadOnly = true;
+				txtTerms.Options.ColorScheme = "Visual Studio";
+				txtTerms.Options.ShowIconMargin = false;
+				txtTerms.Options.ShowFoldMargin = false;
+				txtTerms.Options.ShowRuler = false;
+
+				sWinNonTerminals.Child = txtNonTerms;
+				sWinNonTerminals.ShowAll();
+//				txtNonTerms.Document.ReadOnly = true;
+
+				sWinParserStates.Child = txtParserStates;
+				sWinParserStates.ShowAll();
+//				txtParserStates.Document.ReadOnly = true;
+
 			} catch (Exception error)  {
 				dlgShowException showExceptionDialog = new dlgShowException (error.Message);
 				showExceptionDialog.Response += (object o, ResponseArgs args) => showExceptionDialog.Destroy();
@@ -96,6 +123,10 @@ namespace Irony.GrammarExplorer
 		}
 		//fields
 		TextEditor teEditor;
+		TextEditor txtTerms;
+		TextEditor txtNonTerms;
+		TextEditor txtParserStates;
+
 		Regex regexCleanWhiteSpace = new Regex (@"[ ]{2,}", RegexOptions.None);
 		bool _fullScreen;
 		Grammar _grammar;
@@ -206,7 +237,7 @@ namespace Irony.GrammarExplorer
 		#region Form load/unload events
 		private void fmExploreGrammarWindowLoad ()
 		{
-			ClearLanguageInfo ();
+//			ClearLanguageInfo ();
 			try {
 				teEditor.Text = MyApp.Settings.Default.SourceSample;
 				txtSearch.Text = MyApp.Settings.Default.SearchPattern;
@@ -364,9 +395,13 @@ namespace Irony.GrammarExplorer
 
 		private void ClearLanguageInfo ()
 		{
-			txtTerms.Buffer.Text = string.Empty;
-			txtNonTerms.Buffer.Text = string.Empty;
-			txtParserStates.Buffer.Text = string.Empty;
+			try {
+				txtTerms.Text = string.Empty;
+				txtNonTerms.Text = string.Empty;
+				txtParserStates.Text = string.Empty;
+			} catch {
+				// Skip errors on initial form load
+			}
 			lblLanguage.Text = string.Empty;
 			lblLanguageVersion.Text = string.Empty;
 			lblLanguageDescr.Text = string.Empty;
@@ -545,16 +580,20 @@ namespace Irony.GrammarExplorer
 			lblParserStateCount.Text = _language.ParserData.States.Count.ToString ();
 			lblParserConstrTime.Text = _language.ConstructionTime.ToString ();
 			(gridGrammarErrors.Model as ListStore).Clear ();
-			txtTerms.Buffer.Text = string.Empty;
-			txtNonTerms.Buffer.Text = string.Empty;
-			txtParserStates.Buffer.Text = string.Empty;
+			try {
+				txtTerms.Text = string.Empty;
+				txtNonTerms.Text = string.Empty;
+				txtParserStates.Text = string.Empty;
+			} catch {
+				// Due to form creation order, this editors might not be created
+			}
 			tabBottom.CurrentPage = 0; // pageLanguage;
-			if (_parser == null)
-				return;
-			txtTerms.Buffer.Text = ParserDataPrinter.PrintTerminals (_language);
-			txtNonTerms.Buffer.Text = ParserDataPrinter.PrintNonTerminals (_language);
-			txtParserStates.Buffer.Text = ParserDataPrinter.PrintStateList (_language);
-			ShowGrammarErrors ();
+			if (_parser != null) {
+				txtTerms.Text = ParserDataPrinter.PrintTerminals (_language);
+				txtNonTerms.Text = ParserDataPrinter.PrintNonTerminals (_language);
+				txtParserStates.Text = ParserDataPrinter.PrintStateList (_language);
+				ShowGrammarErrors ();
+			}
 		}
 
 		private void ShowGrammarErrors ()
@@ -802,18 +841,20 @@ namespace Irony.GrammarExplorer
 //				StartHighlighter();
 		}
 
-		//The following methods are contributed by Andrew Bradnan; pasted here with minor changes
 		private void DoSearch ()
 		{
-//			lblSearchError.Visible = false;
+			teEditor.ClearSelection();
+			teEditor.HighlightSearchPattern = true;
+			teEditor.SearchPattern = txtSearch.Text;
+			Mono.TextEditor.SearchResult foo = teEditor.SearchForward(0);
+			lblSearchError.Visible = (foo == null);
+
+			if (foo != null) {
+				teEditor.AnimateSearchResult(foo);
+			}
 //			TextBoxBase textBox = GetSearchContentBox();
-//			if (textBox == null) return;
-//			int idxStart = textBox.SelectionStart + textBox.SelectionLength;
-//			if (!DoSearch(textBox, txtSearch.Text, idxStart)) {
-//				lblSearchError.Text = "Not found.";
-//				lblSearchError.Visible = true;
-//			}
 		}
+
 		//		private bool DoSearch(TextBoxBase textBox, string fragment, int start) {
 		//			textBox.SelectionLength = 0;
 		//			// Compile the regular expression.
@@ -1009,7 +1050,7 @@ namespace Irony.GrammarExplorer
 		//		}
 		protected void OnTxtSearchActivated (object sender, EventArgs e)
 		{
-			DoSearch ();
+			//DoSearch ();
 		}
 		//		private void lnkShowErrLocation_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
 		//			if (_runtimeError != null)
@@ -1132,6 +1173,7 @@ namespace Irony.GrammarExplorer
 		protected void OnTxtSearchChanged (object sender, EventArgs e)
 		{
 			btnSearch.Sensitive = (txtSearch.Text != String.Empty);
+			DoSearch ();
 		}
 
 		bool _InManageGrammarSelectiion = false; //hack, no context menu like winform, using a combobox instead.
@@ -1153,6 +1195,16 @@ namespace Irony.GrammarExplorer
 					_InManageGrammarSelectiion = false;
 				}
 			}
+		}
+
+		protected void OnTxtSearchEditingDone (object sender, EventArgs e)
+		{
+			DoSearch();
+		}
+
+		protected void OnBtnLocateClicked (object sender, EventArgs e)
+		{
+			throw new NotImplementedException ();
 		}
 
 		#endregion
