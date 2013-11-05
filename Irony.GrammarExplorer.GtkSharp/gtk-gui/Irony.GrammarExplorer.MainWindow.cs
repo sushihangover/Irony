@@ -161,7 +161,7 @@ namespace Irony.GrammarExplorer
 			w1.Add (this.ViewAction, null);
 			this.EnterFullScreenAction = new global::Gtk.Action ("EnterFullScreenAction", global::Mono.Unix.Catalog.GetString ("Enter Full Screen"), null, null);
 			this.EnterFullScreenAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Enter Full Screen");
-			w1.Add (this.EnterFullScreenAction, "<Control>f");
+			w1.Add (this.EnterFullScreenAction, "<Control>function");
 			this.MinimizeAction = new global::Gtk.Action ("MinimizeAction", global::Mono.Unix.Catalog.GetString ("Minimize"), null, null);
 			this.MinimizeAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Minimize");
 			w1.Add (this.MinimizeAction, "<Control>m");
@@ -401,7 +401,6 @@ namespace Irony.GrammarExplorer
 			w19.Fill = false;
 			// Container child hbTestOptions.Gtk.Box+BoxChild
 			this.btnLocate = new global::Gtk.Button ();
-			this.btnLocate.Sensitive = false;
 			this.btnLocate.CanFocus = true;
 			this.btnLocate.Name = "btnLocate";
 			this.btnLocate.UseUnderline = true;
@@ -431,7 +430,7 @@ namespace Irony.GrammarExplorer
 			this.tabOutput = new global::Gtk.Notebook ();
 			this.tabOutput.CanFocus = true;
 			this.tabOutput.Name = "tabOutput";
-			this.tabOutput.CurrentPage = 0;
+			this.tabOutput.CurrentPage = 1;
 			// Container child tabOutput.Gtk.Notebook+NotebookChild
 			this.sWinParseTree = new global::Gtk.ScrolledWindow ();
 			this.sWinParseTree.Name = "sWinParseTree";
@@ -440,6 +439,7 @@ namespace Irony.GrammarExplorer
 			this.tvParseTree = new global::Gtk.TreeView ();
 			this.tvParseTree.CanFocus = true;
 			this.tvParseTree.Name = "tvParseTree";
+			this.tvParseTree.SearchColumn = 1;
 			this.sWinParseTree.Add (this.tvParseTree);
 			this.tabOutput.Add (this.sWinParseTree);
 			// Notebook tab
@@ -485,7 +485,7 @@ namespace Irony.GrammarExplorer
 			this.tabBottom = new global::Gtk.Notebook ();
 			this.tabBottom.CanFocus = true;
 			this.tabBottom.Name = "tabBottom";
-			this.tabBottom.CurrentPage = 0;
+			this.tabBottom.CurrentPage = 3;
 			this.tabBottom.BorderWidth = ((uint)(5));
 			// Container child tabBottom.Gtk.Notebook+NotebookChild
 			this.vbox7 = new global::Gtk.VBox ();
@@ -917,9 +917,6 @@ namespace Irony.GrammarExplorer
 			this.gridParserTrace.WidthRequest = 700;
 			this.gridParserTrace.CanFocus = true;
 			this.gridParserTrace.Name = "gridParserTrace";
-			this.gridParserTrace.Reorderable = true;
-			this.gridParserTrace.HoverSelection = true;
-			this.gridParserTrace.HoverExpand = true;
 			this.GtkScrolledWindow4.Add (this.gridParserTrace);
 			this.hbox4.Add (this.GtkScrolledWindow4);
 			global::Gtk.Box.BoxChild w75 = ((global::Gtk.Box.BoxChild)(this.hbox4 [this.GtkScrolledWindow4]));
@@ -1120,12 +1117,16 @@ namespace Irony.GrammarExplorer
 			this.cboGrammars.Changed += new global::System.EventHandler (this.OnCboGrammarsChanged);
 			this.btnManageGrammars.Changed += new global::System.EventHandler (this.OnBtnManageGrammarsChanged);
 			this.btnRefresh.Clicked += new global::System.EventHandler (this.OnBtnRefreshClicked);
-			this.txtSearch.Changed += new global::System.EventHandler (this.OnTxtSearchChanged);
 			this.txtSearch.EditingDone += new global::System.EventHandler (this.OnTxtSearchEditingDone);
+			this.txtSearch.Changed += new global::System.EventHandler (this.OnTxtSearchChanged);
 			this.btnSearch.Clicked += new global::System.EventHandler (this.OnBtnSearchClicked);
 			this.btnParse.Clicked += new global::System.EventHandler (this.OnBtnParseClicked);
 			this.btnRun.Clicked += new global::System.EventHandler (this.OnBtnRunClicked);
 			this.btnLocate.Clicked += new global::System.EventHandler (this.OnBtnLocateClicked);
+			this.tvParseTree.RowActivated += new global::Gtk.RowActivatedHandler (this.OnTvParseTreeRowActivated);
+			this.tvAST.RowActivated += new global::Gtk.RowActivatedHandler (this.OnTvASTRowActivated);
+			this.lnkShowErrLocation.Clicked += new global::System.EventHandler (this.OnLnkShowErrLocationClicked);
+			this.lnkShowErrStack.Clicked += new global::System.EventHandler (this.OnLnkShowErrStackClicked);
 		}
 	}
 }

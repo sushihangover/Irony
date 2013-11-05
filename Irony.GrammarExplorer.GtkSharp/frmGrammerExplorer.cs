@@ -43,13 +43,12 @@ namespace Irony.GrammarExplorer
 	//that's the only place we use stuff from Irony.Interpreter
 	public partial class MainWindow: Gtk.Window
 	{
-
 		public MainWindow () : base (Gtk.WindowType.Toplevel)
 		{
-			teEditor = new TextEditor();
-			 txtTerms = new TextEditor();
-			 txtNonTerms = new TextEditor();
-			 txtParserStates = new TextEditor();
+			teEditor = new TextEditor ();
+			txtTerms = new TextEditor ();
+			txtNonTerms = new TextEditor ();
+			txtParserStates = new TextEditor ();
 
 			Build ();
 			_grammarLoader.AssemblyUpdated += GrammarAssemblyUpdated;
@@ -67,34 +66,37 @@ namespace Irony.GrammarExplorer
 
 			try {
 				swEditor.Child = teEditor;
-				TextEditorOptions foo = new TextEditorOptions();
+				TextEditorOptions foo = new TextEditorOptions ();
 				teEditor.Options = foo;
 				teEditor.Options.ColorScheme = "Visual Studio";
 				teEditor.Options.ShowIconMargin = false;
 				teEditor.Options.ShowFoldMargin = false;
 				teEditor.Options.ShowRuler = false;
 				teEditor.Options = foo;
+				teEditor.Options.WrapLines = true;
 
-				swEditor.ShowAll();
+				teEditor.SelectionChanged += (object sender, EventArgs e) => OnBtnLocateClicked(sender, e);
+
+				swEditor.ShowAll ();
 				sWinTerminals.Child = txtTerms;
-				sWinTerminals.ShowAll();
-//				txtTerms.Document.ReadOnly = true;
+				sWinTerminals.ShowAll ();
+				txtTerms.Document.ReadOnly = true;
 				txtTerms.Options.ColorScheme = "Visual Studio";
 				txtTerms.Options.ShowIconMargin = false;
 				txtTerms.Options.ShowFoldMargin = false;
 				txtTerms.Options.ShowRuler = false;
 
 				sWinNonTerminals.Child = txtNonTerms;
-				sWinNonTerminals.ShowAll();
-//				txtNonTerms.Document.ReadOnly = true;
+				sWinNonTerminals.ShowAll ();
+				txtNonTerms.Document.ReadOnly = true;
 
 				sWinParserStates.Child = txtParserStates;
-				sWinParserStates.ShowAll();
-//				txtParserStates.Document.ReadOnly = true;
+				sWinParserStates.ShowAll ();
+				txtParserStates.Document.ReadOnly = true;
 
-			} catch (Exception error)  {
+			} catch (Exception error) {
 				dlgShowException showExceptionDialog = new dlgShowException (error.Message);
-				showExceptionDialog.Response += (object o, ResponseArgs args) => showExceptionDialog.Destroy();
+				showExceptionDialog.Response += (object o, ResponseArgs args) => showExceptionDialog.Destroy ();
 				Application.Quit ();
 			}
 
@@ -104,13 +106,15 @@ namespace Irony.GrammarExplorer
 			this.Present ();
 		}
 
-		private void SetOSX_Menus() {
+		private void SetOSX_Menus ()
+		{
+			//			if (PlatformDetection.IsMac) {
 			if (OpenTK.Configuration.RunningOnMacOS) {
 				mbExplorer.Hide ();
 
-//			if (PlatformDetection.IsMac) {
 				IgeMacMenu.GlobalKeyHandlerEnabled = true;
 				IgeMacMenu.MenuBar = mbExplorer;
+				// TOOD Fix the quit action via menu to call proper event so user.config is updated 
 //				IgeMacMenu.QuitMenuItem = QuitAction;
 			}
 		}
@@ -126,7 +130,6 @@ namespace Irony.GrammarExplorer
 		TextEditor txtTerms;
 		TextEditor txtNonTerms;
 		TextEditor txtParserStates;
-
 		Regex regexCleanWhiteSpace = new Regex (@"[ ]{2,}", RegexOptions.None);
 		bool _fullScreen;
 		Grammar _grammar;
@@ -136,13 +139,11 @@ namespace Irony.GrammarExplorer
 		ScriptException _runtimeError;
 		GrammarLoader _grammarLoader = new GrammarLoader ();
 		bool _loaded;
-		bool _treeClickDisabled;
-		//to temporarily disable tree click when we locate the node programmatically
 
 		private void SetupModel_tvAST ()
 		{
 			tvAST.AppendColumn ("AST Tree", new Gtk.CellRendererText (), "text", 0);
-			TreeStore modelAstTree = new TreeStore (typeof(string));
+			TreeStore modelAstTree = new TreeStore (typeof(string), typeof(IBrowsableAstNode));
 			tvAST.HeadersVisible = false;
 			tvAST.Model = modelAstTree;
 		}
@@ -150,7 +151,7 @@ namespace Irony.GrammarExplorer
 		private void SetupModel_tvParseTree ()
 		{
 			tvParseTree.AppendColumn ("ParseTree", new Gtk.CellRendererText (), "text", 0);
-			TreeStore modelParseTree = new TreeStore (typeof(string));
+			TreeStore modelParseTree = new TreeStore (typeof(string), typeof(ParseTreeNode));
 			tvParseTree.HeadersVisible = false;
 			tvParseTree.Model = modelParseTree;
 		}
@@ -205,7 +206,16 @@ namespace Irony.GrammarExplorer
 			col.Alignment = 0.5f;
 			col.Expand = true;
 			col.FixedWidth = 500;
+//			col.
 			gridParserTrace.Model = modelGridParserTrace;
+
+//			CellRendererText renderer;
+//			renderer = new CellRendererText ();
+//			renderer.Edited += new EditedHandler (NumberCellEdited);
+//			renderer.Editable = true;
+//			renderer.
+
+//			gridParserTrace.cel
 		}
 
 		private void SetModel_lstTokens ()
@@ -214,7 +224,6 @@ namespace Irony.GrammarExplorer
 			lstTokens.AppendColumn ("Tokens", new Gtk.CellRendererText (), "text", 0, "foreground");
 			lstTokens.Model = modelLstTokens;
 		}
-
 		// btnManageGrammars
 		private void SetupModel_btnManageGrammars ()
 		{
@@ -224,17 +233,18 @@ namespace Irony.GrammarExplorer
 			System.Action goselection = SelectGrammarAssembly;
 			System.Action goselection2 = RemoveCurrentGrammar;
 			System.Action goselection3 = RemoveAllGrammarsInList;
-			listStore.AppendValues("Load Grammars...",  goselection);
-			listStore.AppendValues("Remove Selected", goselection2);
-			listStore.AppendValues("Remove All", goselection3);
+			listStore.AppendValues ("Load Grammars...", goselection);
+			listStore.AppendValues ("Remove Selected", goselection2);
+			listStore.AppendValues ("Remove All", goselection3);
 			btnManageGrammars.Model = listStore;
 			CellRendererText text = new CellRendererText (); 
 			btnManageGrammars.PackStart (text, false); 
 			// Only display the text column, not the function column
-			btnManageGrammars.AddAttribute (text, "text", 0); 
+			btnManageGrammars.AddAttribute (text, "text", 0);
 		}
 
 		#region Form load/unload events
+
 		private void fmExploreGrammarWindowLoad ()
 		{
 //			ClearLanguageInfo ();
@@ -299,6 +309,7 @@ namespace Irony.GrammarExplorer
 			}
 			return list;
 		}
+
 		#endregion
 
 		#region Parsing and running
@@ -369,9 +380,9 @@ namespace Irony.GrammarExplorer
 				var args = new RunSampleArgs (_language, teEditor.Text, _parseTree);
 				string output = iRunner.RunSample (args);
 				sw.Stop ();
-//				lblRunTime.Text = sw.ElapsedMilliseconds.ToString();
+				lblRunTime.Text = sw.ElapsedMilliseconds.ToString ();
 				var gcCount = System.GC.CollectionCount (0) - oldGcCount;
-//				lblGCCount.Text = gcCount.ToString();
+				lblGCCount.Text = gcCount.ToString ();
 				WriteOutput (output);
 				tabBottom.CurrentPage = 4; //pageOutput;
 			} catch (ScriptException ex) {
@@ -479,7 +490,6 @@ namespace Irony.GrammarExplorer
 
 //				string cleanedup = System.Text.RegularExpressions.Regex.Replace(entry.StackTop.ToString(),@"\s+"," ");
 				(gridParserTrace.Model as ListStore).AppendValues ((entry.State.Name), (cleanedup), inputNoNullString, (entry.Message), cellColor);
-
 //				(gridParserTrace.Model as ListStore).AppendValues(foobar[0], foobar[1], foobar[2], foobar[3], cellColor);
 			}
 			//Show tokens
@@ -510,11 +520,11 @@ namespace Irony.GrammarExplorer
 			//Note: this time is "pure" parse time; actual delay after cliking "Compile" includes time to fill ParseTree, AstTree controls
 		}
 
-		private void ClearTreeView ( TreeView tv ) 
+		private void ClearTreeView (TreeView tv)
 		{
 			TreeStore ts = (tv.Model as TreeStore);
-			if (ts.IterNChildren() > 0) {
-				//Hack: Gtk delegate threading issue again even on Application.Invoke....
+			if (ts.IterNChildren () > 0) {
+				// HACK: Gtk delegate threading issue again even on Application.Invoke....
 				tv.Model = null;
 				ts.Clear ();
 				tv.Model = ts;
@@ -524,21 +534,20 @@ namespace Irony.GrammarExplorer
 		private void ShowParseTree ()
 		{
 			ClearTreeView (tvParseTree);
-			if (_parseTree != null) 
-			{
-				AddParseNodeRec(TreeIter.Zero, _parseTree.Root);
+			if (_parseTree != null) {
+				AddParseNodeRec (TreeIter.Zero, _parseTree.Root);
 			}
 		}
 
 		private void AddParseNodeRec (TreeIter parent, ParseTreeNode node)
 		{
 			if (node != null) {
-				string txt = regexCleanWhiteSpace.Replace (node.ToString(), @" ");
+				string txt = regexCleanWhiteSpace.Replace (node.ToString (), @" ");
 
 				TreeIter ti;
 				TreeStore ptree = tvParseTree.Model as TreeStore;
-				if (!parent.Equals(TreeIter.Zero)) {
-					ti = ptree.AppendValues (parent, txt);
+				if (!parent.Equals (TreeIter.Zero)) {
+					ti = ptree.AppendValues (parent, txt, node);
 				} else {
 					ti = ptree.AppendValues (txt);
 				}
@@ -550,27 +559,28 @@ namespace Irony.GrammarExplorer
 		private void ShowAstTree ()
 		{
 			ClearTreeView (tvAST);
-			if (_parseTree == null || _parseTree.Root == null || _parseTree.Root.AstNode == null) return;
-			AddAstNodeRec(TreeIter.Zero, _parseTree.Root.AstNode);
+			if (_parseTree == null || _parseTree.Root == null || _parseTree.Root.AstNode == null)
+				return;
+			AddAstNodeRec (TreeIter.Zero, _parseTree.Root.AstNode);
 		}
 
 		private void AddAstNodeRec (TreeIter parent, object astNode)
 		{
 			if (astNode != null) {
-				string txt = regexCleanWhiteSpace.Replace (astNode.ToString(), @" ");
+				string txt = regexCleanWhiteSpace.Replace (astNode.ToString (), @" ");
 
 				TreeIter ti;
 				TreeStore asttree = tvAST.Model as TreeStore;
-				if (!parent.Equals(TreeIter.Zero)) {
-					ti = asttree.AppendValues (parent, txt);
+				if (!parent.Equals (TreeIter.Zero)) {
+					ti = asttree.AppendValues (parent, txt, astNode);
 				} else {
 					ti = asttree.AppendValues (txt);
 				}
 				var iBrowsable = astNode as IBrowsableAstNode;
 				if (iBrowsable != null) {
-					var childList = iBrowsable.GetChildNodes();
+					var childList = iBrowsable.GetChildNodes ();
 					foreach (var child in childList)
-						AddAstNodeRec(ti, child);
+						AddAstNodeRec (ti, child);
 				}
 			}
 		}
@@ -590,8 +600,11 @@ namespace Irony.GrammarExplorer
 			tabBottom.CurrentPage = 0; // pageLanguage;
 			if (_parser != null) {
 				txtTerms.Text = ParserDataPrinter.PrintTerminals (_language);
+				txtTerms.Document.ReadOnly = true;
 				txtNonTerms.Text = ParserDataPrinter.PrintNonTerminals (_language);
+				txtNonTerms.Document.ReadOnly = true;
 				txtParserStates.Text = ParserDataPrinter.PrintStateList (_language);
+				txtNonTerms.Document.ReadOnly = true;
 				ShowGrammarErrors ();
 			}
 		}
@@ -608,8 +621,29 @@ namespace Irony.GrammarExplorer
 				tabBottom.CurrentPage = 0;
 		}
 
-		private void ShowSourcePosition (int position, int length)
+		private void ShowSourcePositionBySpan (Irony.Parsing.SourceSpan sSpan)
 		{
+			if (teEditor.IsSomethingSelected) {
+				teEditor.ClearSelection ();
+			}
+			if (sSpan.Length == 0) {
+				teEditor.SetSelectLines (sSpan.Location.Line + 1, sSpan.Location.Line + 1);
+			} else {
+				teEditor.SetSelection (sSpan.Location.Line + 1, sSpan.Location.Column + 1, sSpan.Location.Line + 1, sSpan.Location.Column + sSpan.Length + 1);
+			}
+		}
+
+		private void ShowSourcePosition (ScriptException scriptException)
+		{
+			if (scriptException != null) {
+				if (teEditor.IsSomethingSelected) {
+					teEditor.ClearSelection ();
+				}
+				teEditor.SetSelectLines (scriptException.Location.Line + 1, scriptException.Location.Line + 1);
+				tabGrammar.CurrentPage = 3;
+//				teEditor.Selection
+			}
+
 //			if (position < 0) return;
 //			txtSource.SelectionStart = position;
 //			txtSource.SelectionLength = length;
@@ -652,11 +686,11 @@ namespace Irony.GrammarExplorer
 			lnkShowErrStack.Sensitive = lnkShowErrLocation.Sensitive;
 			if (_runtimeError != null) {
 				//the exception was caught and processed by Interpreter
-				WriteOutput("Error: " + error.Message + " At " + _runtimeError.Location.ToUiString() + ".");
-				ShowSourcePosition(_runtimeError.Location.Position, 1);
+				WriteOutput ("Error: " + error.Message + " At " + _runtimeError.Location.ToUiString () + ".");
+//				ShowSourcePosition(_runtimeError.Location.Position, 1);
 			} else {
 				//the exception was not caught by interpreter/AST node. Show full exception info
-				WriteOutput("Error: " + error.Message);
+				WriteOutput ("Error: " + error.Message);
 				dlgShowException showExceptionDialog = new dlgShowException (error.Message);
 				showExceptionDialog.Destroy ();
 			}
@@ -679,25 +713,27 @@ namespace Irony.GrammarExplorer
 			_runtimeError = null;
 			txtOutput.Buffer.Text = string.Empty;
 		}
+
 		#endregion
 
 		#region Grammar combo menu commands
+
 		private void RemoveCurrentGrammar ()
 		{
 //			if (MessageBox.Show("Are you sure you want to remove grammmar " + cboGrammars.SelectedItem + "?",
 //			                    "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes) {
 //				cboGrammars.Items.RemoveAt(cboGrammars.SelectedIndex);
-				_parser = null;
-			if ((cboGrammars.Model as ListStore).IterNChildren() > 0) {
+			_parser = null;
+			if ((cboGrammars.Model as ListStore).IterNChildren () > 0) {
 				TreeIter ti;
 				cboGrammars.GetActiveIter (out ti);
 				// Temp removal of ListStore from combobox as removing items while active is not threadsafe in GTK
 				ListStore tmpListStore = cboGrammars.Model as ListStore;
 				cboGrammars.Model = null;
-				tmpListStore.Remove(ref ti);
-				tmpListStore.GetIterFirst(out ti);
+				tmpListStore.Remove (ref ti);
+				tmpListStore.GetIterFirst (out ti);
 				cboGrammars.Model = tmpListStore;
-				cboGrammars.SetActiveIter(ti);
+				cboGrammars.SetActiveIter (ti);
 				btnRefresh.Sensitive = true;
 				if (tmpListStore.IterNChildren () == 0) {
 					ClearUIInfo ();
@@ -716,20 +752,21 @@ namespace Irony.GrammarExplorer
 			cboGrammars.Model = null;
 			tmpListStore.Clear ();
 			cboGrammars.Model = tmpListStore;
-			ClearUIInfo();
+			ClearUIInfo ();
 			btnRefresh.Sensitive = false;
 //			}
 		}
+
 		#endregion
 
-		private void SelectGrammarAssembly()
+		private void SelectGrammarAssembly ()
 		{
-			Gtk.FileChooserDialog fc=
-				new Gtk.FileChooserDialog("Choose the Irony-based grammar to open",
-				                          this,
-				                          FileChooserAction.Open,
-				                          "Cancel",ResponseType.Cancel,
-				                          "Open",ResponseType.Accept);
+			Gtk.FileChooserDialog fc =
+				new Gtk.FileChooserDialog ("Choose the Irony-based grammar to open",
+				                           this,
+				                           FileChooserAction.Open,
+				                           "Cancel", ResponseType.Cancel,
+				                           "Open", ResponseType.Accept);
 			fc.Run ();
 			string location = fc.Filename;
 			if (!string.IsNullOrEmpty (location)) {
@@ -749,17 +786,18 @@ namespace Irony.GrammarExplorer
 		protected void SelectGrammars (string filename, GrammarItemList grammerlist)
 		{
 			dlgSelectGrammars grammarListDialog = new dlgSelectGrammars ();
-			grammarListDialog.ShowGrammars (filename, grammerlist, new dlgSelectGrammars.ProcessGrammars(foobar), this);
+			grammarListDialog.ShowGrammars (filename, grammerlist, new dlgSelectGrammars.ProcessGrammars (foobar), this);
 		}
 
-		private void ClearUIInfo() {
+		private void ClearUIInfo ()
+		{
 			ClearLanguageInfo ();
 			ClearParserOutput ();
 			ClearRuntimeInfo ();
 		}
-
-		public delegate void ProcessBookDelegate(GrammarItemList grammarlist);
-		public void foobar (GrammarItemList grammarlist) {
+		//		public delegate void ProcessBookDelegate (GrammarItemList grammarlist);
+		public void foobar (GrammarItemList grammarlist)
+		{
 			if (grammarlist != null) {
 				// Store the Grammer items from the dll in the combobox ListStore model
 				UpdateModelFromGrammerList (grammarlist, cboGrammars.Model as ListStore);
@@ -775,6 +813,7 @@ namespace Irony.GrammarExplorer
 		}
 
 		#region miscellaneous: LoadSourceFile, Search, Source highlighting
+
 		private void LoadSourceFile (string path)
 		{
 			_parseTree = null;
@@ -784,7 +823,7 @@ namespace Irony.GrammarExplorer
 				teEditor.Text = String.Empty;  //to clear any old formatting
 //				txtSource.ClearUndo();
 //				txtSource.ClearStylesBuffer();
-				teEditor.Text = reader.ReadToEnd();
+				teEditor.Text = reader.ReadToEnd ();
 //				txtSource.SetVisibleState(0, FastColoredTextBoxNS.VisibleState.Visible);
 //				txtSource.Selection = txtSource.GetRange(0, 0);
 			} catch (Exception error) {
@@ -795,7 +834,6 @@ namespace Irony.GrammarExplorer
 					reader.Close ();
 			}
 		}
-
 		//Source highlighting
 		//		FastColoredTextBoxHighlighter _highlighter;
 		private void StartHighlighter ()
@@ -843,18 +881,17 @@ namespace Irony.GrammarExplorer
 
 		private void DoSearch ()
 		{
-			teEditor.ClearSelection();
+			teEditor.ClearSelection ();
 			teEditor.HighlightSearchPattern = true;
 			teEditor.SearchPattern = txtSearch.Text;
-			Mono.TextEditor.SearchResult foo = teEditor.SearchForward(0);
+			Mono.TextEditor.SearchResult foo = teEditor.SearchForward (0);
 			lblSearchError.Visible = (foo == null);
 
 			if (foo != null) {
-				teEditor.AnimateSearchResult(foo);
+				teEditor.AnimateSearchResult (foo);
 			}
 //			TextBoxBase textBox = GetSearchContentBox();
 		}
-
 		//		private bool DoSearch(TextBoxBase textBox, string fragment, int start) {
 		//			textBox.SelectionLength = 0;
 		//			// Compile the regular expression.
@@ -893,17 +930,11 @@ namespace Irony.GrammarExplorer
 
 		#region Controls event handlers
 
-		//		private void btnParse_Click(object sender, EventArgs e) {
-		//			ParseSample();
-		//		}
 		protected void OnBtnParseClicked (object sender, EventArgs e)
 		{
 			ParseSample ();
 		}
 
-		//		private void btnRun_Click(object sender, EventArgs e) {
-		//			RunSample();
-		//		}
 		protected void OnBtnRunClicked (object sender, EventArgs e)
 		{
 			RunSample ();
@@ -927,9 +958,8 @@ namespace Irony.GrammarExplorer
 		//			if (iBrowsable == null) return;
 		//			ShowSourcePosition(iBrowsable.Position, 1);
 		//		}
-
-
 		bool _changingGrammar;
+
 		private void LoadSelectedGrammar ()
 		{
 			try {
@@ -959,8 +989,8 @@ namespace Irony.GrammarExplorer
 		{
 			if (chkAutoRefresh.Active) {
 				Gtk.Application.Invoke (delegate {
-					LoadSelectedGrammar();
-					txtGrammarComments.Buffer.Text += String.Format("{0}Grammar assembly reloaded: {1:HH:mm:ss}", Environment.NewLine, DateTime.Now);
+					LoadSelectedGrammar ();
+					txtGrammarComments.Buffer.Text += String.Format ("{0}Grammar assembly reloaded: {1:HH:mm:ss}", Environment.NewLine, DateTime.Now);
 				});
 			}
 		}
@@ -1044,57 +1074,12 @@ namespace Irony.GrammarExplorer
 		{
 			DoSearch ();
 		}
-		//		private void txtSearch_KeyPress(object sender, KeyPressEventArgs e) {
-		//			if (e.KeyChar == '\r')  // <Enter> key
-		//				DoSearch();
-		//		}
-		protected void OnTxtSearchActivated (object sender, EventArgs e)
-		{
-			//DoSearch ();
-		}
-		//		private void lnkShowErrLocation_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
-		//			if (_runtimeError != null)
-		//				ShowSourcePosition(_runtimeError.Location.Position, 1);
-		//		}
-		//		private void lnkShowErrStack_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
-		//			if (_runtimeError == null) return;
-		//			if (_runtimeError.InnerException != null)
-		//				fmShowException.ShowException(_runtimeError.InnerException);
-		//			else
-		//				fmShowException.ShowException(_runtimeError);
-		//		}
-		//		private void btnLocate_Click(object sender, EventArgs e) {
-		//			if (_parseTree == null)
-		//				ParseSample();
-		//			var p = txtSource.SelectionStart;
-		//			tvParseTree.SelectedNode = null; //just in case we won't find
-		//			tvAst.SelectedNode = null;
-		//			SelectTreeNode(tvParseTree, LocateTreeNode(tvParseTree.Nodes, p, node => (node.Tag as ParseTreeNode).Span.Location.Position));
-		//			SelectTreeNode(tvAst, LocateTreeNode(tvAst.Nodes, p, node => (node.Tag as IBrowsableAstNode).Position));
-		//			txtSource.Focus(); //set focus back to source
-		//		}
-		//		private TreeNode LocateTreeNode(TreeNodeCollection nodes, int position, Func<TreeNode, int> positionFunction) {
-		//			TreeNode current = null;
-		//			//Find the last node in the list that is "before or at" the position
-		//			foreach (TreeNode node in nodes) {
-		//				if (positionFunction(node) > position) break; //from loop
-		//				current = node;
-		//			}
-		//			//if current has children, search them
-		//			if (current != null && current.Nodes.Count > 0)
-		//				current = LocateTreeNode(current.Nodes, position, positionFunction) ?? current;
-		//			return current;
-		//		}
-		//
 
-		private void chkDisableHili_CheckedChanged(object sender, EventArgs e) {
-			if (!_loaded) return;
-			EnableHighlighter(!chkDisableHili.Active);
-		}
-
-		protected void OnBtnRunActivated (object sender, EventArgs e)
+		private void chkDisableHili_CheckedChanged (object sender, EventArgs e)
 		{
-//			throw new NotImplementedException ();
+			if (!_loaded)
+				return;
+			EnableHighlighter (!chkDisableHili.Active);
 		}
 
 		protected void OnDefaultActivated (object sender, EventArgs e)
@@ -1117,7 +1102,6 @@ namespace Irony.GrammarExplorer
 		{
 			this.Iconify ();
 		}
-
 
 		protected void OnOpenGrammarAssemblyActionActivated (object sender, EventArgs e)
 		{
@@ -1148,25 +1132,25 @@ namespace Irony.GrammarExplorer
 
 		protected void OnAboutIrontGrammarExplorerActionActivated (object sender, EventArgs e)
 		{
-			AboutDialog about = new AboutDialog();
+			AboutDialog about = new AboutDialog ();
 			about.Parent = this;
 			about.SetPosition (WindowPosition.CenterOnParent);
 			Assembly currentAssem = typeof(MainWindow).Assembly;
-			object[] attribs = currentAssem.GetCustomAttributes(typeof(AssemblyCompanyAttribute), true);
-			attribs = currentAssem.GetCustomAttributes(typeof(AssemblyDescriptionAttribute), true);
-			if(attribs.Length > 0)
-				about.ProgramName = ((AssemblyDescriptionAttribute)attribs[0]).Description;
-			attribs = currentAssem.GetCustomAttributes(typeof(AssemblyFileVersionAttribute), true);
-			if(attribs.Length > 0)
-				about.Version = ((AssemblyFileVersionAttribute)attribs[0]).Version;
+			object[] attribs = currentAssem.GetCustomAttributes (typeof(AssemblyCompanyAttribute), true);
+			attribs = currentAssem.GetCustomAttributes (typeof(AssemblyDescriptionAttribute), true);
+			if (attribs.Length > 0)
+				about.ProgramName = ((AssemblyDescriptionAttribute)attribs [0]).Description;
+			attribs = currentAssem.GetCustomAttributes (typeof(AssemblyFileVersionAttribute), true);
+			if (attribs.Length > 0)
+				about.Version = ((AssemblyFileVersionAttribute)attribs [0]).Version;
 			string[] authors = { "GtkSharp version by Robert Nees", "Original Windows.Forms Version by Roman Ivantsov" };
-			attribs = currentAssem.GetCustomAttributes(typeof(AssemblyCopyrightAttribute), true);
-			if(attribs.Length > 0)
-				about.Copyright = ((AssemblyCopyrightAttribute)attribs[0]).Copyright;
+			attribs = currentAssem.GetCustomAttributes (typeof(AssemblyCopyrightAttribute), true);
+			if (attribs.Length > 0)
+				about.Copyright = ((AssemblyCopyrightAttribute)attribs [0]).Copyright;
 			about.Authors = authors;
 			// Note: Link will only work when run from within App bundle on OS-X
 			about.Website = "http://irony.codeplex.com";
-			about.Response += (object o, ResponseArgs args) => about.Destroy();
+			about.Response += (object o, ResponseArgs args) => about.Destroy ();
 			about.Show ();
 		}
 
@@ -1176,7 +1160,8 @@ namespace Irony.GrammarExplorer
 			DoSearch ();
 		}
 
-		bool _InManageGrammarSelectiion = false; //hack, no context menu like winform, using a combobox instead.
+		bool _InManageGrammarSelectiion = false;
+		//hack, no context menu like winform, using a combobox instead.
 		// and need to ignore 'second' change event when clearing the selection after processing user's selection
 		protected void OnBtnManageGrammarsChanged (object sender, EventArgs e)
 		{
@@ -1188,8 +1173,8 @@ namespace Irony.GrammarExplorer
 					btnManageGrammars.GetActiveIter (out ti);
 					ListStore listStore = btnManageGrammars.Model as ListStore;
 					_manageGrammar = listStore.GetValue (ti, 0) as string;
-					Console.WriteLine(_manageGrammar);
-					(listStore.GetValue (ti, 1) as System.Action)();
+					Console.WriteLine (_manageGrammar);
+					(listStore.GetValue (ti, 1) as System.Action) ();
 				} finally {
 					btnManageGrammars.SetActiveIter (TreeIter.Zero);
 					_InManageGrammarSelectiion = false;
@@ -1199,14 +1184,113 @@ namespace Irony.GrammarExplorer
 
 		protected void OnTxtSearchEditingDone (object sender, EventArgs e)
 		{
-			DoSearch();
+			DoSearch ();
 		}
 
 		protected void OnBtnLocateClicked (object sender, EventArgs e)
 		{
-			throw new NotImplementedException ();
+			if (_parser != null) {
+				if (teEditor.IsSomethingSelected) {
+					if (_parseTree == null) {
+						ParseSample ();
+					}
+					TextSegment segment = teEditor.SelectionRange;
+
+					TreeIter ti = LocateTreeNode2 (tvParseTree, segment.Offset, segment.Length);
+					tvParseTree.CollapseAll ();
+					tvParseTree.ExpandToPath (_currentPath);
+					var treeselect = tvParseTree.Selection;
+					tvParseTree.SetCursor (_currentPath, tvParseTree.Columns [0], false);
+//					treeselect.SelectIter (ti);
+
+					// TODO Add tvAST selection steps
+					ti = LocateTreeNode2 (tvAST, segment.Offset, segment.Length);
+					tvAST.CollapseAll ();
+					tvAST.ExpandToPath (_currentPath);
+					treeselect = tvParseTree.Selection;
+					tvAST.SetCursor (_currentPath, tvAST.Columns [0], false);
+//					treeselect.SelectIter (ti);
+				}
+			}
+		}
+
+		protected void OnLnkShowErrStackClicked (object sender, EventArgs e)
+		{
+			if (_runtimeError != null) {
+				if (_runtimeError.InnerException != null) {
+					dlgShowException showExceptionDialog = new dlgShowException (_runtimeError.InnerException.ToString ());
+					showExceptionDialog.Response += (object o, ResponseArgs args) => showExceptionDialog.Destroy ();
+				} else {
+					dlgShowException showExceptionDialog = new dlgShowException (_runtimeError.ToString ());
+					showExceptionDialog.Response += (object o, ResponseArgs args) => showExceptionDialog.Destroy ();
+				}
+			}
+		}
+
+		protected void OnLnkShowErrLocationClicked (object sender, EventArgs e)
+		{
+			if (_runtimeError != null)
+				ShowSourcePosition (_runtimeError);
+		}
+
+		protected void OnTvParseTreeRowActivated (object o, RowActivatedArgs args)
+		{
+			TreeIter ti;
+			(tvParseTree.Model as TreeStore).GetIter (out ti, args.Path);
+			ParseTreeNode parseNode = (tvParseTree.Model as TreeStore).GetValue (ti, 1) as ParseTreeNode;
+			if (parseNode != null) {
+				ShowSourcePositionBySpan (parseNode.Span);
+			}
+		}
+
+		protected void OnTvASTRowActivated (object o, RowActivatedArgs args)
+		{
+			TreeIter ti;
+			(tvAST.Model as TreeStore).GetIter (out ti, args.Path);
+			Irony.Interpreter.Ast.AstNode astNode = (tvAST.Model as TreeStore).GetValue (ti, 1) as Irony.Interpreter.Ast.AstNode;
+			if (astNode != null) {
+				ShowSourcePositionBySpan (astNode.Span);
+			}
 		}
 
 		#endregion
+
+		TreeIter _currentNode;
+		TreePath _currentPath;
+		int _start;
+		int _end;
+
+		private bool ForEachTreeNode (Gtk.TreeModel model, Gtk.TreePath path, Gtk.TreeIter iter)
+		{
+			ParseTreeNode foo = model.GetValue (iter, 1) as ParseTreeNode;
+			if (foo == null)
+				return false;
+			Irony.Parsing.SourceSpan sSpan = foo.Span;
+			if (sSpan.Location.Position >= _start) 
+			{
+				if (_end == sSpan.Length) {
+					_currentNode = iter;
+					_currentPath = path.Copy ();
+					return true;
+				}
+			}
+			return false;
+		}
+
+		private TreeIter LocateTreeNode2 (TreeView tv, int start, int end)
+		{
+			// TODO Setup local delegate to remove need to global vars HACK
+			_currentNode = TreeIter.Zero;
+			_start = start;
+			_end = end;
+			tv.Model.Foreach (new TreeModelForeachFunc (ForEachTreeNode));
+			return _currentNode;
+		}
+
+		protected void OnGridParserTraceRowActivated (object o, RowActivatedArgs args)
+		{
+//			throw new NotImplementedException ();
+//			args.Column
+		}
 	}
 }

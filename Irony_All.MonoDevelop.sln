@@ -51,6 +51,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "015.Irony.Interpreter.2012"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "060.Irony.GrammarExplorer.GtkSharp", "Irony.GrammarExplorer.GtkSharp\060.Irony.GrammarExplorer.GtkSharp.csproj", "{C88876BB-90D0-4841-8C9C-6F227C151F58}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "021.Irony.SamplesMore.2012", "Irony.Samples_2\021.Irony.SamplesMore.2012.csproj", "{1C5F85DA-4065-40F1-93BD-95D16106CB71}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,10 @@ Global
 		{1A98BEDA-DF53-49B7-A366-2ED7606036BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1A98BEDA-DF53-49B7-A366-2ED7606036BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1A98BEDA-DF53-49B7-A366-2ED7606036BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C5F85DA-4065-40F1-93BD-95D16106CB71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C5F85DA-4065-40F1-93BD-95D16106CB71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C5F85DA-4065-40F1-93BD-95D16106CB71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C5F85DA-4065-40F1-93BD-95D16106CB71}.Release|Any CPU.Build.0 = Release|Any CPU
 		{321A7F5D-00C2-4095-9970-075CDEE8C139}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{321A7F5D-00C2-4095-9970-075CDEE8C139}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{321A7F5D-00C2-4095-9970-075CDEE8C139}.Release|Any CPU.ActiveCfg = Release|Any CPU

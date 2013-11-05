@@ -58,7 +58,7 @@
       </action>
       <action id="EnterFullScreenAction">
         <property name="Type">Action</property>
-        <property name="Accelerator">&lt;Control&gt;f</property>
+        <property name="Accelerator">&lt;Control&gt;function</property>
         <property name="Label" translatable="yes">Enter Full Screen</property>
         <property name="ShortLabel" translatable="yes">Enter Full Screen</property>
         <signal name="Activated" handler="OnEnterFullScreenActionActivated" />
@@ -232,8 +232,8 @@
                 <property name="CanFocus">True</property>
                 <property name="IsEditable">True</property>
                 <property name="InvisibleChar">●</property>
-                <signal name="Changed" handler="OnTxtSearchChanged" />
                 <signal name="EditingDone" handler="OnTxtSearchEditingDone" />
+                <signal name="Changed" handler="OnTxtSearchChanged" />
               </widget>
               <packing>
                 <property name="Position">8</property>
@@ -460,7 +460,6 @@
                         <child>
                           <widget class="Gtk.Button" id="btnLocate">
                             <property name="MemberName" />
-                            <property name="Sensitive">False</property>
                             <property name="CanFocus">True</property>
                             <property name="Type">TextOnly</property>
                             <property name="Label" translatable="yes">Locate &gt;&gt;</property>
@@ -512,7 +511,7 @@
                   <widget class="Gtk.Notebook" id="tabOutput">
                     <property name="MemberName" />
                     <property name="CanFocus">True</property>
-                    <property name="CurrentPage">0</property>
+                    <property name="CurrentPage">1</property>
                     <child>
                       <widget class="Gtk.ScrolledWindow" id="sWinParseTree">
                         <property name="MemberName" />
@@ -522,6 +521,8 @@
                             <property name="MemberName" />
                             <property name="CanFocus">True</property>
                             <property name="ShowScrollbars">True</property>
+                            <property name="SearchColumn">1</property>
+                            <signal name="RowActivated" handler="OnTvParseTreeRowActivated" />
                           </widget>
                         </child>
                       </widget>
@@ -544,6 +545,7 @@
                             <property name="MemberName" />
                             <property name="CanFocus">True</property>
                             <property name="ShowScrollbars">True</property>
+                            <signal name="RowActivated" handler="OnTvASTRowActivated" />
                           </widget>
                         </child>
                       </widget>
@@ -590,7 +592,7 @@
           <widget class="Gtk.Notebook" id="tabBottom">
             <property name="MemberName" />
             <property name="CanFocus">True</property>
-            <property name="CurrentPage">0</property>
+            <property name="CurrentPage">3</property>
             <property name="BorderWidth">5</property>
             <child>
               <widget class="Gtk.VBox" id="vbox7">
@@ -1284,9 +1286,7 @@
                             <property name="WidthRequest">700</property>
                             <property name="CanFocus">True</property>
                             <property name="ShowScrollbars">True</property>
-                            <property name="Reorderable">True</property>
-                            <property name="HoverSelection">True</property>
-                            <property name="HoverExpand">True</property>
+                            <signal name="RowActivated" handler="OnGridParserTraceRowActivated" />
                           </widget>
                         </child>
                       </widget>
@@ -1513,6 +1513,7 @@
                                         <property name="Label" translatable="yes">Show error location</property>
                                         <property name="UseUnderline">True</property>
                                         <property name="Relief">Half</property>
+                                        <signal name="Clicked" handler="OnLnkShowErrLocationClicked" />
                                       </widget>
                                       <packing>
                                         <property name="Position">2</property>
@@ -1530,6 +1531,7 @@
                                         <property name="Label" translatable="yes">Show full stack</property>
                                         <property name="UseUnderline">True</property>
                                         <property name="Relief">Half</property>
+                                        <signal name="Clicked" handler="OnLnkShowErrStackClicked" />
                                       </widget>
                                       <packing>
                                         <property name="Position">3</property>

@@ -121,7 +121,7 @@ namespace Irony.GrammerExplorer
 		}
 
 		GrammarItemList _result = new GrammarItemList();
-		private bool ForEachSelectedGrammar(Gtk.TreeModel model, Gtk.TreePath path, Gtk.TreeIter iter) 
+		private bool ForEachSelectedGrammar(TreeModel model, TreePath path, TreeIter iter) 
 		{
 			ListStore listStore = model as ListStore;
 			bool _checked = (bool) listStore.GetValue (iter, 0);
@@ -148,8 +148,8 @@ namespace Irony.GrammerExplorer
 			this.Destroy ();
 		}
 
-		private bool _toggleState; 
-		private bool ForEachToggleGrammar(Gtk.TreeModel model, Gtk.TreePath path, Gtk.TreeIter iter) 
+		bool _toggleState; 
+		private bool ForEachToggleGrammar(TreeModel model, TreePath path, TreeIter iter) 
 		{
 			ListStore listStore = model as ListStore;
 			listStore.SetValue (iter, 0, _toggleState);
