@@ -1,0 +1,73 @@
+<!--
+
+-->
+<SyntaxMode name="Irony" mimeTypes="text/x-irony">
+	<Property name="LineComment">//</Property>
+	<Property name="BlockCommentStart">/*</Property>
+	<Property name="BlockCommentEnd">*/</Property>
+	<EolSpan color="Comment(Line)" rule="Comment" tagColor="Comment(Line)">//</EolSpan>
+	<Span color="Comment(Block)" rule="Comment" tagColor="Comment(Line)">
+		<Begin>/*</Begin>
+		<End>*/</End>
+	</Span>
+	<EolSpan color="Preprocessor" rule="token">%token</EolSpan>
+	<EolSpan color="Preprocessor" rule="token">%nonassoc</EolSpan>
+	<EolSpan color="Preprocessor" rule="token">%left</EolSpan>
+	<EolSpan color="Preprocessor" rule="token">%right</EolSpan>
+	<EolSpan color="Preprocessor" rule="token">%start</EolSpan>
+	<EolSpan color="Preprocessor" rule="token">%%</EolSpan>
+
+	<Keywords color = "Keyword(Other)">
+		<Word></Word>
+	</Keywords>
+	
+	<Rule name="Comment">
+		<Keywords color="Comment Tag" ignorecase="True">
+			<Word>TODO</Word>
+			<Word>FIXME</Word>
+			<Word>HACK</Word>
+			<Word>UNDONE</Word>
+			<Word>SUSHI</Word>
+		</Keywords>
+	</Rule>
+	<Rule name = "text.preprocessor" ignorecase="True">
+		
+		<Keywords color = "Keyword(Constants)">
+			<Word>true</Word>
+			<Word>false</Word>
+		</Keywords>
+		
+		<Keywords color = "Punctuation">
+			<Word>==</Word>
+			<Word>!=</Word>
+			<Word>!</Word>
+			<Word>&amp;&amp;</Word>
+			<Word>||</Word>
+		</Keywords>
+	
+		<Keywords color = "Punctuation(Brackets)">
+			<Word>(</Word>
+			<Word>)</Word>
+		</Keywords>
+
+			<Keywords color="Keyword(Other)">
+		<Word>checked</Word>
+		<Word>unchecked</Word>
+		<Word>fixed</Word>
+		<Word>unsafe</Word>
+		<Word>sushi</Word>
+	</Keywords>
+
+
+		<EolSpan color = "Comment(Doc)" rule="XmlDocumentation" tagColor="Comment(DocTag)">///</EolSpan>
+		<EolSpan color = "Comment(Line)" rule="Comment" tagColor="Comment(Line)">//</EolSpan>
+	</Rule>
+
+	<Rule name="token">
+		<EolSpan color="Comment(Line)" rule="Comment" tagColor="Comment(Line)">//</EolSpan>
+		<Span color="Comment(Block)" rule="Comment" tagColor="Comment(Line)">
+			<Begin>/*</Begin>
+			<End>*/</End>
+		</Span>
+	</Rule>
+</SyntaxMode>

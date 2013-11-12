@@ -63,6 +63,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="MonoEditorHighlighting\MonoEditorSyntaxMode.xml">
+      <LogicalName>IronySyntaxMode</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="gtk-gui\generated.cs" />
@@ -84,6 +87,10 @@
     <Compile Include="gtk-gui\Irony.GrammerExplorer.dlgShowException.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="OSX\IgeMacMenuGlobal.cs" />
+    <Compile Include="wdgCellTable.cs" />
+    <Compile Include="gtk-gui\Irony.GrammerExplorer.wdgCellTable.cs" />
+    <Compile Include="MonoEditorHighlighting\IronySyntaxMode.cs" />
+    <Compile Include="MonoEditorHighlighting\SemanticRule.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -102,11 +109,9 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <None Include="Properties\app.config" />
-    <None Include="Mono.TextEditor\ICSharpCode.NRefactory.dll" />
-    <None Include="Mono.TextEditor\Mono.TextEditor.dll" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="OSX\" />
-    <Folder Include="Mono.TextEditor\" />
+    <Folder Include="MonoEditorHighlighting\" />
   </ItemGroup>
 </Project>
