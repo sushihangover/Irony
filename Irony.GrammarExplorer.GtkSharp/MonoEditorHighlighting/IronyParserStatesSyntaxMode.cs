@@ -1,3 +1,12 @@
+/* **********************************************************************************
+ * Copyright (c) Robert Nees (https://github.com/sushihangover/Irony)
+ * This source code is subject to terms and conditions of the MIT License
+ * for Irony. A copy of the license can be found in the License.txt file
+ * at the root of this distribution.
+ * By using this source code in any fashion, you are agreeing to be bound by the terms of the
+ * MIT License.
+ * You must not remove this notice from this software.
+ * **********************************************************************************/
 using System;
 using System.Linq;
 using System.Resources;
@@ -6,50 +15,35 @@ using System.Collections.Generic;
 using Mono.TextEditor.Highlighting;
 using Mono.TextEditor;
 using System.Xml;
+using Irony.GrammarExplorer;
+using Irony.GrammerExplorer;
+using Gtk;
 
 namespace Irony.GrammarExplorer
 {
-	public class IronySyntaxMode : SyntaxMode
+	public class IronyParserStatesSyntaxMode : SyntaxMode
 	{
-		public IronySyntaxMode (TextDocument doc) : base (doc)
+		public IronyParserStatesSyntaxMode (TextDocument doc) : base (doc)
 		{
-			ResourceStreamProvider provider = new ResourceStreamProvider (Assembly.GetExecutingAssembly(), "IronySyntaxMode");
-			//ResourceStreamProvider provider = new ResourceStreamProvider (typeof(IStreamProvider).Assembly, typeof(IStreamProvider).Assembly.GetManifestResourceNames ().First (s => s.Contains ("IronySyntaxMode")));
-			//			System.IO.Stream ressourceStream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream( "SyntaxMode" );
-
+			ResourceStreamProvider provider = new ResourceStreamProvider (Assembly.GetExecutingAssembly(), "Irony.ParserStates");
 			using (var stream = provider.Open ()) {
-				SyntaxMode baseMode = SyntaxMode.Read (stream);
-				this.rules = new List<Rule> (baseMode.Rules);
-
-				this.keywords = new List<Keywords> (baseMode.Keywords);
-
-				//this.keywords = new List<Keywords> (baseMode.Keywords);
-				this.spans = new List<Span> (baseMode.Spans).ToArray ();
-				this.matches = baseMode.Matches;
-				this.prevMarker = baseMode.PrevMarker;
-				this.SemanticRules = new List<SemanticRule> (baseMode.SemanticRules);
-				this.keywordTable = baseMode.keywordTable;
-				this.keywordTableIgnoreCase = baseMode.keywordTableIgnoreCase;
-				this.properties = baseMode.Properties;
+				try {
+					SyntaxMode baseMode = SyntaxMode.Read (stream);
+					this.rules = new List<Rule> (baseMode.Rules);
+					this.keywords = new List<Keywords> (baseMode.Keywords);
+					this.spans = new List<Span> (baseMode.Spans).ToArray ();
+					this.matches = baseMode.Matches;
+					this.prevMarker = baseMode.PrevMarker;
+					this.SemanticRules = new List<SemanticRule> (baseMode.SemanticRules);
+					this.keywordTable = baseMode.keywordTable;
+					this.keywordTableIgnoreCase = baseMode.keywordTableIgnoreCase;
+					this.properties = baseMode.Properties;
+				} catch {
+					// Resource does not exist or is corrupt
+					dlgShowException showExceptionDialog = new dlgShowException ("Irony Parser States Syntax Resource does not exist or is corrupt");
+					showExceptionDialog.Response += (object o, ResponseArgs args) => showExceptionDialog.Destroy ();
+				}
 			}
-		}
-
-		public void AddKeywords ()
-		{
-			string[] input = { "Brachiosaurus", 
-				"Amargasaurus", 
-				"Mamenchisaurus", 
-				"yabba"
-			};
-			var keys = new Mono.TextEditor.Highlighting.Keywords ();
-			keys.Words = input;
-			keys.Color = "Keyword(Other)";
-			this.keywords.Add (keys);
-
-			this.keywordTable.Add (input [0], keys);
-			this.keywordTable.Add (input [1], keys);
-			this.keywordTable.Add (input [2], keys);
-			this.keywordTable.Add (input [3], keys);
 		}
 
 		public override SpanParser CreateSpanParser (DocumentLine line, CloneableStack<Span> spanStack)

@@ -22,6 +22,7 @@ using System.Reflection;
 using Irony.Parsing;
 using System.IO;
 using System.Threading;
+using Pinta.Core;
 
 namespace Irony.GrammarExplorer
 {
@@ -156,20 +157,21 @@ namespace Irony.GrammarExplorer
 			// https://bugzilla.novell.com/show_bug.cgi?id=428270
 			// This bug has been open since 2008 with as a P5, thus it will never be fixed, still broken up to 10.9
 			if ((int)Environment.OSVersion.Platform == 6 || (int)Environment.OSVersion.Platform == 4 ) {
-				// Why does mono report OS-X as 4 (unix/linux) vs. 6?, well, look it up in the mono bugs and you get the dumest answer:
-				//<Quote> Originally .NET had no enum value for OSX and we returned Unix.
-				//The, when it was introduced by microsoft, we tried to switch to the new
-				//value
-				//but too much stuff broke. We never tried again ever since a couple of years
-				//ago. </Quote>
-				if (OpenTK.Configuration.RunningOnMacOS) {
+				// Why does mono report OS-X as 4 (unix/linux) vs. 6 (OSX)?, well, look it up in the mono bugs 
+				// and you get the dumbest answer written by a developer:
+				//<Quote> 
+				//  Originally .NET had no enum value for OSX and we returned Unix.
+				//  Than when it was introduced by microsoft, we tried to switch to the new value
+				//  but too much stuff broke. We never tried again ever since a couple of years ago.
+				// </Quote>
+				if (SystemManager.GetOperatingSystem() == OS.Mac) {
+					// It seems that watching ALL file changes in a dir will work under OS-X 10.7 - 10.9(+?), if we where using 
+					// MonoMac then the native FSEvent could be used... maybe in a future version
+					// please report any issues about other versions of OS-X or Linux
 					watcher.Filter = "*";
 				} else {
 					watcher.Filter = Path.GetFileName (location);
 				}
-				// It seems that watching ALL file changes in a dir will work under OS-X 10.8.5, if we where using 
-				// MonoMac then the natvie FSEvent could be used... please report any issues about other versions of OS-X 
-				// or Linux
 			} else {
 				// All other OSs (well, Windows) can watch just the actual assembly
 				watcher.Filter = Path.GetFileName (location);

@@ -1,0 +1,102 @@
+<!-- 
+/* **********************************************************************************
+ * Copyright (c) Robert Nees (https://github.com/sushihangover/Irony)
+ * This source code is subject to terms and conditions of the MIT License
+ * for Irony. A copy of the license can be found in the License.txt file
+ * at the root of this distribution.
+ * By using this source code in any fashion, you are agreeing to be bound by the terms of the
+ * MIT License.
+ * You must not remove this notice from this software.
+ * **********************************************************************************/
+ -->
+ 
+<SyntaxMode name = "Irony.SyntaxModes" mimeTypes="text/x-irony">
+	<Property name="LineComment">//</Property>
+	<Property name="BlockCommentStart">/*</Property>
+	<Property name="BlockCommentEnd">*/</Property>
+	<Property name="StringQuote">"</Property>
+	<Property name="StringQuote">'</Property>
+	
+	<EolSpan tagColor = "Preprocessor" rule="text.preprocessor">#if</EolSpan>
+	<EolSpan tagColor = "Preprocessor" rule="text.preprocessor.empty">#else</EolSpan>
+	<EolSpan tagColor = "Preprocessor" rule="text.preprocessor">#elif</EolSpan>
+	<EolSpan tagColor = "Preprocessor" rule="text.preprocessor.empty">#endif</EolSpan>
+	<EolSpan tagColor = "Preprocessor" rule="text.preprocessor.empty">#define</EolSpan>
+	<EolSpan tagColor = "Preprocessor" rule="text.preprocessor.empty">#undef</EolSpan>
+	<EolSpan tagColor = "Preprocessor" rule="text.preprocessor.empty">#warning</EolSpan>
+	<EolSpan tagColor = "Preprocessor" rule="text.preprocessor.empty">#error</EolSpan>
+	<EolSpan tagColor = "Preprocessor" rule="text.preprocessor.line">#line</EolSpan>
+	<EolSpan tagColor = "Preprocessor" color = "Preprocessor(Region Name)" rule="text.preprocessor.empty">#region</EolSpan>
+	<EolSpan tagColor = "Preprocessor" rule="text.preprocessor.empty">#endregion</EolSpan>
+	<EolSpan tagColor = "Preprocessor" rule="text.preprocessor.empty">#pragma</EolSpan>
+	
+	<EolSpan color = "Comment(Doc)" rule="XmlDocumentation" tagColor="Comment(DocTag)">///</EolSpan>
+	<EolSpan color = "Comment(Line)" rule="Comment" tagColor="Comment(Line)">//</EolSpan>
+
+	<Match color = "Number">CSharpNumber</Match>
+
+	<Keywords color = "Keyword(Access)">
+		<Word></Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Operator)">
+		<Word></Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Selection)">
+		<Word></Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Iteration)">
+		<Word></Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Jump)">
+		<Word></Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Context)">
+		<Word></Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Exception)">
+		<Word></Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Constants)">
+		<Word></Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Modifiers)">
+		<Word></Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Type)">
+		<Word></Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Void)">
+		<Word></Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Namespace)">
+		<Word></Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Property)">
+		<Word></Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Declaration)">
+		<Word>SushiHangover</Word>
+	</Keywords>
+	
+	<Keywords color = "Keyword(Parameter)">
+		<Word>SushiHangover2</Word>
+	</Keywords>
+
+	<Keywords color = "Keyword(Operator Declaration)">
+		<Word>SushiHangover</Word>
+	</Keywords>
+
+</SyntaxMode>

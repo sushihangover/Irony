@@ -6,7 +6,6 @@
  * at the root of this distribution.
  * By using this source code in any fashion, you are agreeing to be bound by the terms of the
  * MIT License.
- * You must not remove this notice from this software.
  * 
  * Originally posted on multiple web blogs, moved to Github, then Gnome, but Gtk3+ has deperecated
  * this approuch and moved on to GtkOSXApplication. Since MonoDevelop/GtkSharp is stuck on Gtk 2.1.2
@@ -14,6 +13,8 @@
  * Carbon->Cocco mapping, at which time the earth will explode.
  * A good blog post of IgeMacMenu usage is at:
  * http://mjhutchinson.com/journal/2010/01/25/integrating_gtk_application_mac
+ * 
+ * You must not remove this notice from this software.
  * **********************************************************************************/
 #endregion
 using System;

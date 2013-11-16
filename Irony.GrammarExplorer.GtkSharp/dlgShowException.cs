@@ -8,7 +8,6 @@
  * MIT License.
  * You must not remove this notice from this software.
  * **********************************************************************************/
-//Original Windows.Forms Version by Roman Ivantsov
 #endregion
 using Gtk;
 using System;

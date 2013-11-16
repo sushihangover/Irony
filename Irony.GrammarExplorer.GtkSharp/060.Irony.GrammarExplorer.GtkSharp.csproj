@@ -53,6 +53,10 @@
     <Reference Include="ICSharpCode.NRefactory">
       <HintPath>..\..\..\..\..\..\..\Applications\Xamarin Studio.app\Contents\MacOS\lib\monodevelop\bin\ICSharpCode.NRefactory.dll</HintPath>
     </Reference>
+    <Reference Include="Mono.Cairo" />
+    <Reference Include="Mono.Addins, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="gtk-gui\gui.stetic">
@@ -63,15 +67,17 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="MonoEditorHighlighting\MonoEditorSyntaxMode.xml">
-      <LogicalName>IronySyntaxMode</LogicalName>
+    <EmbeddedResource Include="MonoEditorHighlighting\IronyParserStatesSyntaxMode.xml">
+      <LogicalName>Irony.ParserStates</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MonoEditorHighlighting\IronySyntaxModel.xml">
+      <LogicalName>Irony.SyntaxMode</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="gtk-gui\generated.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="frmGrammerExplorer.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <DependentUpon>..\..\Irony.GrammarExplorer\Properties\Resources.resx</DependentUpon>
     </Compile>
@@ -85,12 +91,16 @@
     <Compile Include="gtk-gui\Irony.GrammerExplorer.dlgSelectGrammars.cs" />
     <Compile Include="dlgShowException.cs" />
     <Compile Include="gtk-gui\Irony.GrammerExplorer.dlgShowException.cs" />
-    <Compile Include="Configuration.cs" />
+    <Compile Include="Widgets\BoxCellRenderer.cs" />
+    <Compile Include="Widgets\CairoHelper.cs" />
+    <Compile Include="Widgets\GridView.cs" />
+    <Compile Include="Widgets\ICairoCellRenderer.cs" />
+    <Compile Include="Widgets\TextCellRenderer.cs" />
+    <Compile Include="MonoEditorHighlighting\IronyParserStatesSyntaxMode.cs" />
+    <Compile Include="MonoEditorHighlighting\IronySyntaxModel.cs" />
+    <Compile Include="OSX\SystemManager.cs" />
     <Compile Include="OSX\IgeMacMenuGlobal.cs" />
-    <Compile Include="wdgCellTable.cs" />
-    <Compile Include="gtk-gui\Irony.GrammerExplorer.wdgCellTable.cs" />
-    <Compile Include="MonoEditorHighlighting\IronySyntaxMode.cs" />
-    <Compile Include="MonoEditorHighlighting\SemanticRule.cs" />
+    <Compile Include="frmGrammarExplorer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -113,5 +123,6 @@
   <ItemGroup>
     <Folder Include="OSX\" />
     <Folder Include="MonoEditorHighlighting\" />
+    <Folder Include="Widgets\" />
   </ItemGroup>
 </Project>
