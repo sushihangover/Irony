@@ -135,6 +135,7 @@ namespace Irony.GrammarExplorer
 			this.IronyGrammarExplorerAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Irony Grammar Explorer");
 			w1.Add (this.IronyGrammarExplorerAction, null);
 			this.QuitAction = new global::Gtk.Action ("QuitAction", global::Mono.Unix.Catalog.GetString ("Quit"), null, null);
+			this.QuitAction.IsImportant = true;
 			this.QuitAction.ShortLabel = global::Mono.Unix.Catalog.GetString ("Quit");
 			w1.Add (this.QuitAction, "<Control>q");
 			this.AboutIrontGrammarExplorerAction = new global::Gtk.Action ("AboutIrontGrammarExplorerAction", global::Mono.Unix.Catalog.GetString ("About Iront Grammar Explorer"), null, null);
@@ -426,7 +427,7 @@ namespace Irony.GrammarExplorer
 			this.tabOutput = new global::Gtk.Notebook ();
 			this.tabOutput.CanFocus = true;
 			this.tabOutput.Name = "tabOutput";
-			this.tabOutput.CurrentPage = 1;
+			this.tabOutput.CurrentPage = 0;
 			// Container child tabOutput.Gtk.Notebook+NotebookChild
 			this.sWinParseTree = new global::Gtk.ScrolledWindow ();
 			this.sWinParseTree.Name = "sWinParseTree";

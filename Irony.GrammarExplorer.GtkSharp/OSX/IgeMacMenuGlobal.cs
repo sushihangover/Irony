@@ -54,7 +54,7 @@ namespace IgeMacIntegration {
 		[DllImport("libigemacintegration.dylib")]
 		static extern void ige_mac_menu_set_quit_menu_item(IntPtr quit_item);
 
-		public static Gtk.MenuItem QuitMenuItem { 
+		public static Gtk.Action QuitMenuItem { 
 			set {
 				ige_mac_menu_set_quit_menu_item(value == null ? IntPtr.Zero : value.Handle);
 			}

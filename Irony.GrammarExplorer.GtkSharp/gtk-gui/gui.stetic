@@ -9,6 +9,13 @@
     <widget-library name="../../../../../../../../Applications/Xamarin Studio.app/Contents/MacOS/lib/monodevelop/bin/Mono.TextEditor.dll" />
     <widget-library name="../bin/Debug/Irony.GrammarExplorer.GtkSharp.exe" internal="true" />
   </import>
+  <icon-factory>
+    <icon-set id="IronyIcon">
+      <source>
+        <property name="Image">resource:Irony.GrammerExplorer.Icons.IronyLogo.ico</property>
+      </source>
+    </icon-set>
+  </icon-factory>
   <widget class="Gtk.Window" id="Irony.GrammarExplorer.MainWindow" design-size="1228 736">
     <action-group name="Default">
       <action id="IronyGrammarExplorerAction">
@@ -19,9 +26,10 @@
       <action id="QuitAction">
         <property name="Type">Action</property>
         <property name="Accelerator">&lt;Control&gt;q</property>
+        <property name="IsImportant">True</property>
         <property name="Label" translatable="yes">Quit</property>
         <property name="ShortLabel" translatable="yes">Quit</property>
-        <signal name="Activated" handler="OnQuitActionActivated" />
+        <signal name="Activated" handler="OnQuitActionActivated" after="yes" />
       </action>
       <action id="AboutIrontGrammarExplorerAction">
         <property name="Type">Action</property>
@@ -510,7 +518,7 @@
                   <widget class="Gtk.Notebook" id="tabOutput">
                     <property name="MemberName" />
                     <property name="CanFocus">True</property>
-                    <property name="CurrentPage">1</property>
+                    <property name="CurrentPage">0</property>
                     <child>
                       <widget class="Gtk.ScrolledWindow" id="sWinParseTree">
                         <property name="MemberName" />

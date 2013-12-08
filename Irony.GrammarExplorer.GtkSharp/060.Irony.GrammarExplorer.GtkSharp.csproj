@@ -21,9 +21,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <ConsolePause>false</ConsolePause>
     <LangVersion>5</LangVersion>
     <PlatformTarget>x64</PlatformTarget>
+    <ConsolePause>false</ConsolePause>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <Optimize>true</Optimize>
@@ -37,25 +37,21 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="Mono.Posix" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Drawing" />
     <Reference Include="gtk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <Reference Include="gdk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <Reference Include="glib-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
-    <Reference Include="pango-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <Reference Include="atk-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <Reference Include="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <Reference Include="System.Data" />
+    <Reference Include="Mono.Cairo" />
+    <Reference Include="Mono.Posix" />
     <Reference Include="Mono.TextEditor">
       <HintPath>..\..\..\..\..\..\..\Applications\Xamarin Studio.app\Contents\MacOS\lib\monodevelop\bin\Mono.TextEditor.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.NRefactory">
-      <HintPath>..\..\..\..\..\..\..\Applications\Xamarin Studio.app\Contents\MacOS\lib\monodevelop\bin\ICSharpCode.NRefactory.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cairo" />
-    <Reference Include="Mono.Addins, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
-      <Private>False</Private>
+      <HintPath>Externals\ICSharpCode.NRefactory.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -72,6 +68,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="MonoEditorHighlighting\IronySyntaxModel.xml">
       <LogicalName>Irony.SyntaxMode</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Icons\IronyLogo.ico">
+      <DeployService-UseProjectRelativePath>True</DeployService-UseProjectRelativePath>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -119,10 +118,78 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <None Include="Properties\app.config" />
+    <None Include="Icons\IronyLogo_512x512x32.png" />
+    <None Include="Externals\ICSharpCode.NRefactory.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\Mono.TextEditor.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\ICSharpCode.NRefactory.CSharp.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\ICSharpCode.NRefactory.Cecil.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\ICSharpCode.NRefactory.IKVM.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\Xwt.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\Xwt.Gtk.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\README.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\ICSharpCode.NRefactory.Cecil.dll.mdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\ICSharpCode.NRefactory.CSharp.dll.mdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\ICSharpCode.NRefactory.dll.mdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\ICSharpCode.NRefactory.IKVM.dll.mdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\Mono.TextEditor.dll.mdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\Xwt.dll.mdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Externals\Xwt.Gtk.dll.mdb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="OSX\" />
     <Folder Include="MonoEditorHighlighting\" />
     <Folder Include="Widgets\" />
+    <Folder Include="Icons\" />
+    <Folder Include="Externals\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Icons\IronyLogo.icns">
+      <DeployService-UseProjectRelativePath>True</DeployService-UseProjectRelativePath>
+    </Content>
   </ItemGroup>
 </Project>

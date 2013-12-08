@@ -30,7 +30,6 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Runtime.InteropServices;
-using Mono.Addins;
 using Gtk;
 
 namespace Pinta.Core
@@ -39,26 +38,10 @@ namespace Pinta.Core
 	{
 		private static OS operating_system;
 
-		private string last_dialog_directory;
-		private RecentData recent_data;
-
-//		public ImageConverterManager ImageFormats { get; private set; }
-//		public FontManager Fonts { get; private set; }
-		public int RenderThreads { get; set; }
 		public OS OperatingSystem { get { return operating_system; } }
 
 		public SystemManager ()
 		{
-//			ImageFormats = new ImageConverterManager ();
-			RenderThreads = Environment.ProcessorCount;
-//			Fonts = new FontManager ();
-
-			last_dialog_directory = DefaultDialogDirectory;
-
-			recent_data = new RecentData ();
-			recent_data.AppName = "Irony.GrammarExplorer.GtkSharp";
-			recent_data.AppExec = GetExecutablePathName ();
-//			recent_data.MimeType = "image/*";
 		}
 
 		static SystemManager ()
@@ -72,48 +55,12 @@ namespace Pinta.Core
 			else
 				operating_system = OS.Other;
 		}
-
-		#region Public Properties
-		public string LastDialogDirectory {
-			get { return last_dialog_directory; }
-			set { last_dialog_directory = value; }
-		}
-
-		public string DefaultDialogDirectory {
-			get { return System.Environment.GetFolderPath (Environment.SpecialFolder.MyPictures); }
-		}
-
-		public RecentData RecentData { get { return recent_data; } }
-		#endregion
-
-		/// <summary>
-		/// Returns a directory for use in a dialog. The last dialog directory is
-		/// returned if it exists, otherwise the default directory is used.
-		/// </summary>
-		public string GetDialogDirectory ()
-		{
-			return Directory.Exists (LastDialogDirectory) ? LastDialogDirectory : DefaultDialogDirectory;
-		}
-
-		public string GetExecutablePathName ()
-		{
-			string executablePathName = System.Environment.GetCommandLineArgs ()[0];
-			executablePathName = System.IO.Path.GetFullPath (executablePathName);
-
-			return executablePathName;
-		}
-
+			
 		public static OS GetOperatingSystem ()
 		{
 			return operating_system;
 		}
-
-		public T[] GetExtensions<T> ()
-		{
-			return AddinManager.GetExtensionObjects<T> ();
-		}
-
-		//From Managed.Windows.Forms/XplatUI
+			
 		[DllImport ("libc")]
 		static extern int uname (IntPtr buf);
 

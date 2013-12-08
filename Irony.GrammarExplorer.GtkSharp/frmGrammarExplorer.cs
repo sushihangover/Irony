@@ -137,7 +137,7 @@ namespace Irony.GrammarExplorer
 				IgeMacMenu.GlobalKeyHandlerEnabled = true;
 				IgeMacMenu.MenuBar = mbExplorer;
 				// TOOD Fix the quit action via menu to call proper event so user.config is updated 
-//				IgeMacMenu.QuitMenuItem = QuitAction;
+				IgeMacMenu.QuitMenuItem = QuitAction;
 			}
 		}
 
@@ -1037,6 +1037,7 @@ namespace Irony.GrammarExplorer
 
 		protected void OnQuitActionActivated (object sender, EventArgs e)
 		{
+			fmExploreGrammarWindowClosing ();
 			Application.Quit ();
 		}
 
@@ -1098,12 +1099,9 @@ namespace Irony.GrammarExplorer
 			if (!_InManageGrammarSelectiion) {
 				_InManageGrammarSelectiion = true;
 				try {
-					string _manageGrammar;
 					TreeIter ti;
 					btnManageGrammars.GetActiveIter (out ti);
 					ListStore listStore = btnManageGrammars.Model as ListStore;
-					_manageGrammar = listStore.GetValue (ti, 0) as string;
-					Console.WriteLine (_manageGrammar);
 					(listStore.GetValue (ti, 1) as System.Action) ();
 				} finally {
 					btnManageGrammars.SetActiveIter (TreeIter.Zero);
@@ -1132,12 +1130,14 @@ namespace Irony.GrammarExplorer
 
 		protected void OnBtnLocateClicked (object sender, EventArgs e)
 		{
-			if (_parser != null) {
-				if (_teEditor.IsSomethingSelected) {
-					if (_parseTree == null) {
-						ParseSample ();
+			if (!_TreeSelectionChanging) {
+				if (_parser != null) {
+					if (_teEditor.IsSomethingSelected) {
+						if (_parseTree == null) {
+							ParseSample ();
+						}
+						LocateTreeNodes (_teEditor.SelectionRange);
 					}
-					LocateTreeNodes (_teEditor.SelectionRange);
 				}
 			}
 		}
@@ -1165,7 +1165,7 @@ namespace Irony.GrammarExplorer
 		protected void OnTvParseTreeRowActivated (object o, RowActivatedArgs args)
 		{
 			try {
-				_TreeSelectionChanging = false;
+				_TreeSelectionChanging = true;
 				TreeIter ti;
 				(tvParseTree.Model as TreeStore).GetIter (out ti, args.Path);
 				ParseTreeNode parseNode = (tvParseTree.Model as TreeStore).GetValue (ti, 1) as ParseTreeNode;
