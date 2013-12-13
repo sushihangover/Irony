@@ -6,7 +6,8 @@
   </configuration>
   <import>
     <widget-library name="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
-    <widget-library name="../../../../../../../../Applications/Xamarin Studio.app/Contents/MacOS/lib/monodevelop/bin/Mono.TextEditor.dll" />
+    <widget-library name="../Externals/Mono.TextEditor.dll" />
+    <widget-library name="../Externals/Xwt.Gtk.dll" />
     <widget-library name="../bin/Debug/Irony.GrammarExplorer.GtkSharp.exe" internal="true" />
   </import>
   <icon-factory>

@@ -48,10 +48,16 @@
     <Reference Include="Mono.Cairo" />
     <Reference Include="Mono.Posix" />
     <Reference Include="Mono.TextEditor">
-      <HintPath>..\..\..\..\..\..\..\Applications\Xamarin Studio.app\Contents\MacOS\lib\monodevelop\bin\Mono.TextEditor.dll</HintPath>
+      <HintPath>Externals\Mono.TextEditor.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.NRefactory">
       <HintPath>Externals\ICSharpCode.NRefactory.dll</HintPath>
+    </Reference>
+    <Reference Include="Xwt.Gtk">
+      <HintPath>Externals\Xwt.Gtk.dll</HintPath>
+    </Reference>
+    <Reference Include="Xwt">
+      <HintPath>Externals\Xwt.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -120,64 +126,35 @@
     <None Include="Properties\app.config" />
     <None Include="Icons\IronyLogo_512x512x32.png" />
     <None Include="Externals\ICSharpCode.NRefactory.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
     </None>
     <None Include="Externals\Mono.TextEditor.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
-    </None>
-    <None Include="Externals\ICSharpCode.NRefactory.CSharp.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
-    </None>
-    <None Include="Externals\ICSharpCode.NRefactory.Cecil.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
-    </None>
-    <None Include="Externals\ICSharpCode.NRefactory.IKVM.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
     </None>
     <None Include="Externals\Xwt.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
     </None>
     <None Include="Externals\Xwt.Gtk.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
     </None>
     <None Include="Externals\README.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
-    </None>
-    <None Include="Externals\ICSharpCode.NRefactory.Cecil.dll.mdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
-    </None>
-    <None Include="Externals\ICSharpCode.NRefactory.CSharp.dll.mdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
     </None>
     <None Include="Externals\ICSharpCode.NRefactory.dll.mdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
-    </None>
-    <None Include="Externals\ICSharpCode.NRefactory.IKVM.dll.mdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
     </None>
     <None Include="Externals\Mono.TextEditor.dll.mdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
     </None>
     <None Include="Externals\Xwt.dll.mdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
     </None>
     <None Include="Externals\Xwt.Gtk.dll.mdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+    </None>
+    <None Include="Mono.TextEditor.dll.config">
+      <Gettext-ScanForTranslations>False</Gettext-ScanForTranslations>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
