@@ -12,21 +12,12 @@
 //with Windows.Form contributions by Andrew Bradnan and Alexey Yakovlev
 #endregion
 using Gtk;
-using Gdk;
-using GLib;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Text;
 using System.Diagnostics;
 using System.IO;
-using System.Configuration;
 using System.Text.RegularExpressions;
-using System.Xml;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Linq;
 using Mono.TextEditor;
 using Mono.TextEditor.Highlighting;
@@ -35,7 +26,7 @@ using Pinta.Core;
 using IgeMacIntegration;
 using Irony.Ast;
 using Irony.Parsing;
-using Irony.GrammerExplorer;
+using Irony.GrammarExplorer;
 using Irony.Interpreter;
 
 namespace Irony.GrammarExplorer
@@ -217,7 +208,7 @@ namespace Irony.GrammarExplorer
 
 		private void SetupModel_cboGrammars ()
 		{
-			// Setup the combobox to handle storing/display of GrammerItem class
+			// Setup the combobox to handle storing/display of GrammarItem class
 			ListStore listStore = new Gtk.ListStore (typeof(GrammarItem), typeof(string));
 			cboGrammars.Model = listStore;
 			CellRendererText text = new CellRendererText (); 
@@ -259,7 +250,7 @@ namespace Irony.GrammarExplorer
 				_teEditor.Text = MyApp.Settings.Default.SourceSample;
 				txtSearch.Text = MyApp.Settings.Default.SearchPattern;
 				GrammarItemList grammars = GrammarItemList.FromXml (MyApp.Settings.Default.Grammars);
-				UpdateModelFromGrammerList (grammars, cboGrammars.Model as ListStore);
+				UpdateModelFromGrammarList (grammars, cboGrammars.Model as ListStore);
 				chkParserTrace.Active = MyApp.Settings.Default.EnableTrace;
 				chkDisableHili.Active = MyApp.Settings.Default.DisableHili;
 				chkAutoRefresh.Active = MyApp.Settings.Default.AutoRefresh;
@@ -291,7 +282,7 @@ namespace Irony.GrammarExplorer
 			MyApp.Settings.Default.Save ();
 		}
 
-		private void UpdateModelFromGrammerList (GrammarItemList list, ListStore listStore)
+		private void UpdateModelFromGrammarList (GrammarItemList list, ListStore listStore)
 		{
 			// Following crashes when not on main Window thread, which makes sense:
 			// listStore.Clear();
@@ -812,8 +803,8 @@ namespace Irony.GrammarExplorer
 		public void foobar (GrammarItemList grammarlist)
 		{
 			if (grammarlist != null) {
-				// Store the Grammer items from the dll in the combobox ListStore model
-				UpdateModelFromGrammerList (grammarlist, cboGrammars.Model as ListStore);
+				// Store the Grammar items from the dll in the combobox ListStore model
+				UpdateModelFromGrammarList (grammarlist, cboGrammars.Model as ListStore);
 				btnRefresh.Sensitive = false;
 				// auto-select the first grammar if no grammar currently selected
 				TreeIter ti;

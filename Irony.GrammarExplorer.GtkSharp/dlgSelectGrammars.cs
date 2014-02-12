@@ -30,7 +30,7 @@ using System.Reflection;
 using Irony.Parsing;
 using Irony.GrammarExplorer;
 
-namespace Irony.GrammerExplorer
+namespace Irony.GrammarExplorer
 {
 	public partial class dlgSelectGrammars : Gtk.Dialog
 	{

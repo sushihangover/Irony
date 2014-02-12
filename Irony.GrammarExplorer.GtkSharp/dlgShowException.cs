@@ -12,7 +12,7 @@
 using Gtk;
 using System;
 
-namespace Irony.GrammerExplorer
+namespace Irony.GrammarExplorer
 {
 	public partial class dlgShowException : Gtk.Dialog
 	{

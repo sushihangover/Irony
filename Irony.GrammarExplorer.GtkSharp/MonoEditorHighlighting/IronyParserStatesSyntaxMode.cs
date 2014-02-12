@@ -16,7 +16,6 @@ using Mono.TextEditor.Highlighting;
 using Mono.TextEditor;
 using System.Xml;
 using Irony.GrammarExplorer;
-using Irony.GrammerExplorer;
 using Gtk;
 
 namespace Irony.GrammarExplorer

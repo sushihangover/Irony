@@ -8,12 +8,12 @@
     <widget-library name="glade-sharp, Version=2.12.0.0, Culture=neutral, PublicKeyToken=35e10195dab3c99f" />
     <widget-library name="../Externals/Mono.TextEditor.dll" />
     <widget-library name="../Externals/Xwt.Gtk.dll" />
-    <widget-library name="../bin/Debug/Irony.GrammarExplorer.GtkSharp.exe" internal="true" />
+    <widget-library name="../bin/Release/Irony.GrammarExplorer.GtkSharp.exe" internal="true" />
   </import>
   <icon-factory>
     <icon-set id="IronyIcon">
       <source>
-        <property name="Image">resource:Irony.GrammerExplorer.Icons.IronyLogo.ico</property>
+        <property name="Image">resource:Irony.GrammarExplorer.Icons.IronyLogo.ico</property>
       </source>
     </icon-set>
   </icon-factory>
@@ -155,10 +155,10 @@
               <placeholder />
             </child>
             <child>
-              <widget class="Gtk.Label" id="lblGrammer">
+              <widget class="Gtk.Label" id="lblGrammar">
                 <property name="MemberName" />
                 <property name="Xpad">10</property>
-                <property name="LabelProp" translatable="yes">Grammer:</property>
+                <property name="LabelProp" translatable="yes">Grammar:</property>
               </widget>
               <packing>
                 <property name="Position">1</property>
@@ -241,6 +241,7 @@
                 <property name="CanFocus">True</property>
                 <property name="IsEditable">True</property>
                 <property name="InvisibleChar">●</property>
+                <signal name="Changed" handler="OnTxtSearchChanged" />
               </widget>
               <packing>
                 <property name="Position">8</property>
@@ -788,7 +789,7 @@
                       <widget class="Gtk.Label" id="label31">
                         <property name="MemberName" />
                         <property name="Xpad">10</property>
-                        <property name="LabelProp" translatable="yes">Grammer Comment:</property>
+                        <property name="LabelProp" translatable="yes">Grammar Comment:</property>
                       </widget>
                       <packing>
                         <property name="TopAttach">2</property>
@@ -938,7 +939,7 @@
             <child>
               <widget class="Gtk.Label" id="label11">
                 <property name="MemberName" />
-                <property name="LabelProp" translatable="yes">Grammer Info</property>
+                <property name="LabelProp" translatable="yes">Grammar Info</property>
               </widget>
               <packing>
                 <property name="type">tab</property>
@@ -963,7 +964,7 @@
             <child>
               <widget class="Gtk.Label" id="label12">
                 <property name="MemberName" />
-                <property name="LabelProp" translatable="yes">Grammer Errors</property>
+                <property name="LabelProp" translatable="yes">Grammar Errors</property>
               </widget>
               <packing>
                 <property name="type">tab</property>
@@ -1597,7 +1598,7 @@
       </widget>
     </child>
   </widget>
-  <widget class="Gtk.Dialog" id="Irony.GrammerExplorer.dlgSelectGrammars" design-size="400 300">
+  <widget class="Gtk.Dialog" id="Irony.GrammarExplorer.dlgSelectGrammars" design-size="400 300">
     <property name="MemberName" />
     <property name="Title" translatable="yes">Select Grammar(s)</property>
     <property name="TypeHint">Utility</property>
@@ -1718,7 +1719,7 @@
       </widget>
     </child>
   </widget>
-  <widget class="Gtk.Dialog" id="Irony.GrammerExplorer.dlgShowException" design-size="674 482">
+  <widget class="Gtk.Dialog" id="Irony.GrammarExplorer.dlgShowException" design-size="674 482">
     <property name="MemberName" />
     <property name="Title" translatable="yes">Exception</property>
     <property name="WindowPosition">CenterOnParent</property>

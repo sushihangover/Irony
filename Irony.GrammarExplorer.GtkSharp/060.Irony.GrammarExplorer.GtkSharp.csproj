@@ -7,7 +7,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{C88876BB-90D0-4841-8C9C-6F227C151F58}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>Irony.GrammerExplorer</RootNamespace>
+    <RootNamespace>Irony.GrammarExplorer</RootNamespace>
     <StartupObject>Irony.GrammarExplorer.MainClass</StartupObject>
     <AssemblyName>Irony.GrammarExplorer.GtkSharp</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -93,9 +93,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="dlgSelectGrammars.cs" />
-    <Compile Include="gtk-gui\Irony.GrammerExplorer.dlgSelectGrammars.cs" />
+    <Compile Include="gtk-gui\Irony.GrammarExplorer.dlgSelectGrammars.cs" />
     <Compile Include="dlgShowException.cs" />
-    <Compile Include="gtk-gui\Irony.GrammerExplorer.dlgShowException.cs" />
+    <Compile Include="gtk-gui\Irony.GrammarExplorer.dlgShowException.cs" />
     <Compile Include="Widgets\BoxCellRenderer.cs" />
     <Compile Include="Widgets\CairoHelper.cs" />
     <Compile Include="Widgets\GridView.cs" />

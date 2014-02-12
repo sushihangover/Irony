@@ -21,7 +21,7 @@ namespace Irony.GrammarExplorer
 		private global::Gtk.VBox vbox1;
 		private global::Gtk.MenuBar mbExplorer;
 		private global::Gtk.HBox hbGrammarOptions;
-		private global::Gtk.Label lblGrammer;
+		private global::Gtk.Label lblGrammar;
 		private global::Gtk.ComboBox cboGrammars;
 		private global::Gtk.ComboBox btnManageGrammars;
 		private global::Gtk.Button btnRefresh;
@@ -200,12 +200,12 @@ namespace Irony.GrammarExplorer
 			this.hbGrammarOptions.Name = "hbGrammarOptions";
 			this.hbGrammarOptions.Spacing = 6;
 			// Container child hbGrammarOptions.Gtk.Box+BoxChild
-			this.lblGrammer = new global::Gtk.Label ();
-			this.lblGrammer.Name = "lblGrammer";
-			this.lblGrammer.Xpad = 10;
-			this.lblGrammer.LabelProp = global::Mono.Unix.Catalog.GetString ("Grammer:");
-			this.hbGrammarOptions.Add (this.lblGrammer);
-			global::Gtk.Box.BoxChild w3 = ((global::Gtk.Box.BoxChild)(this.hbGrammarOptions [this.lblGrammer]));
+			this.lblGrammar = new global::Gtk.Label ();
+			this.lblGrammar.Name = "lblGrammar";
+			this.lblGrammar.Xpad = 10;
+			this.lblGrammar.LabelProp = global::Mono.Unix.Catalog.GetString ("Grammar:");
+			this.hbGrammarOptions.Add (this.lblGrammar);
+			global::Gtk.Box.BoxChild w3 = ((global::Gtk.Box.BoxChild)(this.hbGrammarOptions [this.lblGrammar]));
 			w3.Position = 1;
 			w3.Expand = false;
 			w3.Fill = false;
@@ -599,7 +599,7 @@ namespace Irony.GrammarExplorer
 			this.label31 = new global::Gtk.Label ();
 			this.label31.Name = "label31";
 			this.label31.Xpad = 10;
-			this.label31.LabelProp = global::Mono.Unix.Catalog.GetString ("Grammer Comment:");
+			this.label31.LabelProp = global::Mono.Unix.Catalog.GetString ("Grammar Comment:");
 			this.table6.Add (this.label31);
 			global::Gtk.Table.TableChild w42 = ((global::Gtk.Table.TableChild)(this.table6 [this.label31]));
 			w42.TopAttach = ((uint)(2));
@@ -686,7 +686,7 @@ namespace Irony.GrammarExplorer
 			// Notebook tab
 			this.label11 = new global::Gtk.Label ();
 			this.label11.Name = "label11";
-			this.label11.LabelProp = global::Mono.Unix.Catalog.GetString ("Grammer Info");
+			this.label11.LabelProp = global::Mono.Unix.Catalog.GetString ("Grammar Info");
 			this.tabBottom.SetTabLabel (this.vbox7, this.label11);
 			this.label11.ShowAll ();
 			// Container child tabBottom.Gtk.Notebook+NotebookChild
@@ -704,7 +704,7 @@ namespace Irony.GrammarExplorer
 			// Notebook tab
 			this.label12 = new global::Gtk.Label ();
 			this.label12.Name = "label12";
-			this.label12.LabelProp = global::Mono.Unix.Catalog.GetString ("Grammer Errors");
+			this.label12.LabelProp = global::Mono.Unix.Catalog.GetString ("Grammar Errors");
 			this.tabBottom.SetTabLabel (this.GtkScrolledWindow3, this.label12);
 			this.label12.ShowAll ();
 			// Container child tabBottom.Gtk.Notebook+NotebookChild
@@ -1092,6 +1092,7 @@ namespace Irony.GrammarExplorer
 			this.cboGrammars.Changed += new global::System.EventHandler (this.OnCboGrammarsChanged);
 			this.btnManageGrammars.Changed += new global::System.EventHandler (this.OnBtnManageGrammarsChanged);
 			this.btnRefresh.Clicked += new global::System.EventHandler (this.OnBtnRefreshClicked);
+			this.txtSearch.Changed += new global::System.EventHandler (this.OnTxtSearchChanged);
 			this.chkDisableHili.Toggled += new global::System.EventHandler (this.OnChkDisableHiliToggled);
 			this.fcbtnFileOpen.SelectionChanged += new global::System.EventHandler (this.OnFcbtnFileOpenSelectionChanged);
 			this.btnParse.Clicked += new global::System.EventHandler (this.OnBtnParseClicked);
