@@ -174,7 +174,7 @@ namespace Irony.GrammarExplorer
 			this.UIManager.InsertActionGroup (w1, 0);
 			this.AddAccelGroup (this.UIManager.AccelGroup);
 			this.Name = "Irony.GrammarExplorer.MainWindow";
-			this.Title = global::Mono.Unix.Catalog.GetString ("Irony Grammar Exploror Gtk#");
+			this.Title = global::Mono.Unix.Catalog.GetString ("Irony Grammar Explorer Gtk#");
 			this.Icon = global::Stetic.IconLoader.LoadIcon (this, "gtk-bold", global::Gtk.IconSize.LargeToolbar);
 			this.TypeHint = ((global::Gdk.WindowTypeHint)(5));
 			this.WindowPosition = ((global::Gtk.WindowPosition)(1));
